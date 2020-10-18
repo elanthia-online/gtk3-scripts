@@ -2267,12 +2267,12 @@ elsif cmd[0] =~ /^gui$/i
         if head =~ /file|game|author|tags/
           tmp.push String
         elsif head =~ /downloads/
-          tmp.push Fixnum
+          tmp.push Integer
         end
       }
       # Filename, Author, Game, Size, Last Update, Downloads, Rating, Votes, Tags, Comments
-      file_ls = Gtk::ListStore.new(String, String, String, String, Fixnum, String, Fixnum, Fixnum, String, Fixnum, String, String)
-      file_ls.set_sort_column_id(0, Gtk::SORT_ASCENDING)
+      file_ls = Gtk::ListStore.new(String, String, String, String, Integer, String, Integer, Integer, String, Integer, String, String)
+      file_ls.set_sort_column_id(0, :ascending)
       file_tv = Gtk::TreeView.new(file_ls)
       foo = Gtk::TreeViewColumn.new('Filename',    renderer, :text => 0, :background_set => 2)
       foo.sort_column_id = 0
@@ -2304,24 +2304,29 @@ elsif cmd[0] =~ /^gui$/i
       file_tv.headers_visible = true
 
       file_sw = Gtk::ScrolledWindow.new
-      file_sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS)
+      file_sw.set_policy(:automatic, :always)
       file_sw.add(file_tv)
 
       comments_tv = Gtk::TextView.new
       comments_sw = Gtk::ScrolledWindow.new
       comments_sw.add(comments_tv)
 
-      vbox = Gtk::VBox.new
+      vbox = Gtk::Box.new(:vertical, 0)
       vbox.pack_start(file_sw)
       vbox.pack_start(comments_sw)
 
       window              = Gtk::Window.new
       window.title        = 'Repository'
+	  window.set_icon(@default_icon)
       window.border_width = 5
       if load_window_height and load_window_width
         window.resize(load_window_width, load_window_height)
+	    file_sw.set_min_content_height(load_window_height/3*2)
+	    comments_sw.set_min_content_height(load_window_height/3)
       else
         window.resize(600, 800)
+		file_sw.set_min_content_height(535)
+	    comments_sw.set_min_content_height(265)
       end
       if load_window_position
         window.move(load_window_position[0], load_window_position[1])
@@ -2349,8 +2354,8 @@ elsif cmd[0] =~ /^gui$/i
     wait_until { window_done }
   ensure
     Settings['window_position'] = save_window_position if (save_window_position.class == Array) and (save_window_position[0].to_i >= 0) and (save_window_position[1].to_i >= 0)
-    Settings['window_width']    = save_window_width    if (save_window_width.class == Fixnum) and (save_window_width > 100)
-    Settings['window_height']   = save_window_height   if (save_window_height.class == Fixnum) and (save_window_height > 100)
+    Settings['window_width']    = save_window_width    if (save_window_width.class == Integer) and (save_window_width > 100)
+    Settings['window_height']   = save_window_height   if (save_window_height.class == Integer) and (save_window_height > 100)
     Gtk.queue { window.destroy }
   end
 

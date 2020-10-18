@@ -37,6 +37,8 @@ if $SAFE > 0
 	exit
 end
 
+$lnet_debug = false
+
 # fixme: option to separate private messages to familiar window
 # fixme: scrub
 
@@ -109,7 +111,8 @@ class LNet
 				# the plat_updater script redefines OpenSSL::SSL::VERIFY_PEER, disabling it for everyone
 				ssl_context.verify_mode = 1 # probably right
 			else
-				ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
+				ssl_context.verify_mode = 0 # probably right
+				#ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
 			end
 			socket = TCPSocket.open(hostname, port)
 			ssl_socket = OpenSSL::SSL::SSLSocket.new(socket, ssl_context)
@@ -515,7 +518,7 @@ class LNet
 							'Profession' => Stats.prof,
 							'Gender' => Stats.gender,
 							'Age' => Stats.age,
-							'Expr' => Stats.exp,
+							'Expr' => Stats.exp.to_s,
 							'Level' => XMLData.level,
 							'Strength' => Stats.str,
 							'Constitution' => Stats.con,
