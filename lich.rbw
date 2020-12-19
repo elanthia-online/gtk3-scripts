@@ -36,7 +36,7 @@
 # Lich is maintained by Matt Lowe (tillmen@lichproject.org)
 #
 
-LICH_VERSION = '4.6.56'
+LICH_VERSION = '4.6.58'
 TESTING = false
 
 if RUBY_VERSION !~ /^2/
@@ -544,12 +544,12 @@ end
 
 if ((RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)) or ENV['DISPLAY']
    begin
-      require 'gtk2'
+      require 'gtk3'
       HAVE_GTK = true
    rescue LoadError
       if (ENV['RUN_BY_CRON'].nil? or ENV['RUN_BY_CRON'] == 'false') and ARGV.empty? or ARGV.any? { |arg| arg =~ /^--gui$/ } or not $stdout.isatty
          if defined?(Win32)
-            r = Win32.MessageBox(:lpText => "Lich uses gtk2 to create windows, but it is not installed.  You can use Lich from the command line (ruby lich.rbw --help) or you can install gtk2 for a point and click interface.\n\nWould you like to install gtk2 now?", :lpCaption => "Lich v#{LICH_VERSION}", :uType => (Win32::MB_YESNO | Win32::MB_ICONQUESTION))
+            r = Win32.MessageBox(:lpText => "Lich uses gtk3 to create windows, but it is not installed.  You can use Lich from the command line (ruby lich.rbw --help) or you can install gtk2 for a point and click interface.\n\nWould you like to install gtk2 now?", :lpCaption => "Lich v#{LICH_VERSION}", :uType => (Win32::MB_YESNO | Win32::MB_ICONQUESTION))
             if r == Win32::IDIYES
                r = Win32.GetModuleFileName
                if r[:return] > 0
@@ -572,7 +572,7 @@ if ((RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)) or ENV['DI
                         # ShellExecuteEx failed: this seems to happen with an access denied error even while elevated on some random systems
                         r = Win32.ShellExecute(:lpOperation => verb, :lpFile => "#{ruby_bin_dir}\\gem.bat", :lpParameters => 'install cairo:1.14.3 gtk2:2.2.5 --source http://rubygems.org --no-ri --no-rdoc')
                         if r <= 32
-                           Win32.MessageBox(:lpText => "error: failed to start the gtk2 installer\n\nfailed command: Win32.ShellExecute(:lpOperation => #{verb.inspect}, :lpFile => \"#{ruby_bin_dir}\\gem.bat\", :lpParameters => \"install cairo:1.14.3 gtk2:2.2.5 --source http://rubygems.org --no-ri --no-rdoc\")\n\nerror code: #{Win32.GetLastError}", :lpCaption => "Lich v#{LICH_VERSION}", :uType => (Win32::MB_OK | Win32::MB_ICONERROR))
+                           Win32.MessageBox(:lpText => "error: failed to start the gtk3 installer\n\nfailed command: Win32.ShellExecute(:lpOperation => #{verb.inspect}, :lpFile => \"#{ruby_bin_dir}\\gem.bat\", :lpParameters => \"install cairo:1.14.3 gtk2:2.2.5 --source http://rubygems.org --no-ri --no-rdoc\")\n\nerror code: #{Win32.GetLastError}", :lpCaption => "Lich v#{LICH_VERSION}", :uType => (Win32::MB_OK | Win32::MB_ICONERROR))
                            exit
                         end
                         r = Win32.MessageBox(:lpText => "When the installer is finished, click OK to restart Lich.", :lpCaption => "Lich v#{LICH_VERSION}", :uType => Win32::MB_OKCANCEL)
@@ -593,11 +593,11 @@ if ((RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)) or ENV['DI
                   Win32.MessageBox(:lpText => "error: GetModuleFileName failed", :lpCaption => "Lich v#{LICH_VERSION}", :uType => (Win32::MB_OK | Win32::MB_ICONERROR))
                end
             else
-               # user doesn't want to install gtk2 gem
+               # user doesn't want to install gtk3 gem
             end
          else
-            # fixme: no gtk2 on Linux/Mac
-            puts "The gtk2 gem is not installed (or failed to load), you may need to: sudo gem install gtk2"
+            # fixme: no gtk3 on Linux/Mac
+        puts "The gtk3 gem is not installed (or failed to load), you may need to: sudo gem install gtk3"
          end
          exit
       else
@@ -612,43 +612,148 @@ else
 end
 
 if defined?(Gtk)
-   module Gtk
+  Gdk.module_eval do
+    define_deprecated_singleton_method :screen_height, :warn => "Gdk::screen_height is deprecated; use monitor methods instead" do |_self|
+      99999
+    end
+
+    define_deprecated_singleton_method :screen_width, :warn => "Gdk::screen_width is deprecated; use monitor methods instead" do |_self|
+      99999
+    end
+  end
+
+  Gtk::Drag.module_eval do
+    define_deprecated_const :TARGET_SAME_APP, "Gtk::TargetFlags::SAME_APP"
+    define_deprecated_const :DEST_DEFAULT_ALL, "Gtk::DestDefaults::ALL"
+  end
+
+  Gtk.module_eval do
+    # Deprecation updates to keep gtk3 mostly going in gtk2
+    define_deprecated_const(:ComboBoxEntry, nil)
+    define_deprecated_const(:Tooltips, nil)
+
+    Gtk::ComboBox.class_eval do
+      def append_text(text)
+        respond "'Gtk::ComboBox#append_text' is deprecated; use 'Gtk::ComboBoxText#append_text' instead"
+      end
+    end
+
+    class Gtk::ComboBoxEntry < Gtk::ComboBoxText
+      def initialize()
+        respond "'Gtk::ComboBoxEntry' is deprecated; use 'Gtk::ComboBoxText(:entry => true)' instead"
+        super(:entry => true)
+      end
+    end
+
+    Gtk::Entry.class_eval do
+      def set_text(text)
+        if text.nil?
+          respond "'Gtk::Entry#set_text' no longer accepts nil values; fix me"
+          text = ""
+        end
+        parent.set_text(text)
+        return self
+      end
+    end
+
+    Gtk::HBox.class_eval do
+      define_deprecated_singleton_method :new, :warn => "Use 'Gtk::Box.new(:horizontal, spacing)'." do |_self, homogeneous, spacing|
+        respond "'Gtk::Hbox' is deprecated; use 'Gtk::Box.new(:horizontal, spacing)'."
+        box = Gtk::Box.new(:horizontal, spacing)
+        box.set_homogeneous(homogeneous ? true : false)
+        box
+      end
+    end
+
+    Gtk::Notebook.class_eval do
+      def set_tab_border(border)
+        respond "'Gtk::Notebook:set_tab_border()' is deprecated; fix me"
+        # noop
+        return self
+      end
+    end
+
+    Gtk::ToggleButton.class_eval do
+      def set_active(active)
+        if active.nil?
+          respond "'Gtk::ToggleButton#set_active' no longer accepts nil values; fix me"
+          active = false
+        end
+        parent.set_active(active)
+        return self
+      end
+    end
+
+    class Gtk::Tooltips < Gtk::Tooltip
+      def enable
+        respond "'Gtk::Tooltips#enable' is deprecated; use 'Gtk::Tooltip' API instead"
+        # noop
+        return self
+      end
+
+      def set_tip(one = nil, two = nil, three = nil)
+        respond "'Gtk::Tooltips#set_tip' is deprecated; use 'Gtk::Tooltip' API instead"
+        # noop
+        return self
+      end
+    end
+
+    Gtk::VBox.class_eval do
+      define_deprecated_singleton_method :new, :warn => "Use 'Gtk::Box.new(:vertical, spacing)'." do |_self, homogeneous, spacing|
+        respond "'Gtk::VBox' is deprecated; use 'Gtk::Box.new(:vertical, spacing)' instead"
+        box = Gtk::Box.new(:vertical, spacing)
+        box.set_homogeneous(homogeneous ? true : false)
+        box
+      end
+    end
+
       # Calling Gtk API in a thread other than the main thread may cause random segfaults
-      def Gtk.queue &block
+    def Gtk.queue(&block)
          GLib::Timeout.add(1) {
             begin
                block.call
             rescue
                respond "error in Gtk.queue: #{$!}"
+          puts "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
                Lich.log "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
             rescue SyntaxError
                respond "error in Gtk.queue: #{$!}"
+          puts "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
                Lich.log "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
             rescue SystemExit
+          puts "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
                nil
             rescue SecurityError
                respond "error in Gtk.queue: #{$!}"
+          puts "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
                Lich.log "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
             rescue ThreadError
                respond "error in Gtk.queue: #{$!}"
+          puts "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
                Lich.log "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
             rescue SystemStackError
                respond "error in Gtk.queue: #{$!}"
+          puts "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
                Lich.log "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
             rescue Exception
                respond "error in Gtk.queue: #{$!}"
+          puts "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
                Lich.log "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
             rescue ScriptError
                respond "error in Gtk.queue: #{$!}"
+          puts "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
                Lich.log "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
             rescue LoadError
                respond "error in Gtk.queue: #{$!}"
+          puts "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
                Lich.log "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
             rescue NoMemoryError
                respond "error in Gtk.queue: #{$!}"
+          puts "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
                Lich.log "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
             rescue
                respond "error in Gtk.queue: #{$!}"
+          puts "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
                Lich.log "error in Gtk.queue: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
             end
             false # don't repeat timeout
@@ -3581,7 +3686,7 @@ class Map
    end
    def Map.[](val)
       Map.load unless @@loaded
-      if (val.class == Fixnum) or (val.class == Bignum) or val =~ /^[0-9]+$/
+    if (val.class == Integer) or (val.class == Bignum) or val =~ /^[0-9]+$/
          @@list[val.to_i]
       else
          chkre = /#{val.strip.sub(/\.$/, '').gsub(/\.(?:\.\.)?/, '|')}/i
@@ -4303,7 +4408,7 @@ class Map
                   end
                }
             end
-         elsif destination.class == Fixnum
+      elsif destination.class == Integer
             until pq.size == 0
                v = pq.shift
                break if v == destination
@@ -5301,7 +5406,7 @@ def checkstance(num=nil)
          echo "checkstance: invalid argument (#{num}).  Must be off/adv/for/neu/gua/def or 0-100"
          nil
       end
-   elsif (num.class == Fixnum) or (num =~ /^[0-9]+$/ and num = num.to_i)
+  elsif (num.class == Integer) or (num =~ /^[0-9]+$/ and num = num.to_i)
       XMLData.stance_value == num.to_i
    else
       echo "checkstance: invalid argument (#{num}).  Must be off/adv/for/neu/gua/def or 0-100"
@@ -5320,7 +5425,7 @@ end
 def checkencumbrance(string=nil)
    if string.nil?
       XMLData.encumbrance_text
-   elsif (string.class == Fixnum) or (string =~ /^[0-9]+$/ and string = string.to_i)
+  elsif (string.class == Integer) or (string =~ /^[0-9]+$/ and string = string.to_i)
       string <= XMLData.encumbrance_value
    else
       # fixme
@@ -5587,7 +5692,7 @@ end
 def cast(spell, target=nil, results_of_interest=nil)
    if spell.class == Spell
       spell.cast(target, results_of_interest)
-   elsif ( (spell.class == Fixnum) or (spell.to_s =~ /^[0-9]+$/) ) and (find_spell = Spell[spell.to_i])
+  elsif ((spell.class == Integer) or (spell.to_s =~ /^[0-9]+$/) ) and (find_spell = Spell[spell.to_i])
       find_spell.cast(target, results_of_interest)
    elsif (spell.class == String) and (find_spell = Spell[spell])
       find_spell.cast(target, results_of_interest)
@@ -5627,7 +5732,7 @@ end
 
 def matchtimeout(secs, *strings)
    unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting...") ; Thread.current.kill ; return false end
-   unless (secs.class == Float || secs.class == Fixnum)
+  unless (secs.class == Float || secs.class == Integer)
       echo('matchtimeout error! You appear to have given it a string, not a #! Syntax:  matchtimeout(30, "You stand up")')
       return false
    end
@@ -6539,8 +6644,8 @@ def sf_to_wiz(line)
       if line =~ /<preset id='speech'>(.*?)<\/preset>/m
          line = line.sub(/<preset id='speech'>.*?<\/preset>/m, "#{$speech_highlight_start}#{$1}#{$speech_highlight_end}")
       end
-      if line =~ /<pushStream id="thoughts"[^>]*>(?:<a[^>]*>)?([A-Z][a-z]+)(?:<\/a>)?\s*([\s\[\]\(\)A-z]+)?:(.*?)<popStream\/>/m
-         line = line.sub(/<pushStream id="thoughts"[^>]*>(?:<a[^>]*>)?[A-Z][a-z]+(?:<\/a>)?\s*[\s\[\]\(\)A-z]+:.*?<popStream\/>/m, "You hear the faint thoughts of #{$1} echo in your mind:\r\n#{$2}#{$3}")
+      if line =~ /<pushStream id="thoughts"[^>]*>(\[[^\\]+\])?\s*(?:<a[^>]*>)?([A-Z][a-z]+)(?:<\/a>)?\s*([\s\[\]\(\)A-z]+)?(?:\:|thinks, )(.*?)<popStream\/>/m
+ line = line.sub(/<pushStream id="thoughts"[^>]*>(?:\[[^\\]+\]\s*)?(?:<a[^>]*>)?[A-Z][a-z]+(?:<\/a>)?\s*([\s\[\]\(\)A-z]+)?(?:\:|thinks, )(.*?)<popStream\/>/m, "You hear the faint thoughts of #{$1}#{'-' if $1}#{$2} echo in your mind:\r\n#{$3}#{$4}")
       end
       if line =~ /<pushStream id="voln"[^>]*>\[Voln \- (?:<a[^>]*>)?([A-Z][a-z]+)(?:<\/a>)?\]\s*(".*")[\r\n]*<popStream\/>/m
          line = line.sub(/<pushStream id="voln"[^>]*>\[Voln \- (?:<a[^>]*>)?([A-Z][a-z]+)(?:<\/a>)?\]\s*(".*")[\r\n]*<popStream\/>/m, "The Symbol of Thought begins to burn in your mind and you hear #{$1} thinking, #{$2}\r\n")
@@ -6990,7 +7095,7 @@ module Buffer
       @@streams[Thread.current.object_id]
    end
    def Buffer.streams=(val)
-      if (val.class != Fixnum) or ((val & 63) == 0)
+    if (val.class != Integer) or ((val & 63) == 0)
          respond "--- Lich: error: invalid streams value\n\t#{$!.caller[0..2].join("\n\t")}"
          return nil
       end
@@ -8026,7 +8131,7 @@ module Games
             Spell.load unless @@loaded
             if val.class == Spell
                val
-            elsif (val.class == Fixnum) or (val.class == String and val =~ /^[0-9]+$/)
+        elsif (val.class == Integer) or (val.class == String and val =~ /^[0-9]+$/)
                @@list.find { |spell| spell.num == val.to_i }
             else
                val = Regexp.escape(val)
@@ -8441,7 +8546,7 @@ module Games
                      cast_cmd += ' target'
                   elsif target.class == GameObj
                      cast_cmd += " ##{target.id}"
-                  elsif target.class == Fixnum
+            elsif target.class == Integer
                      cast_cmd += " ##{target}"
                   else
                      cast_cmd += " #{target}"
@@ -10727,7 +10832,8 @@ if defined?(Gtk)
    end
    begin
       Gtk.queue {
-         Gtk::Window.default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
+        @@default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
+#		 dialog.set_icon(default_icon)
       }
    rescue
       nil # fixme
@@ -10901,13 +11007,14 @@ main_thread = Thread.new {
       save_entry_data = false
       done = false
       Gtk.queue {
-
+#		 default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
          login_server = nil
          window = nil
          install_tab_loaded = false
 
          msgbox = proc { |msg|
             dialog = Gtk::MessageDialog.new(window, Gtk::Dialog::DESTROY_WITH_PARENT, Gtk::MessageDialog::QUESTION, Gtk::MessageDialog::BUTTONS_CLOSE, msg)
+#			dialog.set_icon(default_icon)
             dialog.run
             dialog.destroy
          }
@@ -10916,28 +11023,28 @@ main_thread = Thread.new {
          # quick game entry tab
          #
          if entry_data.empty?
-            box = Gtk::HBox.new
-            box.pack_start(Gtk::Label.new('You have no saved login info.'), true, true, 0)
-            quick_game_entry_tab = Gtk::VBox.new
+        box = Gtk::Box.new(:horizontal)
+        box.pack_start(Gtk::Label.new('You have no saved login info.'), :expand => true, :fill => true, :padding => 0)
+        quick_game_entry_tab = Gtk::Box.new(:vertical)
             quick_game_entry_tab.border_width = 5
-            quick_game_entry_tab.pack_start(box, true, true, 0)
+        quick_game_entry_tab.pack_start(box, :expand => true, :fill => true, :padding => 0)
          else
-            quick_box    = Gtk::VBox.new
-                last_user_id = nil
+			quick_box = Gtk::Box.new(:vertical)
+            last_user_id = nil
             entry_data.each { |login_info|
                     if login_info[:user_id].downcase != last_user_id
                         last_user_id = login_info[:user_id].downcase
-                        quick_box.pack_start(Gtk::Label.new("Account: " + last_user_id), false, false, 6)
+            quick_box.pack_start(Gtk::Label.new("Account: " + last_user_id), :expand => false, :fill => false, :padding => 6)
                     end
                     
                label = Gtk::Label.new("#{login_info[:char_name]} (#{login_info[:game_name]}, #{login_info[:frontend]})")
-               play_button = Gtk::Button.new('Play')
-               remove_button = Gtk::Button.new('X')
-               char_box = Gtk::HBox.new
-               char_box.pack_start(label, false, false, 6)
-               char_box.pack_end(remove_button, false, false, 0)
-               char_box.pack_end(play_button, false, false, 0)
-               quick_box.pack_start(char_box, false, false, 0)
+			play_button = Gtk::Button.new(:label => 'Play')
+			remove_button = Gtk::Button.new(:label => 'X')
+          char_box = Gtk::Box.new(:horizontal)
+          char_box.pack_start(label, :expand => false, :fill => false, :padding => 6)
+          char_box.pack_end(remove_button, :expand => false, :fill => false, :padding => 0)
+          char_box.pack_end(play_button, :expand => false, :fill => false, :padding => 0)
+          quick_box.pack_start(char_box, :expand => false, :fill => false, :padding => 0)
                play_button.signal_connect('clicked') {
                   play_button.sensitive = false
                   begin
@@ -11039,12 +11146,12 @@ main_thread = Thread.new {
             quick_vp.add(quick_box)
 
             quick_sw = Gtk::ScrolledWindow.new
-            quick_sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS)
+			quick_sw.set_policy(:automatic, :always)
             quick_sw.add(quick_vp)
 
-            quick_game_entry_tab = Gtk::VBox.new
+			quick_game_entry_tab = Gtk::Box.new(:vertical)
             quick_game_entry_tab.border_width = 5
-            quick_game_entry_tab.pack_start(quick_sw, true, true, 5)
+			quick_game_entry_tab.pack_start(quick_sw, :expand => true, :fill => true, :padding => 5)
          end
 
 =begin
@@ -11416,22 +11523,22 @@ main_thread = Thread.new {
          pass_entry.visibility = false
 
          login_table = Gtk::Table.new(2, 2, false)
-         login_table.attach(Gtk::Label.new('User ID:'), 0, 1, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         login_table.attach(user_id_entry, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         login_table.attach(Gtk::Label.new('Password:'), 0, 1, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         login_table.attach(pass_entry, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
+      login_table.attach(Gtk::Label.new('User ID:'), 0, 1, 0, 1, Gtk::AttachOptions::EXPAND | Gtk::AttachOptions::FILL, Gtk::AttachOptions::EXPAND | Gtk::AttachOptions::FILL, 5, 5)
+      login_table.attach(user_id_entry, 1, 2, 0, 1, Gtk::AttachOptions::EXPAND | Gtk::AttachOptions::FILL, Gtk::AttachOptions::EXPAND | Gtk::AttachOptions::FILL, 5, 5)
+      login_table.attach(Gtk::Label.new('Password:'), 0, 1, 1, 2, Gtk::AttachOptions::EXPAND | Gtk::AttachOptions::FILL, Gtk::AttachOptions::EXPAND | Gtk::AttachOptions::FILL, 5, 5)
+      login_table.attach(pass_entry, 1, 2, 1, 2, Gtk::AttachOptions::EXPAND | Gtk::AttachOptions::FILL, Gtk::AttachOptions::EXPAND | Gtk::AttachOptions::FILL, 5, 5)
 
-         disconnect_button = Gtk::Button.new(' Disconnect ')
+      disconnect_button = Gtk::Button.new(:label => ' Disconnect ')
          disconnect_button.sensitive = false
 
-         connect_button = Gtk::Button.new(' Connect ')
+      connect_button = Gtk::Button.new(:label => ' Connect ')
 
-         login_button_box = Gtk::HBox.new
-         login_button_box.pack_end(connect_button, false, false, 5)
-         login_button_box.pack_end(disconnect_button, false, false, 5)
+      login_button_box = Gtk::Box.new(:horizontal)
+      login_button_box.pack_end(connect_button, :expand => false, :fill => false, :padding => 5)
+      login_button_box.pack_end(disconnect_button, :expand => false, :fill => false, :padding => 5)
 
          liststore = Gtk::ListStore.new(String, String, String, String)
-         liststore.set_sort_column_id(1, Gtk::SORT_ASCENDING)
+      liststore.set_sort_column_id(1, :ascending)
 
          renderer = Gtk::CellRendererText.new
 #         renderer.background = 'white'
@@ -11448,19 +11555,19 @@ main_thread = Thread.new {
          treeview.append_column(col)
 
          sw = Gtk::ScrolledWindow.new
-         sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS)
+      sw.set_policy(:automatic, :always)
          sw.add(treeview)
 
-         wizard_option = Gtk::RadioButton.new('Wizard')
-         stormfront_option = Gtk::RadioButton.new(wizard_option, 'Stormfront')
-         avalon_option = Gtk::RadioButton.new(wizard_option, 'Avalon')
-         suks_option = Gtk::RadioButton.new(wizard_option, 'suks')
+      wizard_option = Gtk::RadioButton.new(:label => 'Wizard')
+      stormfront_option = Gtk::RadioButton.new(:label => 'Stormfront', :member => wizard_option)
+      avalon_option = Gtk::RadioButton.new(:label => 'Avalon', :member => wizard_option)
+      suks_option = Gtk::RadioButton.new(:label => 'suks', :member => wizard_option)
 
-         frontend_box = Gtk::HBox.new(false, 10)
-         frontend_box.pack_start(wizard_option, false, false, 0)
-         frontend_box.pack_start(stormfront_option, false, false, 0)
+      frontend_box = Gtk::Box.new(:horizontal, 10)
+      frontend_box.pack_start(wizard_option, :expand => false, :fill => false, :padding => 0)
+      frontend_box.pack_start(stormfront_option, :expand => false, :fill => false, :padding => 0)
          if RUBY_PLATFORM =~ /darwin/i
-            frontend_box.pack_start(avalon_option, false, false, 0)
+        frontend_box.pack_start(avalon_option, :expand => false, :fill => false, :padding => 0)
          end
          #frontend_box.pack_start(suks_option, false, false, 0)
 
@@ -11476,23 +11583,23 @@ main_thread = Thread.new {
 
          make_quick_option = Gtk::CheckButton.new('Save this info for quick game entry')
 
-         play_button = Gtk::Button.new(' Play ')
+      play_button = Gtk::Button.new(:label => ' Play ')
          play_button.sensitive = false
 
-         play_button_box = Gtk::HBox.new
-         play_button_box.pack_end(play_button, false, false, 5)
+      play_button_box = Gtk::Box.new(:horizontal)
+      play_button_box.pack_end(play_button, :expand => false, :fill => false, :padding => 5)
 
-         game_entry_tab = Gtk::VBox.new
+      game_entry_tab = Gtk::Box.new(:vertical)
          game_entry_tab.border_width = 5
-         game_entry_tab.pack_start(login_table, false, false, 0)
-         game_entry_tab.pack_start(login_button_box, false, false, 0)
-         game_entry_tab.pack_start(sw, true, true, 3)
-         game_entry_tab.pack_start(frontend_box, false, false, 3)
-         game_entry_tab.pack_start(custom_launch_option, false, false, 3)
-         game_entry_tab.pack_start(custom_launch_entry, false, false, 3)
-         game_entry_tab.pack_start(custom_launch_dir, false, false, 3)
-         game_entry_tab.pack_start(make_quick_option, false, false, 3)
-         game_entry_tab.pack_start(play_button_box, false, false, 3)
+      game_entry_tab.pack_start(login_table, :expand => false, :fill => false, :padding => 0)
+      game_entry_tab.pack_start(login_button_box, :expand => false, :fill => false, :padding => 0)
+      game_entry_tab.pack_start(sw, :expand => true, :fill => true, :padding => 3)
+      game_entry_tab.pack_start(frontend_box, :expand => false, :fill => false, :padding => 3)
+      game_entry_tab.pack_start(custom_launch_option, :expand => false, :fill => false, :padding => 3)
+      game_entry_tab.pack_start(custom_launch_entry, :expand => false, :fill => false, :padding => 3)
+      game_entry_tab.pack_start(custom_launch_dir, :expand => false, :fill => false, :padding => 3)
+      game_entry_tab.pack_start(make_quick_option, :expand => false, :fill => false, :padding => 3)
+      game_entry_tab.pack_start(play_button_box, :expand => false, :fill => false, :padding => 3)
 
          custom_launch_option.signal_connect('toggled') {
             custom_launch_entry.visible = custom_launch_option.active?
@@ -11699,49 +11806,49 @@ main_thread = Thread.new {
          # link tab
          #
 
-         link_to_web_button = Gtk::Button.new('Link to Website')
-         unlink_from_web_button = Gtk::Button.new('Unlink from Website')
-         web_button_box = Gtk::HBox.new
-         web_button_box.pack_start(link_to_web_button, true, true, 5)
-         web_button_box.pack_start(unlink_from_web_button, true, true, 5)
+      link_to_web_button = Gtk::Button.new(:label => 'Link to Website')
+      unlink_from_web_button = Gtk::Button.new(:label => 'Unlink from Website')
+      web_button_box = Gtk::Box.new(:horizontal)
+      web_button_box.pack_start(link_to_web_button, :expand => true, :fill => true, :padding => 5)
+      web_button_box.pack_start(unlink_from_web_button, :expand => true, :fill => true, :padding => 5)
          
          web_order_label = Gtk::Label.new
          web_order_label.text = "Unknown"
 
-         web_box = Gtk::VBox.new
-         web_box.pack_start(web_order_label, true, true, 5)
-         web_box.pack_start(web_button_box, true, true, 5)
+      web_box = Gtk::Box.new(:vertical)
+      web_box.pack_start(web_order_label, :expand => true, :fill => true, :padding => 5)
+      web_box.pack_start(web_button_box, :expand => true, :fill => true, :padding => 5)
 
          web_frame = Gtk::Frame.new('Website Launch Chain')
          web_frame.add(web_box)
 
-         link_to_sge_button = Gtk::Button.new('Link to SGE')
-         unlink_from_sge_button = Gtk::Button.new('Unlink from SGE')
-         sge_button_box = Gtk::HBox.new
-         sge_button_box.pack_start(link_to_sge_button, true, true, 5)
-         sge_button_box.pack_start(unlink_from_sge_button, true, true, 5)
+      link_to_sge_button = Gtk::Button.new(:label => 'Link to SGE')
+      unlink_from_sge_button = Gtk::Button.new(:label => 'Unlink from SGE')
+      sge_button_box = Gtk::Box.new(:horizontal)
+      sge_button_box.pack_start(link_to_sge_button, :expand => true, :fill => true, :padding => 5)
+      sge_button_box.pack_start(unlink_from_sge_button, :expand => true, :fill => true, :padding => 5)
          
          sge_order_label = Gtk::Label.new
          sge_order_label.text = "Unknown"
 
-         sge_box = Gtk::VBox.new
-         sge_box.pack_start(sge_order_label, true, true, 5)
-         sge_box.pack_start(sge_button_box, true, true, 5)
+      sge_box = Gtk::Box.new(:vertical)
+      sge_box.pack_start(sge_order_label, :expand => true, :fill => true, :padding => 5)
+      sge_box.pack_start(sge_button_box, :expand => true, :fill => true, :padding => 5)
 
          sge_frame = Gtk::Frame.new('SGE Launch Chain')
          sge_frame.add(sge_box)
 
 
-         refresh_button = Gtk::Button.new(' Refresh ')
+         refresh_button = Gtk::Button.new(:label => ' Refresh ')
 
-         refresh_box = Gtk::HBox.new
-         refresh_box.pack_end(refresh_button, false, false, 5)
+      refresh_box = Gtk::Box.new(:horizontal)
+      refresh_box.pack_end(refresh_button, :expand => false, :fill => false, :padding => 5)
 
-         install_tab = Gtk::VBox.new
+      install_tab = Gtk::Box.new(:vertical)
          install_tab.border_width = 5
-         install_tab.pack_start(web_frame, false, false, 5)
-         install_tab.pack_start(sge_frame, false, false, 5)
-         install_tab.pack_start(refresh_box, false, false, 5)
+      install_tab.pack_start(web_frame, :expand => false, :fill => false, :padding => 5)
+      install_tab.pack_start(sge_frame, :expand => false, :fill => false, :padding => 5)
+      install_tab.pack_start(refresh_box, :expand => false, :fill => false, :padding => 5)
 
          refresh_button.signal_connect('clicked') {
             install_tab_loaded = true
@@ -11977,6 +12084,8 @@ main_thread = Thread.new {
          #
 
          notebook = Gtk::Notebook.new
+#		 default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
+#		 notebook.set_icon(default_icon)
          notebook.append_page(quick_game_entry_tab, Gtk::Label.new('Quick Game Entry'))
          notebook.append_page(game_entry_tab, Gtk::Label.new('Game Entry'))
          notebook.append_page(install_tab, Gtk::Label.new('Link'))
@@ -12027,7 +12136,9 @@ main_thread = Thread.new {
          }
 
          window = Gtk::Window.new
-         window.title = "Lich v#{LICH_VERSION}"
+#		 default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
+		 window.set_icon(@@default_icon)
+		 window.title = "Lich v#{LICH_VERSION}"
          window.border_width = 5
          window.add(notebook)
          window.signal_connect('delete_event') { window.destroy; done = true }
