@@ -45,15 +45,14 @@ end
 
 if Settings['scripts'].nil?
   Settings['scripts'] = Array.new
+  Settings['scripts'].push(:name => 'xnarost', :args => [])
+  Settings['scripts'].push(:name => 'alias', :args => [])
   Settings['scripts'].push(:name => 'lnet', :args => [])
-  Settings['scripts'].push(:name => 'go2', :args => [])
-  Settings['scripts'].push(:name => 'narost', :args => []) if gtk_version < "3"
-  Settings['scripts'].push(:name => 'alias', :args => []) if gtk_version < "3"
 end
 
 if script.vars.empty?
-  # Wait after login then unset lich updatable before any other action (GTK3 option only)
-  start_script 'repository', ['unset-lich-updatable'] if gtk_version > "3"
+  # Unset lich updatable before any other action (GTK3 option only)
+  start_script 'repository', ['unset-lich-updatable'] if gtk_version.chr == '3'
   sleep 2.5
   did_something = false
   run_info = false

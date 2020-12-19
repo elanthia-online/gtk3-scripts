@@ -34,9 +34,11 @@
 
 #
 # Lich is maintained by Matt Lowe (tillmen@lichproject.org)
+# Lich version 5.0.1 is modified by Doug / Xhy and maintained by Elanthia Online
+# Lich version 5.0 and higher is intended for use only with GTK3-bindings in Ruby
 #
 
-LICH_VERSION = '4.6.58'
+LICH_VERSION = '5.0.1'
 TESTING = false
 
 if RUBY_VERSION !~ /^2/
@@ -759,6 +761,11 @@ if defined?(Gtk)
             false # don't repeat timeout
          }
       end
+   end
+
+   # Define a sleep function for GTK to call while idle that lets GTK give up control of the processing for main_thread
+   def gtk_sleep_while_idle()
+      sleep 0.1
    end
 end
 
@@ -8726,6 +8733,7 @@ module Games
       end
 
       class CMan
+		 @@acrobats_leap		  ||= 0			## added by Doug for Cman update
          @@armor_spike_focus      ||= 0
          @@bearhug                ||= 0
          @@berserk                ||= 0
@@ -8745,6 +8753,7 @@ module Games
          @@cutthroat              ||= 0
          @@dirtkick               ||= 0
          @@disarm_weapon          ||= 0
+		 @@dislodge				  ||= 0			## added by Doug for Cman update
          @@divert                 ||= 0
          @@duck_and_weave         ||= 0
          @@dust_shroud            ||= 0
@@ -8764,7 +8773,7 @@ module Games
          @@ki_focus               ||= 0
          @@kick_mastery           ||= 0
          @@mighty_blow            ||= 0
-         @@multi_fire             ||= 0
+#         @@multi_fire             ||= 0		## removed by Doug for Cman update
          @@mystic_strike          ||= 0
          @@parry_mastery          ||= 0
          @@perfect_self           ||= 0
@@ -8773,6 +8782,7 @@ module Games
          @@punch_mastery          ||= 0
          @@quickstrike            ||= 0
          @@rolling_krynch_stance  ||= 0
+		 @@shadow_dance			  ||= 0			## added by Doug for Cman update
          @@shadow_mastery         ||= 0
          @@shield_bash            ||= 0
          @@shield_charge          ||= 0
@@ -8799,14 +8809,16 @@ module Games
          @@tackle                 ||= 0
          @@tainted_bond           ||= 0
          @@trip                   ||= 0
-         @@truehand               ||= 0
+#         @@truehand               ||= 0		## removed by Doug for Cman update
+		 @@true_strike			  ||= 0			## added by Doug for Cman update
          @@twin_hammerfists       ||= 0
          @@unarmed_specialist     ||= 0
          @@weapon_bonding         ||= 0
          @@vanish                 ||= 0
          @@whirling_dervish       ||= 0
 
-         def CMan.armor_spike_focus;        @@armor_spike_focus;      end
+         def CMan.acrobats_leap;			@@acrobats_leap;		  end  ## Cman update add by Doug
+		 def CMan.armor_spike_focus;        @@armor_spike_focus;      end
          def CMan.bearhug;                  @@bearhug;                end
          def CMan.berserk;                  @@berserk;                end
          def CMan.block_mastery;            @@block_mastery;          end
@@ -8825,7 +8837,8 @@ module Games
          def CMan.cutthroat;                @@cutthroat;              end
          def CMan.dirtkick;                 @@dirtkick;               end
          def CMan.disarm_weapon;            @@disarm_weapon;          end
-         def CMan.divert;                   @@divert;                 end
+         def CMan.dislodge;					@@dislodge;				  end	## Cman update add by Doug
+		 def CMan.divert;                   @@divert;                 end
          def CMan.duck_and_weave;           @@duck_and_weave;         end
          def CMan.dust_shroud;              @@dust_shroud;            end
          def CMan.evade_mastery;            @@evade_mastery;          end
@@ -8844,7 +8857,7 @@ module Games
          def CMan.ki_focus;                 @@ki_focus;               end
          def CMan.kick_mastery;             @@kick_mastery;           end
          def CMan.mighty_blow;              @@mighty_blow;            end
-         def CMan.multi_fire;               @@multi_fire;             end
+#         def CMan.multi_fire;               @@multi_fire;             end	## Cman update remove by Doug
          def CMan.mystic_strike;            @@mystic_strike;          end
          def CMan.parry_mastery;            @@parry_mastery;          end
          def CMan.perfect_self;             @@perfect_self;           end
@@ -8853,7 +8866,8 @@ module Games
          def CMan.punch_mastery;            @@punch_mastery;          end
          def CMan.quickstrike;              @@quickstrike;            end
          def CMan.rolling_krynch_stance;    @@rolling_krynch_stance;  end
-         def CMan.shadow_mastery;           @@shadow_mastery;         end
+         def CMan.shadow_dance;				@@shadow_dance;			  end	## Cman update add by Doug
+		 def CMan.shadow_mastery;           @@shadow_mastery;         end
          def CMan.shield_bash;              @@shield_bash;            end
          def CMan.shield_charge;            @@shield_charge;          end
          def CMan.side_by_side;             @@side_by_side;           end
@@ -8879,14 +8893,16 @@ module Games
          def CMan.tackle;                   @@tackle;                 end
          def CMan.tainted_bond;             @@tainted_bond;           end
          def CMan.trip;                     @@trip;                   end
-         def CMan.truehand;                 @@truehand;               end
+#         def CMan.truehand;                 @@truehand;               end	## Cman update remove by Doug
+		 def CMan.true_strike;				@@true_strike;			  end	## Cman update add by Doug
          def CMan.twin_hammerfists;         @@twin_hammerfists;       end
          def CMan.unarmed_specialist;       @@unarmed_specialist;     end
          def CMan.vanish;                   @@vanish;                 end
          def CMan.weapon_bonding;           @@weapon_bonding;         end
          def CMan.whirling_dervish;         @@whirling_dervish;       end
 
-         def CMan.armor_spike_focus=(val);        @@armor_spike_focus=val;      end
+         def CMan.acrobats_leap=(val);			  @@acrobats_leap=val;			end	## add by Doug
+		 def CMan.armor_spike_focus=(val);        @@armor_spike_focus=val;      end
          def CMan.bearhug=(val);                  @@bearhug=val;                end
          def CMan.berserk=(val);                  @@berserk=val;                end
          def CMan.block_mastery=(val);            @@block_mastery=val;          end
@@ -8905,6 +8921,7 @@ module Games
          def CMan.cutthroat=(val);                @@cutthroat=val;              end
          def CMan.dirtkick=(val);                 @@dirtkick=val;               end
          def CMan.disarm_weapon=(val);            @@disarm_weapon=val;          end
+		 def CMan.dislodge=(val);				  @@dislodge=val;				end	## add by Doug
          def CMan.divert=(val);                   @@divert=val;                 end
          def CMan.duck_and_weave=(val);           @@duck_and_weave=val;         end
          def CMan.dust_shroud=(val);              @@dust_shroud=val;            end
@@ -8924,7 +8941,7 @@ module Games
          def CMan.ki_focus=(val);                 @@ki_focus=val;               end
          def CMan.kick_mastery=(val);             @@kick_mastery=val;           end
          def CMan.mighty_blow=(val);              @@mighty_blow=val;            end
-         def CMan.multi_fire=(val);               @@multi_fire=val;             end
+#         def CMan.multi_fire=(val);               @@multi_fire=val;             end	## Remove by Doug
          def CMan.mystic_strike=(val);            @@mystic_strike=val;          end
          def CMan.parry_mastery=(val);            @@parry_mastery=val;          end
          def CMan.perfect_self=(val);             @@perfect_self=val;           end
@@ -8933,6 +8950,7 @@ module Games
          def CMan.punch_mastery=(val);            @@punch_mastery=val;          end
          def CMan.quickstrike=(val);              @@quickstrike=val;            end
          def CMan.rolling_krynch_stance=(val);    @@rolling_krynch_stance=val;  end
+		 def CMan.shadow_dance=(val);			  @@shadow_dance=val;			end	## add by Doug
          def CMan.shadow_mastery=(val);           @@shadow_mastery=val;         end
          def CMan.shield_bash=(val);              @@shield_bash=val;            end
          def CMan.shield_charge=(val);            @@shield_charge=val;          end
@@ -8959,7 +8977,8 @@ module Games
          def CMan.tackle=(val);                   @@tackle=val;                 end
          def CMan.tainted_bond=(val);             @@tainted_bond=val;           end
          def CMan.trip=(val);                     @@trip=val;                   end
-         def CMan.truehand=(val);                 @@truehand=val;               end
+#         def CMan.truehand=(val);                 @@truehand=val;               end ## remove by Doug
+		 def CMan.true_strike=(val);			  @@true_strike=val;			end	## add by Doug
          def CMan.twin_hammerfists=(val);         @@twin_hammerfists=val;       end
          def CMan.unarmed_specialist=(val);       @@unarmed_specialist=val;     end
          def CMan.vanish=(val);                   @@vanish=val;                 end
@@ -10832,8 +10851,13 @@ if defined?(Gtk)
    end
    begin
       Gtk.queue {
-        @@default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
+        @default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
 #		 dialog.set_icon(default_icon)
+
+         # Add a function to call for when GTK is idle
+         Gtk.idle_add do
+            gtk_sleep_while_idle
+         end
       }
    rescue
       nil # fixme
@@ -11100,6 +11124,8 @@ main_thread = Thread.new {
                                  launch_data = response.sub(/^L\tOK\t/, '').split("\t")
                                  if login_info[:frontend] == 'wizard'
                                     launch_data.collect! { |line| line.sub(/GAMEFILE=.+/, 'GAMEFILE=WIZARD.EXE').sub(/GAME=.+/, 'GAME=WIZ').sub(/FULLGAMENAME=.+/, 'FULLGAMENAME=Wizard Front End') }
+								 elsif login_info[:frontend] == 'avalon'
+                                    launch_data.collect! { |line| line.sub(/GAME=.+/, 'GAME=AVALON') }
                                  end
                                  if login_info[:custom_launch]
                                     launch_data.push "CUSTOMLAUNCH=#{login_info[:custom_launch]}"
@@ -12137,13 +12163,14 @@ main_thread = Thread.new {
 
          window = Gtk::Window.new
 #		 default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
-		 window.set_icon(@@default_icon)
+		 window.set_icon(@default_icon)
 		 window.title = "Lich v#{LICH_VERSION}"
          window.border_width = 5
          window.add(notebook)
          window.signal_connect('delete_event') { window.destroy; done = true }
-         window.default_width = 400
-
+         window.default_width = 425
+		 window.default_height = 450
+		 
          window.show_all
 
          custom_launch_entry.visible = false
