@@ -10858,7 +10858,6 @@ if defined?(Gtk)
          Gtk.idle_add do
             gtk_sleep_while_idle
          end
-
       }
    rescue
       nil # fixme

@@ -1,0 +1,446 @@
+=begin
+	Before using this script type ;thiefwatch setup and complete each line. Once setup start the script and it will close every container you specified in setup, afterwards it will run in the background and 10 seconds after you
+	open a container you listed in setup it will close that container. Additionally	it will warn you when a thief you have specified in setup is in the room and it will automatically WATCH said thief. No further warnings or
+	WATCHing will happen until the game automatically has you stop watching that particular thief, which happens a few seconds after the rogue leaves the room or hides.
+
+	Stopping the script will open all containers you have listed in setup.
+
+	Option to automatically have script open correct container before attempting to get an item when you type "get my <item name>."
+
+	Type "bankrun" at anytime while script is running to head to the nearest bank, deposit your silvers and return you to your original room.
+
+	Script automatically keeps tracks of your silvers and if it notices silvers are missing with no explanation it will inform you that they were possibly stolen, informing you of the possible presence of a thief
+	without actually seeing the thief in action.
+
+	Author: Tgo01
+	Version 7
+
+=end
+
+(thief = nil;container_one_open = nil;container_two_open = nil;container_three_open = nil;container_four_open = nil;container_five_open = nil;container_six_open = nil;one_time = Time.now;two_time = Time.now;three_time = Time.now;four_time = Time.now;five_time = Time.now;six_time = Time.now;watching_thief = "no";stuff = Array.new;opened_container = nil;get_item = nil;opened_container1 = nil;silvers = nil;silver_time = Time.now;my_room = nil;wealth = nil;discrepancy = nil;check_silvers = nil;first_check = true;number_of_items_before = nil;number_of_items_after = nil;discrepancy_items = nil;first_item_check = true)
+
+setup = proc{
+	Gtk.queue {
+		$AAA_WINDOW = Gtk::Window.new
+		$AAA_WINDOW.set_icon(@@default_icon)
+		$AAA_WINDOW.title = "thiefwatch"
+		$AAA_WINDOW.set_border_width(10)
+		$AAA_BOX = Gtk::Box.new(:vertical)
+		$AAA_BOX.set_border_width(5)
+
+		$AAA_VERTICAL_BOX1 = Gtk::Box.new(:vertical, 0)
+		$AAA_VERTICAL_BOX2 = Gtk::Box.new(:vertical, 0)
+		$AAA_VERTICAL_BOX3 = Gtk::Box.new(:vertical, 0)
+		$AAA_VERTICAL_BOX4 = Gtk::Box.new(:vertical, 0)
+		$AAA_VERTICAL_BOX5 = Gtk::Box.new(:vertical, 0)
+		$AAA_VERTICAL_BOX6 = Gtk::Box.new(:vertical, 0)
+		$AAA_VERTICAL_BOX7 = Gtk::Box.new(:vertical, 0)
+
+		$AAA_WINDOW.add($AAA_BOX)
+		$AAA_NOTEBOOK = Gtk::Notebook.new
+		$AAA_NOTEBOOK.set_show_border(true)
+		$AAA_BOX.add($AAA_NOTEBOOK)
+		$AAA_NOTEBOOK.append_page($AAA_VERTICAL_BOX1, Gtk::Label.new('Stuff'))
+		$AAA_NOTEBOOK.append_page($AAA_VERTICAL_BOX2, Gtk::Label.new('Container One'))
+		$AAA_NOTEBOOK.append_page($AAA_VERTICAL_BOX3, Gtk::Label.new('Container Two'))
+		$AAA_NOTEBOOK.append_page($AAA_VERTICAL_BOX4, Gtk::Label.new('Container Three'))
+		$AAA_NOTEBOOK.append_page($AAA_VERTICAL_BOX5, Gtk::Label.new('Container Four'))
+		$AAA_NOTEBOOK.append_page($AAA_VERTICAL_BOX6, Gtk::Label.new('Container Five'))
+		$AAA_NOTEBOOK.append_page($AAA_VERTICAL_BOX7, Gtk::Label.new('Container Six'))
+		$AAA_ENTRY = Hash.new 
+		$AAA_TABLE_SIZE = Hash.new
+	}
+
+	Gtk.queue {
+		$AAA_TABLE1 = Gtk::Table.new(6, 3, false)
+		$AAA_TABLE1.row_spacings=3
+		$AAA_TABLE1.column_spacings=3
+		$AAA_VERTICAL_BOX1.pack_start($AAA_TABLE1, :expand => false, :fill => false, :padding => 0)
+
+		$AAA_TABLE2 = Gtk::Table.new(6, 3, false)
+		$AAA_TABLE2.row_spacings=3
+		$AAA_TABLE2.column_spacings=3
+		$AAA_VERTICAL_BOX2.pack_start($AAA_TABLE2, :expand => false, :fill => false, :padding => 0)
+
+		$AAA_TABLE3 = Gtk::Table.new(6, 3, false)
+		$AAA_TABLE3.row_spacings=3
+		$AAA_TABLE3.column_spacings=3
+		$AAA_VERTICAL_BOX3.pack_start($AAA_TABLE3, :expand => false, :fill => false, :padding => 0)
+
+		$AAA_TABLE4 = Gtk::Table.new(6, 3, false)
+		$AAA_TABLE4.row_spacings=3
+		$AAA_TABLE4.column_spacings=3
+		$AAA_VERTICAL_BOX4.pack_start($AAA_TABLE4, :expand => false, :fill => false, :padding => 0)
+
+		$AAA_TABLE5 = Gtk::Table.new(6, 3, false)
+		$AAA_TABLE5.row_spacings=3
+		$AAA_TABLE5.column_spacings=3
+		$AAA_VERTICAL_BOX5.pack_start($AAA_TABLE5, :expand => false, :fill => false, :padding => 0)
+
+		$AAA_TABLE6 = Gtk::Table.new(6, 3, false)
+		$AAA_TABLE6.row_spacings=3
+		$AAA_TABLE6.column_spacings=3
+		$AAA_VERTICAL_BOX6.pack_start($AAA_TABLE6, :expand => false, :fill => false, :padding => 0)
+
+		$AAA_TABLE7 = Gtk::Table.new(6, 3, false)
+		$AAA_TABLE7.row_spacings=3
+		$AAA_TABLE7.column_spacings=3
+		$AAA_VERTICAL_BOX7.pack_start($AAA_TABLE7, :expand => false, :fill => false, :padding => 0)
+	}
+
+	def self.add_label_entry(table, label, variable)
+		size = $AAA_TABLE_SIZE[table] || 0
+
+		label = Gtk::Label.new(label)
+		align = Gtk::Alignment.new 1, 0, 0, 0
+		align.set_padding(4, 0, 3, 4)
+		align.add(label)
+		table.attach(align, 0, 1, size, size + 1)
+
+		entry = Gtk::Entry.new
+		entry.text = UserVars.thiefwatch[variable].to_s
+		entry.set_width_request(157)
+		table.attach(entry, 1, 2, size, size + 1)
+
+		$AAA_ENTRY[variable] = entry
+		$AAA_TABLE_SIZE[table] += 1
+	end
+
+	Gtk.queue {
+		$AAA_ENTRY = Hash.new
+		add_label_entry($AAA_TABLE1, "Thief Names:", 'thief_names')
+		add_label_entry($AAA_TABLE1, "Auto Get:", 'auto_get')
+		add_label_entry($AAA_TABLE1, "Silver Check:", 'silver_check')
+		add_label_entry($AAA_TABLE2, "Container Name:", 'container_one_name')
+		add_label_entry($AAA_TABLE2, "Open Message:", 'container_one_open_message')
+		add_label_entry($AAA_TABLE2, "Close Message:", 'container_one_close_message')
+		add_label_entry($AAA_TABLE3, "Container Name:", 'container_two_name')
+		add_label_entry($AAA_TABLE3, "Open Message:", 'container_two_open_message')
+		add_label_entry($AAA_TABLE3, "Close Message:", 'container_two_close_message')
+		add_label_entry($AAA_TABLE4, "Container Name:", 'container_three_name')
+		add_label_entry($AAA_TABLE4, "Open Message:", 'container_three_open_message')
+		add_label_entry($AAA_TABLE4, "Close Message:", 'container_three_close_message')
+		add_label_entry($AAA_TABLE5, "Container Name:", 'container_four_name')
+		add_label_entry($AAA_TABLE5, "Open Message:", 'container_four_open_message')
+		add_label_entry($AAA_TABLE5, "Close Message:", 'container_four_close_message')
+		add_label_entry($AAA_TABLE6, "Container Name:", 'container_five_name')
+		add_label_entry($AAA_TABLE6, "Open Message:", 'container_five_open_message')
+		add_label_entry($AAA_TABLE6, "Close Message:", 'container_five_close_message')
+		add_label_entry($AAA_TABLE7, "Container Name:", 'container_six_name')
+		add_label_entry($AAA_TABLE7, "Open Message:", 'container_six_open_message')
+		add_label_entry($AAA_TABLE7, "Close Message:", 'container_six_close_message')
+	}
+
+	def self.add_checkbox(table, x_pos, label, variable, default = false)
+		size = $AAA_TABLE_SIZE[table] || 0
+		checkbox = Gtk::CheckButton.new label
+		value = UserVars.thiefwatch[variable].nil? ? default : UserVars.thiefwatch[variable]
+		checkbox.set_active(value)
+		table.attach(checkbox, x_pos, x_pos + 1, size, size + 1)
+		$AAA_ENTRY[variable] = checkbox
+		$AAA_TABLE_SIZE[table] += 1 if x_pos == 1
+	end
+        
+	Gtk.queue {
+		$AAA_WINDOW.signal_connect("delete_event") {
+			$AAA_SETUP_COMPLETED = true
+		}
+	}
+        
+	Gtk.queue {
+#		$AAA_TOOLTIPS = Gtk::Tooltips.new
+#		$AAA_TOOLTIPS.enable
+
+		label = Gtk::Label.new
+		label.set_markup("<b>Thief Names:</b> Enter the names of thieves you want to watch, seperate names with |. Example ThiefA|ThiefB\nEnter <b>nil</b> to not watch anyone.\n<b>Auto Get:</b> Enter <b>yes</b> if you want the script to automatically open the correct container when you type get my 'item name'.\n<b>Silver Check:</b> Script will warn you every 2 minutes if the silvers you are carrying is over this amount, type bankrun at anytime to head to the nearest bank to deposit your silvers and run you back to your original room.\nEnter a very high amount here to disable this feature.")
+		align = Gtk::Alignment.new(1, 0, 0, 0)
+		align.set_padding(50, 0, 0, 40)
+		align.add(label)
+		$AAA_TABLE1.attach(align, 1, 2, 8, 9)
+
+
+		label = Gtk::Label.new
+		label.set_markup("<b>Container Name:</b> Enter name of container.\n<b>Open Message:</b> Enter the game text for when you open this container. Example: You open a hooded black silk stalking cloak.\n<b>Close Message:</b> Enter the game text for when you close this container.\nEnter <b>nil</b> for all options for no container.")
+		align = Gtk::Alignment.new(1, 0, 0, 0)
+		align.set_padding(50, 0, 0, 40)
+		align.add(label)
+		$AAA_TABLE2.attach(align, 1, 2, 8, 9)
+
+		label = Gtk::Label.new
+		label.set_markup("<b>Container Name:</b> Enter name of container.\n<b>Open Message:</b> Enter the game text for when you open this container. Example: You open a hooded black silk stalking cloak.\n<b>Close Message:</b> Enter the game text for when you close this container.\nEnter <b>nil</b> for all options for no container.")
+		align = Gtk::Alignment.new(1, 0, 0, 0)
+		align.set_padding(50, 0, 0, 40)
+		align.add(label)
+		$AAA_TABLE3.attach(align, 1, 2, 8, 9)
+
+		label = Gtk::Label.new
+		label.set_markup("<b>Container Name:</b> Enter name of container.\n<b>Open Message:</b> Enter the game text for when you open this container. Example: You open a hooded black silk stalking cloak.\n<b>Close Message:</b> Enter the game text for when you close this container.\nEnter <b>nil</b> for all options for no container.")
+		align = Gtk::Alignment.new(1, 0, 0, 0)
+		align.set_padding(50, 0, 0, 40)
+		align.add(label)
+		$AAA_TABLE4.attach(align, 1, 2, 8, 9)
+
+		label = Gtk::Label.new
+		label.set_markup("<b>Container Name:</b> Enter name of container.\n<b>Open Message:</b> Enter the game text for when you open this container. Example: You open a hooded black silk stalking cloak.\n<b>Close Message:</b> Enter the game text for when you close this container.\nEnter <b>nil</b> for all options for no container.")
+		align = Gtk::Alignment.new(1, 0, 0, 0)
+		align.set_padding(50, 0, 0, 40)
+		align.add(label)
+		$AAA_TABLE5.attach(align, 1, 2, 8, 9)
+
+		label = Gtk::Label.new
+		label.set_markup("<b>Container Name:</b> Enter name of container.\n<b>Open Message:</b> Enter the game text for when you open this container. Example: You open a hooded black silk stalking cloak.\n<b>Close Message:</b> Enter the game text for when you close this container.\nEnter <b>nil</b> for all options for no container.")
+		align = Gtk::Alignment.new(1, 0, 0, 0)
+		align.set_padding(50, 0, 0, 40)
+		align.add(label)
+		$AAA_TABLE6.attach(align, 1, 2, 8, 9)
+
+		label = Gtk::Label.new
+		label.set_markup("<b>Container Name:</b> Enter name of container.\n<b>Open Message:</b> Enter the game text for when you open this container. Example: You open a hooded black silk stalking cloak.\n<b>Close Message:</b> Enter the game text for when you close this container.\nEnter <b>nil</b> for all options for no container.")
+		align = Gtk::Alignment.new(1, 0, 0, 0)
+		align.set_padding(50, 0, 0, 40)
+		align.add(label)
+		$AAA_TABLE7.attach(align, 1, 2, 8, 9)
+
+		$AAA_WINDOW.show_all
+	}
+        
+	$AAA_SETUP_COMPLETED = false
+	until($AAA_SETUP_COMPLETED)
+		sleep 1
+	end
+       
+	UserVars.thiefwatch ||= Hash.new
+	$AAA_ENTRY.keys.each { |key|
+		if( $AAA_ENTRY[key].class.to_s =~ /CheckButton/ )
+			value = $AAA_ENTRY[key].active?
+			UserVars.thiefwatch[key] = $AAA_ENTRY[key].active?
+		else
+			if(key == 'wounded_eval')
+				UserVars.thiefwatch[key] = $AAA_ENTRY[key].text
+			else
+				UserVars.thiefwatch[key] = $AAA_ENTRY[key].text.strip.downcase
+			end
+		end
+	}
+	UserVars.save()
+        
+	Gtk.queue {
+		$AAA_WINDOW.destroy
+	}
+}
+
+if (UserVars.thiefwatch.nil? || UserVars.thiefwatch.empty?) && (script.vars[1] != 'setup')
+	echo "Setup is required, type ;thiefwatch setup."
+	UserVars.thiefwatch ||= Hash.new
+	exit
+end
+if script.vars[1] == 'setup'
+	setup.call
+	exit
+end
+before_dying { (waitrt?;fput "open my #{UserVars.thiefwatch["container_one_name"]}" if UserVars.thiefwatch["container_one_name"] !~ /nil/i;waitrt?;fput "open my #{UserVars.thiefwatch["container_two_name"]}" if UserVars.thiefwatch["container_two_name"] !~ /nil/i;waitrt?;fput "open my #{UserVars.thiefwatch["container_three_name"]}" if UserVars.thiefwatch["container_three_name"] !~ /nil/i;waitrt?;fput "open my #{UserVars.thiefwatch["container_four_name"]}" if UserVars.thiefwatch["container_four_name"] !~ /nil/i;waitrt?;fput "open my #{UserVars.thiefwatch["container_five_name"]}" if UserVars.thiefwatch["container_five_name"] !~ /nil/i;waitrt?;fput "open my #{UserVars.thiefwatch["container_six_name"]}" if UserVars.thiefwatch["container_six_name"] !~ /nil/i) }
+
+check_silvers = proc {
+	action = proc { |server_string|
+		if server_string =~ /^\s*Name\:|^\s*Gender\:|^\s*Normal \(Bonus\)|^\s*Strength \(STR\)\:|^\s*Constitution \(CON\)\:|^\s*Dexterity \(DEX\)\:|^\s*Agility \(AGI\)\:|^\s*Discipline \(DIS\)\:|^\s*Aura \(AUR\)\:|^\s*Logic \(LOG\)\:|^\s*Intuition \(INT\)\:|^\s*Wisdom \(WIS\)\:|^\s*Influence \(INF\)\:/
+			nil
+		elsif server_string =~ /^\s*Mana\:\s+\-?[0-9]+\s+Silver\:\s+([0-9]+)/
+			wealth = $1.to_i
+			DownstreamHook.remove("#{script.name}_check_silvers")
+			nil
+		else
+			server_string
+		end
+	}
+		DownstreamHook.add("#{script.name}_check_silvers", action)
+		put "info"
+		wait_until { wealth }
+		unless first_check
+			if silvers != wealth
+				discrepancy = silvers - wealth
+				echo "There might be a thief about! According to my records your silver on hand is off by #{discrepancy}."
+			end
+		end
+		silvers = wealth
+}
+
+check_number_of_items = proc{
+	action = proc { |server_string|
+		if server_string =~ /^\s{2}(an?|the|some).*exist="(\d+)".*noun\=\"(.*)\".*\>(.*)\<|^\s{2}\<a.*exist="(\d+)".*noun\=\"(.*)\".*\>(.*)\<|^\s{6}\<a.*exist="(\d+)".*noun\=\"(.*)\".*\>(.*)\<|^\s{6}(an?|the|some).*exist="(\d+)".*noun\=\"(.*)\".*\>(.*)\</
+			nil
+		elsif server_string =~ /\((\d+) items? displayed\.\)/
+			number_of_items_after = $1.to_i
+			DownstreamHook.remove("#{script.name}_check_number_of_items")
+			nil
+		end
+	}
+		DownstreamHook.add("#{script.name}_check_number_of_items", action)
+		put "inv full"
+		wait_until { number_of_items_after }
+		unless first_item_check
+			if number_of_items_before > number_of_items_after
+				discrepancy_items = number_of_items_before - number_of_items_after
+				echo "There might be a thief about! According to my records you are missing #{discrepancy_items} item(s)."
+			end
+		end
+		number_of_items_before = number_of_items_after
+}
+
+silence_me
+toggle_upstream
+check_silvers.call
+check_number_of_items.call
+first_check = nil
+first_item_check = nil
+
+GameObj.inv.each{|item|
+	if item.name =~ /#{UserVars.thiefwatch["container_one_name"]}/i || item.name =~ /#{UserVars.thiefwatch["container_two_name"]}/i || item.name == "#{UserVars.thiefwatch["container_three_name"]}" || item.name == "#{UserVars.thiefwatch["container_four_name"]}" || item.name == "#{UserVars.thiefwatch["container_five_name"]}" || item.name == "#{UserVars.thiefwatch["container_six_name"]}"
+		(waitrt?;put "open my #{item}";dothistimeout "look in my #{item}", 5, /In .*? you see/i) if item.contents.nil?
+		stuff[1] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_one_name"]}/i
+		stuff[2] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_two_name"]}/i
+		stuff[3] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_three_name"]}/i
+		stuff[4] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_four_name"]}/i
+		stuff[5] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_five_name"]}/i
+		stuff[6] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_six_name"]}/i
+		(waitrt?;put "close my #{item}")
+	end
+}
+
+Thread.new{
+	loop{
+		if (Time.now > one_time + 10 and container_one_open == "yes") or (Time.now > two_time + 10 and container_two_open == "yes") or (Time.now > three_time + 10 and container_three_open == "yes") or (Time.now > four_time + 10 and container_four_open == "yes") or (Time.now > five_time + 10 and container_five_open == "yes") or (Time.now > six_time + 5 and container_six_open == "yes")
+			opened_container = "#{UserVars.thiefwatch["container_one_name"]}" if (Time.now > one_time + 10 and container_one_open == "yes")
+			opened_container = "#{UserVars.thiefwatch["container_two_name"]}" if (Time.now > two_time + 10 and container_two_open == "yes")
+			opened_container = "#{UserVars.thiefwatch["container_three_name"]}" if (Time.now > three_time + 10 and container_three_open == "yes")
+			opened_container = "#{UserVars.thiefwatch["container_four_name"]}" if (Time.now > four_time + 10 and container_four_open == "yes")
+			opened_container = "#{UserVars.thiefwatch["container_five_name"]}" if (Time.now > five_time + 10 and container_five_open == "yes")
+			opened_container = "#{UserVars.thiefwatch["container_six_name"]}" if (Time.now > six_time + 10 and container_six_open == "yes")
+			GameObj.inv.each{|item|
+				if item.name =~ /#{opened_container}/i
+					stuff[1] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_one_name"]}/i
+					stuff[2] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_two_name"]}/i
+					stuff[3] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_three_name"]}/i
+					stuff[4] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_four_name"]}/i
+					stuff[5] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_five_name"]}/i
+					stuff[6] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_six_name"]}/i
+				end
+			}
+
+			(waitrt?;put "close my #{UserVars.thiefwatch["container_one_name"]}") if (Time.now > one_time + 10 and container_one_open == "yes")
+			(waitrt?;put "close my #{UserVars.thiefwatch["container_two_name"]}") if (Time.now > two_time + 10 and container_two_open == "yes")
+			(waitrt?;put "close my #{UserVars.thiefwatch["container_three_name"]}") if (Time.now > three_time + 10 and container_three_open == "yes")
+			(waitrt?;put "close my #{UserVars.thiefwatch["container_four_name"]}") if (Time.now > four_time + 10 and container_four_open == "yes")
+			(waitrt?;put "close my #{UserVars.thiefwatch["container_five_name"]}") if (Time.now > five_time + 10 and container_five_open == "yes")
+			(waitrt?;put "close my #{UserVars.thiefwatch["container_six_name"]}") if (Time.now > six_time + 5 and container_six_open == "yes")
+		end
+		if silvers > Integer(UserVars.thiefwatch["silver_check"]) and Time.now > silver_time + 120
+			(echo "You are carrying #{silvers} silvers. Type bankrun to have your silvers deposited in the nearest bank and return to your current room.";silver_time = Time.now)
+		end
+		sleep 1
+	}
+}
+
+Thread.new{
+	while line = get
+		if line =~ /#{UserVars.thiefwatch["container_one_open_message"]}/i or line =~ /#{UserVars.thiefwatch["container_two_open_message"]}/i or line =~ /#{UserVars.thiefwatch["container_three_open_message"]}/i or line =~ /#{UserVars.thiefwatch["container_four_open_message"]}/i or line =~ /#{UserVars.thiefwatch["container_five_open_message"]}/i or line =~ /#{UserVars.thiefwatch["container_six_open_message"]}/i
+			(container_one_open = "yes";one_time = Time.now;opened_container = "#{UserVars.thiefwatch["container_one_name"]}") if line =~ /#{UserVars.thiefwatch["container_one_open_message"]}/i
+			(container_two_open = "yes";two_time = Time.now;opened_container = "#{UserVars.thiefwatch["container_two_name"]}") if line =~ /#{UserVars.thiefwatch["container_two_open_message"]}/i
+			(container_three_open = "yes";three_time = Time.now;opened_container = "#{UserVars.thiefwatch["container_three_name"]}") if line =~ /#{UserVars.thiefwatch["container_three_open_message"]}/i
+			(container_four_open = "yes";four_time = Time.now;opened_container = "#{UserVars.thiefwatch["container_four_name"]}") if line =~ /#{UserVars.thiefwatch["container_four_open_message"]}/i
+			(container_five_open = "yes";five_time = Time.now;opened_container = "#{UserVars.thiefwatch["container_five_name"]}") if line =~ /#{UserVars.thiefwatch["container_five_open_message"]}/i
+			(container_six_open = "yes";six_time = Time.now;opened_container = "#{UserVars.thiefwatch["container_six_name"]}") if line =~ /#{UserVars.thiefwatch["container_six_open_message"]}/i
+			GameObj.inv.each{|item|
+				if item.name =~ /#{opened_container}/i
+					put "look in my #{opened_container}"
+					stuff[1] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_one_name"]}/i
+					stuff[2] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_two_name"]}/i
+					stuff[3] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_three_name"]}/i
+					stuff[4] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_four_name"]}/i
+					stuff[5] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_five_name"]}/i
+					stuff[6] = "#{item.contents}" if item.name =~ /#{UserVars.thiefwatch["container_six_name"]}/i
+				end
+			}
+
+		end
+		container_one_open = "no" if line =~ /#{UserVars.thiefwatch["container_one_close_message"]}/i
+		container_two_open = "no" if line =~ /#{UserVars.thiefwatch["container_two_close_message"]}/i
+		container_three_open = "no" if line =~ /#{UserVars.thiefwatch["container_three_close_message"]}/i
+		container_four_open = "no" if line =~ /#{UserVars.thiefwatch["container_four_close_message"]}/i
+		container_five_open = "no" if line =~ /#{UserVars.thiefwatch["container_five_close_message"]}/i
+		container_six_open = "no" if line =~ /#{UserVars.thiefwatch["container_six_close_message"]}/i
+		watching_thief = "yes" if line =~ /You begin to watch .* intently out of the corner of your eyes, while trying not to be too obvious about it./i
+		watching_thief = "no" if line =~ /.* appears to have given you the slip!/i
+		silvers += Integer($1) if line =~ /You gather the remaining (\d+) coins?/i
+		silvers += Integer($1) if line =~ /just gave you (\d+) coins? which you quickly pocket./i
+		silvers += Integer($1) if line =~ /then hands you (\d+) silvers?./i
+		silvers += Integer($1) if line =~ /along with (\d+) silver./i
+		silvers += 1 if line =~ /You gather the remaining coin./i
+		silvers += 1 if line =~ /then hands you 1 silver./i
+		silvers -= Integer($1) if line =~ /You deposit (\d+) silvers? into your account./i
+		silvers -= Integer($1) if line =~ /You give .* (\d+) coins?./i or line =~ /You drop (\d+) silvers?./i
+		silvers -= 1 if line =~ /You give .* a coin./i
+		silvers -= 1 if line =~ /You drop one silver./i
+		silvers -= 1 if line =~ /You deposit 1 silver into your account./i
+		if line =~ /^You drop|^.* has accepted your offer|hands you .* silver for it/
+			number_of_items_before -= 1
+		end
+		(echo "#{$1} tried to steal from you but got nothing!") if line =~ /You notice (.*) reach into your pockets and remove nothing(.|!)/i
+		(echo "#{$1} stole your #{$2}!") if line =~ /You notice (.*) reach into your .* and remove an? (.*)(.|!)/i
+		(echo "#{$1} stole #{$2} silvers!") if line =~ /You notice (.*) reach into your pockets and remove (\d+) silvers(.|!)/i
+		(echo "#{$1} is stealing from #{$2}!") if line =~ /You notice (.*) reach into (.*)'s pockets(.|!)/i
+	end
+}
+
+Thread.new{
+	loop{
+		command = upstream_get
+		if command =~ /((get my) (.*))/i and UserVars.thiefwatch["auto_get"] == "yes"
+			command = $1
+			get_item = $3
+			if stuff[1] =~ /#{get_item}/i
+				opened_container1 = "#{UserVars.thiefwatch["container_one_name"]}"
+			elsif stuff[2] =~ /#{get_item}/i
+				opened_container1 = "#{UserVars.thiefwatch["container_two_name"]}"
+			elsif stuff[3] =~ /#{get_item}/i
+				opened_container1 = "#{UserVars.thiefwatch["container_three_name"]}"
+			elsif stuff[4] =~ /#{get_item}/i
+				opened_container1 = "#{UserVars.thiefwatch["container_four_name"]}"
+			elsif stuff[5] =~ /#{get_item}/i
+				opened_container1 = "#{UserVars.thiefwatch["container_five_name"]}"
+			elsif stuff[6] =~ /#{get_item}/i
+				opened_container1 = "#{UserVars.thiefwatch["container_six_name"]}"
+			else
+				opened_container1 = nil
+			end
+			next if opened_container1 == nil
+			(waitrt?;put "open my #{opened_container1}";put "#{command}")
+		end
+		if command =~ /bankrun/i
+			(my_room = Room.current.id;start_script 'go2', [ 'bank', '--disable-confirm' ];wait_while{ running?('go2') };put "unhide" if invisible?;put "depo all";start_script 'go2', [ my_room ])
+		end
+	}
+}
+
+Thread.new{
+	loop{
+		sleep 15
+		wealth = nil
+		check_silvers.call
+	}
+}
+
+Thread.new{
+	loop{
+		sleep 29
+		number_of_items_after = nil
+		check_number_of_items.call
+	}
+}
+
+loop{
+	if watching_thief == "no" && UserVars.thiefwatch["thief_names"] != "nil"
+		wait_until { GameObj.pcs.find { |pc| pc.name =~ /#{UserVars.thiefwatch["thief_names"]}/i;thief = pc if pc.name =~ /#{UserVars.thiefwatch["thief_names"]}/i } }
+		(echo "#{thief} is here!";waitrt?;put "watch #{thief}")
+	end
+	sleep 1
+}
