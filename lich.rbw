@@ -41,7 +41,7 @@
 LICH_VERSION = '5.0.1'
 TESTING = false
 
-if RUBY_VERSION !~ /^2/
+if RUBY_VERSION !~ /^2|^3/
    if (RUBY_PLATFORM =~ /mingw|win/) and (RUBY_PLATFORM !~ /darwin/i)
       if RUBY_VERSION =~ /^1\.9/
          require 'fiddle'
@@ -312,7 +312,7 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
       end
       def   Win32.RegCloseKey(args)
          return Advapi32.RegCloseKey(args[:hKey])
-      end      
+      end
 
       module Shell32
          extend Fiddle::Importer
@@ -430,7 +430,7 @@ else
          PREFIX = $wine_prefix
          def Wine.registry_gets(key)
             hkey, subkey, thingie = /(HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER)\\(.+)\\([^\\]*)/.match(key).captures # fixme: stupid highlights ]/
-            if File.exists?(PREFIX + '/system.reg')
+            if File.exist?(PREFIX + '/system.reg')
                if hkey == 'HKEY_LOCAL_MACHINE'
                   subkey = "[#{subkey.gsub('\\', '\\\\\\')}]"
                   if thingie.nil? or thingie.empty?
@@ -458,7 +458,7 @@ else
             end
          end
          def Wine.registry_puts(key, value)
-            hkey, subkey, thingie = /(HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER)\\(.+)\\([^\\]*)/.match(key).captures # fixme ]/ 
+            hkey, subkey, thingie = /(HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER)\\(.+)\\([^\\]*)/.match(key).captures # fixme ]/
             if File.exists?(PREFIX)
                if thingie.nil? or thingie.empty?
                   thingie = '@'
@@ -765,7 +765,7 @@ if defined?(Gtk)
 
    # Define a sleep function for GTK to call while idle that lets GTK give up control of the processing for main_thread
    def gtk_sleep_while_idle()
-      sleep 0.1
+      sleep 0.01
    end
 end
 
@@ -882,6 +882,7 @@ module Lich
                launcher_cmd = Win32.RegQueryValueEx(:hKey => launcher_key)[:lpData]
             end
             return launcher_cmd
+            Lich.log 'returned #{launcher_cmd}'
          ensure
             Win32.RegCloseKey(:hKey => launcher_key) rescue nil
          end
@@ -1176,7 +1177,7 @@ module Lich
       end
    end
    def Lich.restore_hosts
-      if Lich.hosts_file and File.exists?(Lich.hosts_file)      
+      if Lich.hosts_file and File.exists?(Lich.hosts_file)
          begin
             # fixme: use rename instead?  test rename on windows
             if File.exists?("#{Lich.hosts_file}.bak")
@@ -3428,7 +3429,7 @@ class WizardScript<Script
       if @vars.first =~ /^quiet$/i
          @quiet = true
          @vars.shift
-      else 
+      else
          @quiet = false
       end
       @downstream_buffer = LimitedArray.new
@@ -4398,7 +4399,7 @@ class Map
                visited[v] = true
                @@list[v].wayto.keys.each { |adj_room|
                   adj_room_i = adj_room.to_i
-                  unless visited[adj_room_i] 
+                  unless visited[adj_room_i]
                      if @@list[v].timeto[adj_room].class == Proc
                         nd = @@list[v].timeto[adj_room].call
                      else
@@ -4422,7 +4423,7 @@ class Map
                visited[v] = true
                @@list[v].wayto.keys.each { |adj_room|
                   adj_room_i = adj_room.to_i
-                  unless visited[adj_room_i] 
+                  unless visited[adj_room_i]
                      if @@list[v].timeto[adj_room].class == Proc
                         nd = @@list[v].timeto[adj_room].call
                      else
@@ -4447,7 +4448,7 @@ class Map
                visited[v] = true
                @@list[v].wayto.keys.each { |adj_room|
                   adj_room_i = adj_room.to_i
-                  unless visited[adj_room_i] 
+                  unless visited[adj_room_i]
                      if @@list[v].timeto[adj_room].class == Proc
                         nd = @@list[v].timeto[adj_room].call
                      else
@@ -4594,7 +4595,7 @@ end
 
 def echo(*messages)
    respond if messages.empty?
-   if script = Script.current 
+   if script = Script.current
       unless script.no_echo
          messages.each { |message| respond("[#{script.name}: #{message.to_s.chomp}]") }
       end
@@ -4606,7 +4607,7 @@ end
 
 def _echo(*messages)
    _respond if messages.empty?
-   if script = Script.current 
+   if script = Script.current
       unless script.no_echo
          messages.each { |message| _respond("[#{script.name}: #{message.to_s.chomp}]") }
       end
@@ -4636,7 +4637,7 @@ end
 
 def unpause_script(*names)
    names.flatten!
-   names.each { |scr| 
+   names.each { |scr|
       fnd = Script.list.find { |nm| nm.name =~ /^#{scr}/i }
       fnd.unpause if (fnd.paused and not fnd.nil?)
    }
@@ -4815,7 +4816,7 @@ def selectput(string, success, failure, timeout = nil)
    success = [ success ] if success.kind_of? String
    failure = [ failure ] if failure.kind_of? String
    if !string.kind_of?(String) or !success.kind_of?(Array) or !failure.kind_of?(Array) or timeout && !timeout.kind_of?(Numeric)
-      raise ArgumentError, "usage is: selectput(game_command,success_array,failure_array[,timeout_in_secs])" 
+      raise ArgumentError, "usage is: selectput(game_command,success_array,failure_array[,timeout_in_secs])"
    end
    success.flatten!
    failure.flatten!
@@ -5103,7 +5104,7 @@ def move(dir='none', giveup_seconds=30, giveup_lines=30)
          waitrt?
          put_dir.call
       elsif line == "You don't seem to be able to move to do that."
-         30.times { 
+         30.times {
             break if clear.include?('You regain control of your senses!')
             sleep 0.1
          }
@@ -5282,7 +5283,7 @@ end
 def percentmind(num=nil)
    if num.nil?
       XMLData.mind_value
-   else 
+   else
       XMLData.mind_value >= num.to_i
    end
 end
@@ -5323,7 +5324,7 @@ def percentmana(num=nil)
    end
    if num.nil?
       percent
-   else 
+   else
       percent >= num.to_i
    end
 end
@@ -6652,7 +6653,7 @@ def sf_to_wiz(line)
          line = line.sub(/<preset id='speech'>.*?<\/preset>/m, "#{$speech_highlight_start}#{$1}#{$speech_highlight_end}")
       end
       if line =~ /<pushStream id="thoughts"[^>]*>(\[[^\\]+\])?\s*(?:<a[^>]*>)?([A-Z][a-z]+)(?:<\/a>)?\s*([\s\[\]\(\)A-z]+)?(?:\:|thinks, )(.*?)<popStream\/>/m
- line = line.sub(/<pushStream id="thoughts"[^>]*>(?:\[[^\\]+\]\s*)?(?:<a[^>]*>)?[A-Z][a-z]+(?:<\/a>)?\s*([\s\[\]\(\)A-z]+)?(?:\:|thinks, )(.*?)<popStream\/>/m, "You hear the faint thoughts of #{$1}#{'-' if $1}#{$2} echo in your mind:\r\n#{$3}#{$4}")
+         line = line.sub(/<pushStream id="thoughts"[^>]*>(?:\[[^\\]+\]\s*)?(?:<a[^>]*>)?[A-Z][a-z]+(?:<\/a>)?\s*([\s\[\]\(\)A-z]+)?(?:\:|thinks, )(.*?)<popStream\/>/m, "You hear the faint thoughts of #{$1}#{'-' if $1}#{$2} echo in your mind:\r\n#{$3}#{$4}")
       end
       if line =~ /<pushStream id="voln"[^>]*>\[Voln \- (?:<a[^>]*>)?([A-Z][a-z]+)(?:<\/a>)?\]\s*(".*")[\r\n]*<popStream\/>/m
          line = line.sub(/<pushStream id="voln"[^>]*>\[Voln \- (?:<a[^>]*>)?([A-Z][a-z]+)(?:<\/a>)?\]\s*(".*")[\r\n]*<popStream\/>/m, "The Symbol of Thought begins to burn in your mind and you hear #{$1} thinking, #{$2}\r\n")
@@ -8446,7 +8447,7 @@ module Games
             release_options = options.dup
             release_options[:multicast] = nil
             if (self.mana_cost(options) > 0) and (  !checkmana(self.mana_cost(options)) or (Spell[515].active? and !checkmana(self.mana_cost(options) + [self.mana_cost(release_options)/4, 1].max))  )
-               false 
+               false
             elsif (self.stamina_cost(options) > 0) and (Spell[9699].active? or not checkstamina(self.stamina_cost(options)))
                false
             elsif (self.spirit_cost(options) > 0) and not checkspirit(self.spirit_cost(options) + 1 + [ 9912, 9913, 9914, 9916, 9916, 9916 ].delete_if { |num| !Spell[num].active? }.length)
@@ -9892,7 +9893,7 @@ end
 
 def stop_script(*target_names)
    numkilled = 0
-   target_names.each { |target_name| 
+   target_names.each { |target_name|
       condemned = Script.list.find { |s_sock| s_sock.name =~ /^#{target_name}/i }
       if condemned.nil?
          respond("--- Lich: '#{Script.current}' tried to stop '#{target_name}', but it isn't running!")
@@ -10308,7 +10309,7 @@ early_gtk_error = nil
 
 unless File.exists?(DATA_DIR)
    begin
-      Dir.mkdir(DATA_DIR)   
+      Dir.mkdir(DATA_DIR)
    rescue
       Lich.log "error: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
       Lich.msgbox(:message => "An error occured while attempting to create directory #{DATA_DIR}\n\n#{$!}", :icon => :error)
@@ -10317,7 +10318,7 @@ unless File.exists?(DATA_DIR)
 end
 unless File.exists?(SCRIPT_DIR)
    begin
-      Dir.mkdir(SCRIPT_DIR)   
+      Dir.mkdir(SCRIPT_DIR)
    rescue
       Lich.log "error: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
       Lich.msgbox(:message => "An error occured while attempting to create directory #{SCRIPT_DIR}\n\n#{$!}", :icon => :error)
@@ -10326,7 +10327,7 @@ unless File.exists?(SCRIPT_DIR)
 end
 unless File.exists?(MAP_DIR)
    begin
-      Dir.mkdir(MAP_DIR)   
+      Dir.mkdir(MAP_DIR)
    rescue
       Lich.log "error: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
       Lich.msgbox(:message => "An error occured while attempting to create directory #{MAP_DIR}\n\n#{$!}", :icon => :error)
@@ -10335,7 +10336,7 @@ unless File.exists?(MAP_DIR)
 end
 unless File.exists?(LOG_DIR)
    begin
-      Dir.mkdir(LOG_DIR)   
+      Dir.mkdir(LOG_DIR)
    rescue
       Lich.log "error: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
       Lich.msgbox(:message => "An error occured while attempting to create directory #{LOG_DIR}\n\n#{$!}", :icon => :error)
@@ -10344,7 +10345,7 @@ unless File.exists?(LOG_DIR)
 end
 unless File.exists?(BACKUP_DIR)
    begin
-      Dir.mkdir(BACKUP_DIR)   
+      Dir.mkdir(BACKUP_DIR)
    rescue
       Lich.log "error: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
       Lich.msgbox(:message => "An error occured while attempting to create directory #{BACKUP_DIR}\n\n#{$!}", :icon => :error)
@@ -10596,7 +10597,7 @@ if did_import.nil?
             retry
          end
       end
-      favs = nil   
+      favs = nil
 
       db = SQLite3::Database.new("#{DATA_DIR}/alias.db3")
       begin
@@ -10855,9 +10856,10 @@ if defined?(Gtk)
 #		 dialog.set_icon(default_icon)
 
          # Add a function to call for when GTK is idle
-         Gtk.idle_add do
+         GLib::Idle.add do
             gtk_sleep_while_idle
          end
+
       }
    rescue
       nil # fixme
@@ -10916,7 +10918,7 @@ main_thread = Thread.new {
                Lich.log(msg)
             end
          }
-   
+
          login_server = nil
          connect_thread = nil
          timeout_thread = Thread.new {
@@ -11020,7 +11022,10 @@ main_thread = Thread.new {
       if File.exists?("#{DATA_DIR}/entry.dat")
          entry_data = File.open("#{DATA_DIR}/entry.dat", 'r') { |file|
             begin
-               Marshal.load(file.read.unpack('m').first).sort { |a,b| [a[:user_id].downcase, a[:char_name]] <=> [b[:user_id].downcase, b[:char_name]] }
+               # Sort in list by instance name, account name, and then character name
+               Marshal.load(file.read.unpack('m').first).sort do |a,b|
+                  [a[:game_name], a[:user_id], a[:char_name]] <=> [b[:game_name], b[:user_id], b[:char_name]]
+               end
             rescue
                Array.new
             end
@@ -11047,28 +11052,120 @@ main_thread = Thread.new {
          # quick game entry tab
          #
          if entry_data.empty?
-        box = Gtk::Box.new(:horizontal)
-        box.pack_start(Gtk::Label.new('You have no saved login info.'), :expand => true, :fill => true, :padding => 0)
-        quick_game_entry_tab = Gtk::Box.new(:vertical)
-            quick_game_entry_tab.border_width = 5
-        quick_game_entry_tab.pack_start(box, :expand => true, :fill => true, :padding => 0)
+           box = Gtk::Box.new(:horizontal)
+           box.pack_start(Gtk::Label.new('You have no saved login info.'), :expand => true, :fill => true, :padding => 5)
+           quick_game_entry_tab = Gtk::Box.new(:vertical)
+           quick_game_entry_tab.border_width = 5
+           quick_game_entry_tab.pack_start(box, :expand => true, :fill => true, :padding => 0)
          else
-			quick_box = Gtk::Box.new(:vertical)
-            last_user_id = nil
-            entry_data.each { |login_info|
-                    if login_info[:user_id].downcase != last_user_id
-                        last_user_id = login_info[:user_id].downcase
-            quick_box.pack_start(Gtk::Label.new("Account: " + last_user_id), :expand => false, :fill => false, :padding => 6)
-                    end
-                    
-               label = Gtk::Label.new("#{login_info[:char_name]} (#{login_info[:game_name]}, #{login_info[:frontend]})")
-			play_button = Gtk::Button.new(:label => 'Play')
-			remove_button = Gtk::Button.new(:label => 'X')
-          char_box = Gtk::Box.new(:horizontal)
-          char_box.pack_start(label, :expand => false, :fill => false, :padding => 6)
-          char_box.pack_end(remove_button, :expand => false, :fill => false, :padding => 0)
-          char_box.pack_end(play_button, :expand => false, :fill => false, :padding => 0)
-          quick_box.pack_start(char_box, :expand => false, :fill => false, :padding => 0)
+			     quick_box = Gtk::Box.new(:vertical)
+           last_user_id = nil
+           last_game_name = nil
+           entry_data.each { |login_info|
+               if login_info[:game_name] != last_game_name
+                  horizontal_separator = Gtk::Separator.new(:horizontal)
+                  quick_box.pack_start(horizontal_separator, false, false, 6)
+                  instance_label = Gtk::Label.new('<span foreground="cadetblue" size="large"><b>' + login_info[:game_name] + '</b></span>')
+                  instance_label.use_markup = true
+                  quick_box.pack_start(instance_label, false, false, 6)
+                  horizontal_separator = Gtk::HSeparator.new()
+                  quick_box.pack_start(horizontal_separator, false, false, 6)
+               end
+               if login_info[:user_id].downcase != last_user_id
+                 horizontal_separator = Gtk::Separator.new(:horizontal)
+                 quick_box.pack_start(horizontal_separator, false, false, 5)
+               end
+#               if login_info[:user_id].downcase != last_user_id || login_info[:game_name] != last_game_name
+#               if login_info[:game_name] != last_game_name
+               last_user_id = login_info[:user_id].downcase
+#                  account_label = Gtk::Label.new('<span foreground="black" size="large">' + last_user_id.upcase + '</span>')
+                account_label = Gtk::Label.new(last_user_id.upcase)
+                account_label.set_size_request(75, 0)
+                account_label.set_alignment(0, 0.5)
+  #                account_label.use_markup = true
+  #                quick_box.pack_start(account_label, false, false, 6)
+#             end
+               last_game_name = login_info[:game_name]
+#               game_client_tag = '<span foreground="black">' + "(#{login_info[:frontend].capitalize})" + '</span>'
+#               char_label = Gtk::Label.new("#{login_info[:char_name]}" + "     #{game_client_tag}")
+
+               button_provider = Gtk::CssProvider.new
+               button_provider.load(data: "button { font-size: 14px; color: navy; padding-top: 0px; padding-bottom: 0px; margin-top: 0px; margin-bottom: 0px; background-image: none; }\
+                                           button:hover { background-color: darkgrey; } ")
+
+               play_button = Gtk::Button.new()
+#               char_label = Gtk::Label.new("#{login_info[:char_name]}" + "    (#{login_info[:frontend].capitalize})")
+               char_label = Gtk::Label.new("#{login_info[:char_name]}")
+               fe_label = Gtk::Label.new("(#{login_info[:frontend].capitalize})")
+               char_label.set_alignment(0, 0.5)
+               fe_label.set_alignment(0.1, 0.5)
+               button_row = Gtk::Paned.new(:horizontal)
+               button_row.add1(char_label)
+               button_row.add2(fe_label)
+               button_row.set_position(110)
+
+               play_button.add(button_row)
+               play_button.set_alignment(0.0, 0.5)
+               remove_button = Gtk::Button.new()
+               remove_label = Gtk::Label.new('<span foreground="red"><b>Remove</b></span>')
+               remove_label.use_markup = true
+               remove_button.add(remove_label)
+
+               remove_button.style_context.add_provider(button_provider, Gtk::StyleProvider::PRIORITY_USER)
+               play_button.style_context.add_provider(button_provider, Gtk::StyleProvider::PRIORITY_USER)
+
+               char_row = Gtk::Paned.new(:horizontal)
+               char_row.add1(account_label)
+               char_row.add2(play_button)
+
+               char_box = Gtk::Box.new(:horizontal)
+               char_box.pack_end(remove_button, :expand => false, :fill => false, :padding => 0)
+               char_box.pack_start(char_row, :expand => true, :fill => true, :padding => 0)
+               quick_box.pack_start(char_box, :expand => false, :fill => false, :padding => 0)
+=begin
+             button_provider = Gtk::CssProvider.new
+             button_provider.load(data: "button { font-size: 12px; color: black; padding-top: 0px; padding-bottom: 0px; margin-top: 0px; margin-bottom: 0px; background-image: none; }\
+                                         button:hover { background-color: darkgrey; color: white; } ")
+
+             label1 = Gtk::Label.new
+             label2 = Gtk::Label.new
+             game = "#{login_info[:game_name]}"
+             if game =~ /Platinum/
+               login_to = "Platinum"
+             elsif game =~ /Shattered/
+               login_to = "Shattered"
+             elsif game == "GemStone IV"
+               login_to = "Prime"
+             elsif game =~ /Test/
+               login_to = "Test"
+             end
+             char_row = Gtk::Paned.new(:horizontal)
+             label1.set_markup("<b><big>     #{login_info[:char_name]}</big></b>")
+             label1.set_alignment(0,0.5)
+             label2.set_markup("#{login_to} using #{login_info[:frontend].capitalize}")
+             label2.set_alignment(0,0.5)
+             char_row.set_position(110)
+             label1.set_size_request(100, 0)
+             label2.set_size_request(150, 0)
+             char_row.add1(label1)
+             char_row.add2(label2)
+#             label_provider = Gtk::CssProvider.new
+#             label_provider.load(data: "label { font-size: 14px; }")
+#             label.style_context.add_provider(label_provider, Gtk::StyleProvider::PRIORITY_USER)
+			       play_button = Gtk::Button.new(:label => 'Play')
+			       remove_button = Gtk::Button.new(:label => 'X')
+
+             remove_button.style_context.add_provider(button_provider, Gtk::StyleProvider::PRIORITY_USER)
+             play_button.style_context.add_provider(button_provider, Gtk::StyleProvider::PRIORITY_USER)
+             spacer = Gtk::Label.new("     ")
+             char_box = Gtk::Box.new(:horizontal)
+             char_box.pack_start(spacer, :expand => false, :fill => false, :padding => 0)
+             char_box.pack_start(play_button, :expand => false, :fill => false, :padding => 0)
+             char_box.pack_start(char_row, :expand => false, :fill => false, :padding => 0)
+             char_box.pack_end(remove_button, :expand => false, :fill => false, :padding => 0)
+
+             quick_box.pack_start(char_box, :expand => false, :fill => false, :padding => 0)
+=end
                play_button.signal_connect('clicked') {
                   play_button.sensitive = false
                   begin
@@ -11160,10 +11257,26 @@ main_thread = Thread.new {
                      play_button.sensitive = true
                   end
                }
-               remove_button.signal_connect('clicked') {
-                  entry_data.delete(login_info)
-                  save_entry_data = true
-                  char_box.visible = false
+               remove_button.signal_connect('button-release-event') {|owner, ev|
+                 if (ev.event_type == Gdk::EventType::BUTTON_RELEASE) and (ev.button == 1)
+                   if (ev.state.inspect =~/shift-mask/)
+                     entry_data.delete(login_info)
+                     save_entry_data = true
+                     char_box.visible = false
+                   else
+                     dialog = Gtk::MessageDialog.new(:parent=> nil, :flags => :modal, :type => :question, :buttons => :yes_no, :message => "Delete record?")
+                     dialog.title = "Confirm"
+                     dialog.set_icon(@default_icon)
+                     response = nil
+                     response = dialog.run
+                     dialog.destroy
+                     if response == Gtk::ResponseType::YES
+                       entry_data.delete(login_info)
+                       save_entry_data = true
+                       char_box.visible = false
+                     end
+                  end
+                end
                }
             }
 
@@ -11172,13 +11285,13 @@ main_thread = Thread.new {
             quick_vp.add(quick_box)
 
             quick_sw = Gtk::ScrolledWindow.new
-			quick_sw.set_policy(:automatic, :always)
+            quick_sw.set_policy(:automatic, :automatic)
             quick_sw.add(quick_vp)
 
 			quick_game_entry_tab = Gtk::Box.new(:vertical)
             quick_game_entry_tab.border_width = 5
-			quick_game_entry_tab.pack_start(quick_sw, :expand => true, :fill => true, :padding => 5)
-         end
+			      quick_game_entry_tab.pack_start(quick_sw, :expand => true, :fill => true, :padding => 5)
+      end
 
 =begin
          #
@@ -11285,7 +11398,7 @@ main_thread = Thread.new {
          custom_launch_dir.append_text("../wizard")
          custom_launch_dir.append_text("../StormFront")
 
-         remember_use_simu_launcher_active = nil 
+         remember_use_simu_launcher_active = nil
          revert_custom_launch_active = nil
          frontend_option.signal_connect('changed') {
             if ((frontend_option.active == 0) and not wizard_dir) or ((frontend_option.active == 1) and not stormfront_dir) or (frontend_option.active == 2) or (frontend_option.active == 3)
@@ -11581,7 +11694,7 @@ main_thread = Thread.new {
          treeview.append_column(col)
 
          sw = Gtk::ScrolledWindow.new
-      sw.set_policy(:automatic, :always)
+         sw.set_policy(:automatic, :automatic)
          sw.add(treeview)
 
       wizard_option = Gtk::RadioButton.new(:label => 'Wizard')
@@ -11837,7 +11950,7 @@ main_thread = Thread.new {
       web_button_box = Gtk::Box.new(:horizontal)
       web_button_box.pack_start(link_to_web_button, :expand => true, :fill => true, :padding => 5)
       web_button_box.pack_start(unlink_from_web_button, :expand => true, :fill => true, :padding => 5)
-         
+
          web_order_label = Gtk::Label.new
          web_order_label.text = "Unknown"
 
@@ -11853,7 +11966,7 @@ main_thread = Thread.new {
       sge_button_box = Gtk::Box.new(:horizontal)
       sge_button_box.pack_start(link_to_sge_button, :expand => true, :fill => true, :padding => 5)
       sge_button_box.pack_start(unlink_from_sge_button, :expand => true, :fill => true, :padding => 5)
-         
+
          sge_order_label = Gtk::Label.new
          sge_order_label.text = "Unknown"
 
@@ -12108,10 +12221,11 @@ main_thread = Thread.new {
          #
          # put it together and show the window
          #
-
+         silver = Gdk::RGBA::parse("#d3d3d3")
          notebook = Gtk::Notebook.new
 #		 default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
 #		 notebook.set_icon(default_icon)
+         notebook.override_background_color(:normal, silver)
          notebook.append_page(quick_game_entry_tab, Gtk::Label.new('Quick Game Entry'))
          notebook.append_page(game_entry_tab, Gtk::Label.new('Game Entry'))
          notebook.append_page(install_tab, Gtk::Label.new('Link'))
@@ -12160,17 +12274,19 @@ main_thread = Thread.new {
 =end
             end
          }
-
+         grey = Gdk::RGBA::parse("#d3d3d3")
          window = Gtk::Window.new
 #		 default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
-		 window.set_icon(@default_icon)
-		 window.title = "Lich v#{LICH_VERSION}"
+		     window.set_icon(@default_icon)
+		     window.title = "Lich v#{LICH_VERSION}"
          window.border_width = 5
          window.add(notebook)
          window.signal_connect('delete_event') { window.destroy; done = true }
-         window.default_width = 425
-		 window.default_height = 450
-		 
+         window.default_width = 400
+         # Adjusted to be a little longer due to formatting changes
+         window.default_height = 700
+         # Always start window in center of screen
+         window.window_position=Gtk::Window::POS_CENTER
          window.show_all
 
          custom_launch_entry.visible = false
@@ -12339,11 +12455,13 @@ main_thread = Thread.new {
                file = dir_file.sub(/^.*[\\\/]/, '')
                if Lich.win32_launch_method and Lich.win32_launch_method =~ /^(\d+):(.+)$/
                   method_num = $1.to_i
+                  Lich.log " Method number:  #{method_num} attempted"
                   if $2 == 'fail'
-                     method_num = (method_num + 1) % 6 
+                     method_num = (method_num + 1) % 6
                   end
                else
                   method_num = 5
+                  Lich.log "Failed out to Method Number 5, no Mambo"
                end
                if method_num == 5
                   begin
@@ -12360,7 +12478,7 @@ main_thread = Thread.new {
                   end
                   unless associated
                      Lich.log "warning: skipping launch method #{method_num + 1} because .sal files are not associated with the Simutronics Launcher"
-                     method_num = (method_num + 1) % 6 
+                     method_num = (method_num + 1) % 6
                   end
                end
                Lich.win32_launch_method = "#{method_num}:fail"
@@ -12546,7 +12664,7 @@ main_thread = Thread.new {
    end
 
    listener = timeout_thr = nil
-
+=begin
    #
    # drop superuser privileges
    #
@@ -12565,6 +12683,7 @@ main_thread = Thread.new {
          Lich.log "error: failed to drop superuser privileges: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
       end
    end
+=end
 
    # backward compatibility
    if $frontend =~ /^(?:wizard|avalon)$/
@@ -12805,7 +12924,7 @@ main_thread = Thread.new {
                   Lich.log "error: client_thread: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
                   $_DETACHABLE_CLIENT_.close rescue nil
                   $_DETACHABLE_CLIENT_ = nil
-               ensure 
+               ensure
                   $_DETACHABLE_CLIENT_.close rescue nil
                   $_DETACHABLE_CLIENT_ = nil
                end
