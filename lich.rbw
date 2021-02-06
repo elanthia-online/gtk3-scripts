@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # encoding: US-ASCII
+
 #####
 # Copyright (C) 2005-2006 Murray Miron
 # All rights reserved.
@@ -38,7 +39,7 @@
 # Lich version 5.0 and higher is intended for use only with GTK3-bindings in Ruby
 #
 
-LICH_VERSION = '5.0.1'
+LICH_VERSION = '5.0.2'
 TESTING = false
 
 if RUBY_VERSION !~ /^2|^3/
@@ -78,7 +79,6 @@ rescue LoadError
 rescue
   nil
 end
-
 if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
   #
   # Windows API made slightly less annoying
@@ -144,6 +144,7 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
     def Win32.GetLastError
       return Kernel32.GetLastError()
     end
+
     def Win32.CreateProcess(args)
       if args[:lpCommandLine]
         lpCommandLine = args[:lpCommandLine].dup
@@ -160,25 +161,26 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
       if args[:lpEnvironment].class == Array
         # fixme
       end
-      lpStartupInfo = [ 68, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0 ]
+      lpStartupInfo = [68, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0]
       lpStartupInfo_index = { :lpDesktop => 2, :lpTitle => 3, :dwX => 4, :dwY => 5, :dwXSize => 6, :dwYSize => 7, :dwXCountChars => 8, :dwYCountChars => 9, :dwFillAttribute => 10, :dwFlags => 11, :wShowWindow => 12, :hStdInput => 15, :hStdOutput => 16, :hStdError => 17 }
-      for sym in [ :lpDesktop, :lpTitle ]
+      for sym in [:lpDesktop, :lpTitle]
         if args[sym]
-          args[sym] = "#{args[sym]}\0" unless args[sym][-1,1] == "\0"
+          args[sym] = "#{args[sym]}\0" unless args[sym][-1, 1] == "\0"
           lpStartupInfo[lpStartupInfo_index[sym]] = Fiddle::Pointer.to_ptr(args[sym]).to_i
         end
       end
-      for sym in [ :dwX, :dwY, :dwXSize, :dwYSize, :dwXCountChars, :dwYCountChars, :dwFillAttribute, :dwFlags, :wShowWindow, :hStdInput, :hStdOutput, :hStdError ]
+      for sym in [:dwX, :dwY, :dwXSize, :dwYSize, :dwXCountChars, :dwYCountChars, :dwFillAttribute, :dwFlags, :wShowWindow, :hStdInput, :hStdOutput, :hStdError]
         if args[sym]
           lpStartupInfo[lpStartupInfo_index[sym]] = args[sym]
         end
       end
       lpStartupInfo = lpStartupInfo.pack('LLLLLLLLLLLLSSLLLL')
-      lpProcessInformation = [ 0, 0, 0, 0, ].pack('LLLL')
+      lpProcessInformation = [0, 0, 0, 0,].pack('LLLL')
       r = Kernel32.CreateProcess(args[:lpApplicationName], lpCommandLine, args[:lpProcessAttributes], args[:lpThreadAttributes], bInheritHandles, args[:dwCreationFlags].to_i, args[:lpEnvironment], args[:lpCurrentDirectory], lpStartupInfo, lpProcessInformation)
       lpProcessInformation = lpProcessInformation.unpack('LLLL')
       return :return => (r > 0 ? true : false), :hProcess => lpProcessInformation[0], :hThread => lpProcessInformation[1], :dwProcessId => lpProcessInformation[2], :dwThreadId => lpProcessInformation[3]
     end
+
     #      Win32.CreateProcess(:lpApplicationName => 'Launcher.exe', :lpCommandLine => 'lich2323.sal', :lpCurrentDirectory => 'C:\\PROGRA~1\\SIMU')
     #      def Win32.OpenProcess(args={})
     #         return Kernel32.OpenProcess(args[:dwDesiredAccess].to_i, args[:bInheritHandle].to_i, args[:dwProcessId].to_i)
@@ -186,19 +188,22 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
     def Win32.GetCurrentProcess
       return Kernel32.GetCurrentProcess
     end
+
     def Win32.GetExitCodeProcess(args)
-      lpExitCode = [ 0 ].pack('L')
+      lpExitCode = [0].pack('L')
       r = Kernel32.GetExitCodeProcess(args[:hProcess].to_i, lpExitCode)
       return :return => r, :lpExitCode => lpExitCode.unpack('L')[0]
     end
-    def Win32.GetModuleFileName(args={})
+
+    def Win32.GetModuleFileName(args = {})
       args[:nSize] ||= 256
       buffer = "\0" * args[:nSize].to_i
       r = Kernel32.GetModuleFileName(args[:hModule].to_i, buffer, args[:nSize].to_i)
       return :return => r, :lpFilename => buffer.gsub("\0", '')
     end
+
     def Win32.GetVersionEx
-      a = [ 156, 0, 0, 0, 0, ("\0" * 128), 0, 0, 0, 0, 0].pack('LLLLLa128SSSCC')
+      a = [156, 0, 0, 0, 0, ("\0" * 128), 0, 0, 0, 0, 0].pack('LLLLLa128SSSCC')
       r = Kernel32.GetVersionEx(a)
       a = a.unpack('LLLLLa128SSSCC')
       return :return => r, :dwOSVersionInfoSize => a[0], :dwMajorVersion => a[1], :dwMinorVersion => a[2], :dwBuildNumber => a[3], :dwPlatformId => a[4], :szCSDVersion => a[5].strip, :wServicePackMajor => a[6], :wServicePackMinor => a[7], :wSuiteMask => a[8], :wProductType => a[9]
@@ -228,35 +233,38 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
     def Win32.GetTokenInformation(args)
       if args[:TokenInformationClass] == TokenElevation
         token_information_length = SIZEOF_LONG
-        token_information = [ 0 ].pack('L')
+        token_information = [0].pack('L')
       else
         return nil
       end
-      return_length = [ 0 ].pack('L')
+      return_length = [0].pack('L')
       r = Advapi32.GetTokenInformation(args[:TokenHandle].to_i, args[:TokenInformationClass], token_information, token_information_length, return_length)
       if args[:TokenInformationClass] == TokenElevation
         return :return => r, :TokenIsElevated => token_information.unpack('L')[0]
       end
     end
+
     def Win32.OpenProcessToken(args)
-      token_handle = [ 0 ].pack('L')
+      token_handle = [0].pack('L')
       r = Advapi32.OpenProcessToken(args[:ProcessHandle].to_i, args[:DesiredAccess].to_i, token_handle)
       return :return => r, :TokenHandle => token_handle.unpack('L')[0]
     end
+
     def Win32.RegOpenKeyEx(args)
-      phkResult = [ 0 ].pack('L')
+      phkResult = [0].pack('L')
       r = Advapi32.RegOpenKeyEx(args[:hKey].to_i, args[:lpSubKey].to_s, 0, args[:samDesired].to_i, phkResult)
       return :return => r, :phkResult => phkResult.unpack('L')[0]
     end
+
     def Win32.RegQueryValueEx(args)
       args[:lpValueName] ||= 0
-      lpcbData = [ 0 ].pack('L')
+      lpcbData = [0].pack('L')
       r = Advapi32.RegQueryValueEx(args[:hKey].to_i, args[:lpValueName], 0, 0, 0, lpcbData)
       if r == 0
         lpcbData = lpcbData.unpack('L')[0]
         lpData = String.new.rjust(lpcbData, "\x00")
-        lpcbData = [ lpcbData ].pack('L')
-        lpType = [ 0 ].pack('L')
+        lpcbData = [lpcbData].pack('L')
+        lpType = [0].pack('L')
         r = Advapi32.RegQueryValueEx(args[:hKey].to_i, args[:lpValueName], 0, lpType, lpData, lpcbData)
         lpType = lpType.unpack('L')[0]
         lpcbData = lpcbData.unpack('L')[0]
@@ -269,9 +277,9 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
         elsif lpType == REG_QWORD
           lpData = lpData.unpack('Q')[0]
         elsif lpType == REG_BINARY
-          # fixme
+        # fixme
         elsif lpType == REG_DWORD_BIG_ENDIAN
-          # fixme
+        # fixme
         else
           # fixme
         end
@@ -280,6 +288,7 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
         return :return => r
       end
     end
+
     def Win32.RegSetValueEx(args)
       if [REG_EXPAND_SZ, REG_SZ, REG_LINK].include?(args[:dwType]) and (args[:lpData].class == String)
         lpData = args[:lpData].dup
@@ -307,11 +316,13 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
       args[:lpValueName] ||= 0
       return Advapi32.RegSetValueEx(args[:hKey].to_i, args[:lpValueName], 0, args[:dwType], lpData, cbData)
     end
+
     def Win32.RegDeleteValue(args)
       args[:lpValueName] ||= 0
       return Advapi32.RegDeleteValue(args[:hKey].to_i, args[:lpValueName])
     end
-    def   Win32.RegCloseKey(args)
+
+    def Win32.RegCloseKey(args)
       return Advapi32.RegCloseKey(args[:hKey])
     end
 
@@ -323,15 +334,15 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
     end
     def Win32.ShellExecuteEx(args)
       #         struct = [ (SIZEOF_LONG * 15), 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL, 0, 0, 0, 0, 0, 0, 0 ]
-      struct = [ (SIZEOF_LONG * 15), 0, 0, 0, 0, 0, 0, SW_SHOW, 0, 0, 0, 0, 0, 0, 0 ]
+      struct = [(SIZEOF_LONG * 15), 0, 0, 0, 0, 0, 0, SW_SHOW, 0, 0, 0, 0, 0, 0, 0]
       struct_index = { :cbSize => 0, :fMask => 1, :hwnd => 2, :lpVerb => 3, :lpFile => 4, :lpParameters => 5, :lpDirectory => 6, :nShow => 7, :hInstApp => 8, :lpIDList => 9, :lpClass => 10, :hkeyClass => 11, :dwHotKey => 12, :hIcon => 13, :hMonitor => 13, :hProcess => 14 }
-      for sym in [ :lpVerb, :lpFile, :lpParameters, :lpDirectory, :lpIDList, :lpClass ]
+      for sym in [:lpVerb, :lpFile, :lpParameters, :lpDirectory, :lpIDList, :lpClass]
         if args[sym]
-          args[sym] = "#{args[sym]}\0" unless args[sym][-1,1] == "\0"
+          args[sym] = "#{args[sym]}\0" unless args[sym][-1, 1] == "\0"
           struct[struct_index[sym]] = Fiddle::Pointer.to_ptr(args[sym]).to_i
         end
       end
-      for sym in [ :fMask, :hwnd, :nShow, :hkeyClass, :dwHotKey, :hIcon, :hMonitor, :hProcess ]
+      for sym in [:fMask, :hwnd, :nShow, :hkeyClass, :dwHotKey, :hIcon, :hMonitor, :hProcess]
         if args[sym]
           struct[struct_index[sym]] = args[sym]
         end
@@ -341,6 +352,7 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
       struct = struct.unpack('LLLLLLLLLLLLLLL')
       return :return => r, :hProcess => struct[struct_index[:hProcess]], :hInstApp => struct[struct_index[:hInstApp]]
     end
+
     def Win32.ShellExecute(args)
       args[:lpOperation] ||= 0
       args[:lpParameters] ||= 0
@@ -353,13 +365,13 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
       module Kernel32
         extern 'int EnumProcesses(void*, int, void*)'
       end
-      def Win32.EnumProcesses(args={})
+      def Win32.EnumProcesses(args = {})
         args[:cb] ||= 400
-        pProcessIds = Array.new((args[:cb]/SIZEOF_LONG), 0).pack(''.rjust((args[:cb]/SIZEOF_LONG), 'L'))
-        pBytesReturned = [ 0 ].pack('L')
+        pProcessIds = Array.new((args[:cb] / SIZEOF_LONG), 0).pack(''.rjust((args[:cb] / SIZEOF_LONG), 'L'))
+        pBytesReturned = [0].pack('L')
         r = Kernel32.EnumProcesses(pProcessIds, args[:cb], pBytesReturned)
         pBytesReturned = pBytesReturned.unpack('L')[0]
-        return :return => r, :pProcessIds => pProcessIds.unpack(''.rjust((args[:cb]/SIZEOF_LONG), 'L'))[0...(pBytesReturned/SIZEOF_LONG)], :pBytesReturned => pBytesReturned
+        return :return => r, :pProcessIds => pProcessIds.unpack(''.rjust((args[:cb] / SIZEOF_LONG), 'L'))[0...(pBytesReturned / SIZEOF_LONG)], :pBytesReturned => pBytesReturned
       end
     rescue
       module Psapi
@@ -367,19 +379,20 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
         dlload 'psapi'
         extern 'int EnumProcesses(void*, int, void*)'
       end
-      def Win32.EnumProcesses(args={})
+      def Win32.EnumProcesses(args = {})
         args[:cb] ||= 400
-        pProcessIds = Array.new((args[:cb]/SIZEOF_LONG), 0).pack(''.rjust((args[:cb]/SIZEOF_LONG), 'L'))
-        pBytesReturned = [ 0 ].pack('L')
+        pProcessIds = Array.new((args[:cb] / SIZEOF_LONG), 0).pack(''.rjust((args[:cb] / SIZEOF_LONG), 'L'))
+        pBytesReturned = [0].pack('L')
         r = Psapi.EnumProcesses(pProcessIds, args[:cb], pBytesReturned)
         pBytesReturned = pBytesReturned.unpack('L')[0]
-        return :return => r, :pProcessIds => pProcessIds.unpack(''.rjust((args[:cb]/SIZEOF_LONG), 'L'))[0...(pBytesReturned/SIZEOF_LONG)], :pBytesReturned => pBytesReturned
+        return :return => r, :pProcessIds => pProcessIds.unpack(''.rjust((args[:cb] / SIZEOF_LONG), 'L'))[0...(pBytesReturned / SIZEOF_LONG)], :pBytesReturned => pBytesReturned
       end
     end
 
     def Win32.isXP?
       return (Win32.GetVersionEx[:dwMajorVersion] < 6)
     end
+
     #      def Win32.isWin8?
     #         r = Win32.GetVersionEx
     #         return ((r[:dwMajorVersion] == 6) and (r[:dwMinorVersion] >= 2))
@@ -394,13 +407,14 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
         return (r[:TokenIsElevated] != 0)
       end
     end
+
     def Win32.AdminShellExecute(args)
       # open ruby/lich as admin and tell it to open something else
       if not caller.any? { |c| c =~ /eval|run/ }
         r = Win32.GetModuleFileName
         if r[:return] > 0
           if File.exists?(r[:lpFilename])
-            Win32.ShellExecuteEx(:lpVerb => 'runas', :lpFile => r[:lpFilename], :lpParameters => "#{File.expand_path($PROGRAM_NAME)} shellexecute #{[Marshal.dump(args)].pack('m').gsub("\n",'')}")
+            Win32.ShellExecuteEx(:lpVerb => 'runas', :lpFile => r[:lpFilename], :lpParameters => "#{File.expand_path($PROGRAM_NAME)} shellexecute #{[Marshal.dump(args)].pack('m').gsub("\n", '')}")
           end
         end
       end
@@ -458,6 +472,7 @@ else
           return false
         end
       end
+
       def Wine.registry_puts(key, value)
         hkey, subkey, thingie = /(HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER)\\(.+)\\([^\\]*)/.match(key).captures # fixme ]/
         if File.exists?(PREFIX)
@@ -614,7 +629,7 @@ else
   early_gtk_error = "info: DISPLAY environment variable is not set; not trying gtk"
 end
 
-if defined?(Gtk)
+if defined?(Gtk) && Gtk::Version::STRING.chr == '3'
   Gdk.module_eval do
     define_deprecated_singleton_method :screen_height, :warn => "Gdk::screen_height is deprecated; use monitor methods instead" do |_self|
       99999
@@ -780,6 +795,7 @@ module Lich
       nil
     end
   end
+
   def Lich.init_db
     begin
       Lich.db.execute("CREATE TABLE IF NOT EXISTS script_setting (script TEXT NOT NULL, name TEXT NOT NULL, value BLOB, PRIMARY KEY(script, name));")
@@ -796,12 +812,17 @@ module Lich
       retry
     end
   end
+
   def Lich.class_variable_get(*a); nil; end
+
   def Lich.class_eval(*a);         nil; end
+
   def Lich.module_eval(*a);        nil; end
+
   def Lich.log(msg)
     $stderr.puts "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")}: #{msg}"
   end
+
   def Lich.msgbox(args)
     if defined?(Win32)
       if args[:buttons] == :ok_cancel
@@ -821,7 +842,7 @@ module Lich
         icon = 0
       end
       args[:title] ||= "Lich v#{LICH_VERSION}"
-      r = Win32.MessageBox(:lpText => args[:message], :lpCaption => args[:title], :uType => (buttons|icon))
+      r = Win32.MessageBox(:lpText => args[:message], :lpCaption => args[:title], :uType => (buttons | icon))
       if r == Win32::IDIOK
         return :ok
       elsif r == Win32::IDICANCEL
@@ -874,10 +895,11 @@ module Lich
       return nil
     end
   end
+
   def Lich.get_simu_launcher
     if defined?(Win32)
       begin
-        launcher_key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Classes\\Simutronics.Autolaunch\\Shell\\Open\\command', :samDesired => (Win32::KEY_ALL_ACCESS|Win32::KEY_WOW64_32KEY))[:phkResult]
+        launcher_key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Classes\\Simutronics.Autolaunch\\Shell\\Open\\command', :samDesired => (Win32::KEY_ALL_ACCESS | Win32::KEY_WOW64_32KEY))[:phkResult]
         launcher_cmd = Win32.RegQueryValueEx(:hKey => launcher_key, :lpValueName => 'RealCommand')[:lpData]
         if launcher_cmd.nil? or launcher_cmd.empty?
           launcher_cmd = Win32.RegQueryValueEx(:hKey => launcher_key)[:lpData]
@@ -897,26 +919,30 @@ module Lich
       return nil
     end
   end
+
   def Lich.link_to_sge
     if defined?(Win32)
       if Win32.admin?
         begin
-          launcher_key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Simutronics\\Launcher', :samDesired => (Win32::KEY_ALL_ACCESS|Win32::KEY_WOW64_32KEY))[:phkResult]
+          launcher_key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Simutronics\\Launcher', :samDesired => (Win32::KEY_ALL_ACCESS | Win32::KEY_WOW64_32KEY))[:phkResult]
           r = Win32.RegQueryValueEx(:hKey => launcher_key, :lpValueName => 'RealDirectory')
           if (r[:return] == 0) and not r[:lpData].empty?
             # already linked
             return true
           end
+
           r = Win32.GetModuleFileName
           unless r[:return] > 0
             # fixme
             return false
           end
+
           new_launcher_dir = "\"#{r[:lpFilename]}\" \"#{File.expand_path($PROGRAM_NAME)}\" "
           r = Win32.RegQueryValueEx(:hKey => launcher_key, :lpValueName => 'Directory')
           launcher_dir = r[:lpData]
           r = Win32.RegSetValueEx(:hKey => launcher_key, :lpValueName => 'RealDirectory', :dwType => Win32::REG_SZ, :lpData => launcher_dir)
           return false unless (r == 0)
+
           r = Win32.RegSetValueEx(:hKey => launcher_key, :lpValueName => 'Directory', :dwType => Win32::REG_SZ, :lpData => new_launcher_dir)
           return (r == 0)
         ensure
@@ -943,6 +969,7 @@ module Lich
     elsif defined?(Wine)
       launch_dir = Wine.registry_gets('HKEY_LOCAL_MACHINE\\Software\\Simutronics\\Launcher\\Directory')
       return false unless launch_dir
+
       lich_launch_dir = "#{File.expand_path($PROGRAM_NAME)} --wine=#{Wine::BIN} --wine-prefix=#{Wine::PREFIX}  "
       result = true
       if launch_dir
@@ -960,18 +987,21 @@ module Lich
       return false
     end
   end
+
   def Lich.unlink_from_sge
     if defined?(Win32)
       if Win32.admin?
         begin
-          launcher_key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Simutronics\\Launcher', :samDesired => (Win32::KEY_ALL_ACCESS|Win32::KEY_WOW64_32KEY))[:phkResult]
+          launcher_key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Simutronics\\Launcher', :samDesired => (Win32::KEY_ALL_ACCESS | Win32::KEY_WOW64_32KEY))[:phkResult]
           real_directory = Win32.RegQueryValueEx(:hKey => launcher_key, :lpValueName => 'RealDirectory')[:lpData]
           if real_directory.nil? or real_directory.empty?
             # not linked
             return true
           end
+
           r = Win32.RegSetValueEx(:hKey => launcher_key, :lpValueName => 'Directory', :dwType => Win32::REG_SZ, :lpData => real_directory)
           return false unless (r == 0)
+
           r = Win32.RegDeleteValue(:hKey => launcher_key, :lpValueName => 'RealDirectory')
           return (r == 0)
         ensure
@@ -1007,27 +1037,31 @@ module Lich
       return false
     end
   end
+
   def Lich.link_to_sal
     if defined?(Win32)
       if Win32.admin?
         begin
           # fixme: 64 bit browsers?
-          launcher_key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Classes\\Simutronics.Autolaunch\\Shell\\Open\\command', :samDesired => (Win32::KEY_ALL_ACCESS|Win32::KEY_WOW64_32KEY))[:phkResult]
+          launcher_key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Classes\\Simutronics.Autolaunch\\Shell\\Open\\command', :samDesired => (Win32::KEY_ALL_ACCESS | Win32::KEY_WOW64_32KEY))[:phkResult]
           r = Win32.RegQueryValueEx(:hKey => launcher_key, :lpValueName => 'RealCommand')
           if (r[:return] == 0) and not r[:lpData].empty?
             # already linked
             return true
           end
+
           r = Win32.GetModuleFileName
           unless r[:return] > 0
             # fixme
             return false
           end
+
           new_launcher_cmd = "\"#{r[:lpFilename]}\" \"#{File.expand_path($PROGRAM_NAME)}\" %1"
           r = Win32.RegQueryValueEx(:hKey => launcher_key)
           launcher_cmd = r[:lpData]
           r = Win32.RegSetValueEx(:hKey => launcher_key, :lpValueName => 'RealCommand', :dwType => Win32::REG_SZ, :lpData => launcher_cmd)
           return false unless (r == 0)
+
           r = Win32.RegSetValueEx(:hKey => launcher_key, :dwType => Win32::REG_SZ, :lpData => new_launcher_cmd)
           return (r == 0)
         ensure
@@ -1054,6 +1088,7 @@ module Lich
     elsif defined?(Wine)
       launch_cmd = Wine.registry_gets('HKEY_LOCAL_MACHINE\\Software\\Classes\\Simutronics.Autolaunch\\Shell\\Open\\command\\')
       return false unless launch_cmd
+
       new_launch_cmd = "#{File.expand_path($PROGRAM_NAME)} --wine=#{Wine::BIN} --wine-prefix=#{Wine::PREFIX} %1"
       result = true
       if launch_cmd
@@ -1071,18 +1106,21 @@ module Lich
       return false
     end
   end
+
   def Lich.unlink_from_sal
     if defined?(Win32)
       if Win32.admin?
         begin
-          launcher_key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Classes\\Simutronics.Autolaunch\\Shell\\Open\\command', :samDesired => (Win32::KEY_ALL_ACCESS|Win32::KEY_WOW64_32KEY))[:phkResult]
+          launcher_key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Classes\\Simutronics.Autolaunch\\Shell\\Open\\command', :samDesired => (Win32::KEY_ALL_ACCESS | Win32::KEY_WOW64_32KEY))[:phkResult]
           real_directory = Win32.RegQueryValueEx(:hKey => launcher_key, :lpValueName => 'RealCommand')[:lpData]
           if real_directory.nil? or real_directory.empty?
             # not linked
             return true
           end
+
           r = Win32.RegSetValueEx(:hKey => launcher_key, :dwType => Win32::REG_SZ, :lpData => real_directory)
           return false unless (r == 0)
+
           r = Win32.RegDeleteValue(:hKey => launcher_key, :lpValueName => 'RealCommand')
           return (r == 0)
         ensure
@@ -1118,10 +1156,12 @@ module Lich
       return false
     end
   end
+
   def Lich.hosts_file
     Lich.find_hosts_file if @@hosts_file.nil?
     return @@hosts_file
   end
+
   def Lich.find_hosts_file
     if defined?(Win32)
       begin
@@ -1141,8 +1181,9 @@ module Lich
       if (windir = (ENV['windir'] || ENV['SYSTEMROOT'])) and File.exists?("#{windir}\\system32\\drivers\\etc\\hosts")
         return (@@hosts_file = "#{windir}\\system32\\drivers\\etc\\hosts")
       end
-      for drive in ['C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
-        for windir in ['winnt','windows']
+
+      for drive in ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+        for windir in ['winnt', 'windows']
           if File.exists?("#{drive}:\\#{windir}\\system32\\drivers\\etc\\hosts")
             return (@@hosts_file = "#{drive}:\\#{windir}\\system32\\drivers\\etc\\hosts")
           end
@@ -1157,6 +1198,7 @@ module Lich
     end
     return (@@hosts_file = false)
   end
+
   def Lich.modify_hosts(game_host)
     if Lich.hosts_file and File.exists?(Lich.hosts_file)
       at_exit { Lich.restore_hosts }
@@ -1164,6 +1206,7 @@ module Lich
       if File.exists?("#{Lich.hosts_file}.bak")
         return false
       end
+
       begin
         # copy hosts to hosts.bak
         File.open("#{Lich.hosts_file}.bak", 'w') { |hb| File.open(Lich.hosts_file) { |h| hb.write(h.read) } }
@@ -1177,6 +1220,7 @@ module Lich
       return false
     end
   end
+
   def Lich.restore_hosts
     if Lich.hosts_file and File.exists?(Lich.hosts_file)
       begin
@@ -1196,6 +1240,7 @@ module Lich
       end
     end
   end
+
   def Lich.inventory_boxes(player_id)
     begin
       v = Lich.db.get_first_value('SELECT player_id FROM enable_inventory_boxes WHERE player_id=?;', player_id.to_i)
@@ -1209,6 +1254,7 @@ module Lich
       false
     end
   end
+
   def Lich.set_inventory_boxes(player_id, enabled)
     if enabled
       begin
@@ -1227,6 +1273,7 @@ module Lich
     end
     nil
   end
+
   def Lich.win32_launch_method
     begin
       val = Lich.db.get_first_value("SELECT value FROM lich_settings WHERE name='win32_launch_method';")
@@ -1236,6 +1283,7 @@ module Lich
     end
     val
   end
+
   def Lich.win32_launch_method=(val)
     begin
       Lich.db.execute("INSERT OR REPLACE INTO lich_settings(name,value) values('win32_launch_method',?);", val.to_s.encode('UTF-8'))
@@ -1245,7 +1293,8 @@ module Lich
     end
     nil
   end
-  def Lich.fix_game_host_port(gamehost,gameport)
+
+  def Lich.fix_game_host_port(gamehost, gameport)
     if (gamehost == 'gs-plat.simutronics.net') and (gameport.to_i == 10121)
       gamehost = 'storm.gs4.game.play.net'
       gameport = 10124
@@ -1259,9 +1308,10 @@ module Lich
       gamehost = 'dr.simutronics.net'
       gameport = 11024
     end
-    [ gamehost, gameport ]
+    [gamehost, gameport]
   end
-  def Lich.break_game_host_port(gamehost,gameport)
+
+  def Lich.break_game_host_port(gamehost, gameport)
     if (gamehost == 'storm.gs4.game.play.net') and (gameport.to_i == 10324)
       gamehost = 'gs4.simutronics.net'
       gameport = 10321
@@ -1278,7 +1328,7 @@ module Lich
       gamehost = 'prime.dr.game.play.net'
       gameport = 4901
     end
-    [ gamehost, gameport ]
+    [gamehost, gameport]
   end
 end
 
@@ -1286,21 +1336,27 @@ class NilClass
   def dup
     nil
   end
+
   def method_missing(*args)
     nil
   end
+
   def split(*val)
     Array.new
   end
+
   def to_s
     ""
   end
+
   def strip
     ""
   end
+
   def +(val)
     val
   end
+
   def closed?
     true
   end
@@ -1310,6 +1366,7 @@ class Numeric
   def as_time
     sprintf("%d:%02d:%02d", (self / 60).truncate, self.truncate % 60, ((self % 1) * 60).truncate)
   end
+
   def with_commas
     self.to_s.reverse.scan(/(?:\d*\.)?\d{1,3}-?/).join(',').reverse
   end
@@ -1333,12 +1390,15 @@ class String
   def untaint
     @@elevated_untaint.call(self)
   end
+
   def to_s
     self.dup
   end
+
   def stream
     @stream
   end
+
   def stream=(val)
     @stream ||= val
   end
@@ -1349,21 +1409,27 @@ class StringProc
     @string = string
     @string.untaint
   end
+
   def kind_of?(type)
     Proc.new {}.kind_of? type
   end
+
   def class
     Proc
   end
+
   def call(*a)
     proc { begin; $SAFE = 3; rescue; nil; end; eval(@string) }.call
   end
-  def _dump(d=nil)
+
+  def _dump(d = nil)
     @string
   end
+
   def inspect
     "StringProc.new(#{@string.inspect})"
   end
+
   def to_json(*args)
     ";e #{_dump}".to_json(args)
   end
@@ -1375,16 +1441,19 @@ class SynchronizedSocket
     @mutex = Mutex.new
     self
   end
+
   def puts(*args, &block)
     @mutex.synchronize {
       @delegate.puts *args, &block
     }
   end
+
   def write(*args, &block)
     @mutex.synchronize {
       @delegate.write *args, &block
     }
   end
+
   def method_missing(method, *args, &block)
     @delegate.__send__ method, *args, &block
   end
@@ -1392,17 +1461,21 @@ end
 
 class LimitedArray < Array
   attr_accessor :max_size
-  def initialize(size=0, obj=nil)
+
+  def initialize(size = 0, obj = nil)
     @max_size = 200
     super
   end
+
   def push(line)
     self.shift while self.length >= @max_size
     super
   end
+
   def shove(line)
     push(line)
   end
+
   def history
     Array.new
   end
@@ -1489,11 +1562,10 @@ class XMLParser
     @encumbrance_full_text = String.new
     @encumbrance_value = 0
     @indicator = Hash.new
-    @injuries = {'back' => {'scar' => 0, 'wound' => 0}, 'leftHand' => {'scar' => 0, 'wound' => 0}, 'rightHand' => {'scar' => 0, 'wound' => 0}, 'head' => {'scar' => 0, 'wound' => 0}, 'rightArm' => {'scar' => 0, 'wound' => 0}, 'abdomen' => {'scar' => 0, 'wound' => 0}, 'leftEye' => {'scar' => 0, 'wound' => 0}, 'leftArm' => {'scar' => 0, 'wound' => 0}, 'chest' => {'scar' => 0, 'wound' => 0}, 'leftFoot' => {'scar' => 0, 'wound' => 0}, 'rightFoot' => {'scar' => 0, 'wound' => 0}, 'rightLeg' => {'scar' => 0, 'wound' => 0}, 'neck' => {'scar' => 0, 'wound' => 0}, 'leftLeg' => {'scar' => 0, 'wound' => 0}, 'nsys' => {'scar' => 0, 'wound' => 0}, 'rightEye' => {'scar' => 0, 'wound' => 0}}
+    @injuries = { 'back' => { 'scar' => 0, 'wound' => 0 }, 'leftHand' => { 'scar' => 0, 'wound' => 0 }, 'rightHand' => { 'scar' => 0, 'wound' => 0 }, 'head' => { 'scar' => 0, 'wound' => 0 }, 'rightArm' => { 'scar' => 0, 'wound' => 0 }, 'abdomen' => { 'scar' => 0, 'wound' => 0 }, 'leftEye' => { 'scar' => 0, 'wound' => 0 }, 'leftArm' => { 'scar' => 0, 'wound' => 0 }, 'chest' => { 'scar' => 0, 'wound' => 0 }, 'leftFoot' => { 'scar' => 0, 'wound' => 0 }, 'rightFoot' => { 'scar' => 0, 'wound' => 0 }, 'rightLeg' => { 'scar' => 0, 'wound' => 0 }, 'neck' => { 'scar' => 0, 'wound' => 0 }, 'leftLeg' => { 'scar' => 0, 'wound' => 0 }, 'nsys' => { 'scar' => 0, 'wound' => 0 }, 'rightEye' => { 'scar' => 0, 'wound' => 0 } }
     @injury_mode = 0
 
     @active_spells = Hash.new
-
   end
 
   def reset
@@ -1504,11 +1576,11 @@ class XMLParser
   end
 
   def make_wound_gsl
-    @wound_gsl = sprintf("0b0%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b",@injuries['nsys']['wound'],@injuries['leftEye']['wound'],@injuries['rightEye']['wound'],@injuries['back']['wound'],@injuries['abdomen']['wound'],@injuries['chest']['wound'],@injuries['leftHand']['wound'],@injuries['rightHand']['wound'],@injuries['leftLeg']['wound'],@injuries['rightLeg']['wound'],@injuries['leftArm']['wound'],@injuries['rightArm']['wound'],@injuries['neck']['wound'],@injuries['head']['wound'])
+    @wound_gsl = sprintf("0b0%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b", @injuries['nsys']['wound'], @injuries['leftEye']['wound'], @injuries['rightEye']['wound'], @injuries['back']['wound'], @injuries['abdomen']['wound'], @injuries['chest']['wound'], @injuries['leftHand']['wound'], @injuries['rightHand']['wound'], @injuries['leftLeg']['wound'], @injuries['rightLeg']['wound'], @injuries['leftArm']['wound'], @injuries['rightArm']['wound'], @injuries['neck']['wound'], @injuries['head']['wound'])
   end
 
   def make_scar_gsl
-    @scar_gsl = sprintf("0b0%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b",@injuries['nsys']['scar'],@injuries['leftEye']['scar'],@injuries['rightEye']['scar'],@injuries['back']['scar'],@injuries['abdomen']['scar'],@injuries['chest']['scar'],@injuries['leftHand']['scar'],@injuries['rightHand']['scar'],@injuries['leftLeg']['scar'],@injuries['rightLeg']['scar'],@injuries['leftArm']['scar'],@injuries['rightArm']['scar'],@injuries['neck']['scar'],@injuries['head']['scar'])
+    @scar_gsl = sprintf("0b0%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b%02b", @injuries['nsys']['scar'], @injuries['leftEye']['scar'], @injuries['rightEye']['scar'], @injuries['back']['scar'], @injuries['abdomen']['scar'], @injuries['chest']['scar'], @injuries['leftHand']['scar'], @injuries['rightHand']['scar'], @injuries['leftLeg']['scar'], @injuries['rightLeg']['scar'], @injuries['leftArm']['scar'], @injuries['rightArm']['scar'], @injuries['neck']['scar'], @injuries['head']['scar'])
   end
 
   def parse(line)
@@ -1618,11 +1690,11 @@ class XMLParser
           @mana, @max_mana = attributes['text'].scan(/-?\d+/).collect { |num| num.to_i }
           difference = @mana - last_mana
           # fixme: enhancives screw this up
-          if (difference == noded_pulse) or (difference == unnoded_pulse) or ( (@mana == @max_mana) and (last_mana + noded_pulse > @max_mana) )
+          if (difference == noded_pulse) or (difference == unnoded_pulse) or ((@mana == @max_mana) and (last_mana + noded_pulse > @max_mana))
             @last_pulse = Time.now.to_i
             if @send_fake_tags
-              $_CLIENT_.puts "\034GSZ#{sprintf('%010d',(@mana+1))}\n"
-              $_CLIENT_.puts "\034GSZ#{sprintf('%010d',@mana)}\n"
+              $_CLIENT_.puts "\034GSZ#{sprintf('%010d', (@mana + 1))}\n"
+              $_CLIENT_.puts "\034GSZ#{sprintf('%010d', @mana)}\n"
             end
           end
           if @send_fake_tags
@@ -1849,7 +1921,7 @@ class XMLParser
         end
         Game._puts("#{$cmd_prefix}_flag Display Inventory Boxes 1")
         Script.start('autostart') if Script.exists?('autostart')
-        if arg = ARGV.find { |a| a=~ /^\-\-start\-scripts=/ }
+        if arg = ARGV.find { |a| a =~ /^\-\-start\-scripts=/ }
           for script_name in arg.sub('--start-scripts=', '').split(',')
             Script.start(script_name)
           end
@@ -1862,6 +1934,7 @@ class XMLParser
       reset
     end
   end
+
   def text(text_string)
     begin
       # fixme: /<stream id="Spells">.*?<\/stream>/m
@@ -1997,10 +2070,10 @@ class XMLParser
               GameObj.new_fam_loot(@obj_exist, @obj_noun, text_string)
             end
           end
-          # puts 'things: ' + text_string
+        # puts 'things: ' + text_string
         elsif @fam_mode == 'people' and @active_tags.include?('a')
           GameObj.new_fam_pc(@obj_exist, @obj_noun, text_string)
-          # puts 'people: ' + text_string
+        # puts 'people: ' + text_string
         elsif (@fam_mode == 'paths') and @active_tags.include?('a')
           @familiar_room_exits.push(text_string)
         end
@@ -2021,6 +2094,7 @@ class XMLParser
       reset
     end
   end
+
   def tag_end(name)
     begin
       if name == 'inv'
@@ -2056,6 +2130,7 @@ class XMLParser
       reset
     end
   end
+
   # here for backwards compatibility, but spellfront xml isn't sent by the game anymore
   def spellfront
     if (Time.now.to_i - @@warned_deprecated_spellfront) > 300
@@ -2078,6 +2153,7 @@ class UpstreamHook
     end
     @@upstream_hooks[name] = action
   end
+
   def UpstreamHook.run(client_string)
     for key in @@upstream_hooks.keys
       begin
@@ -2091,9 +2167,11 @@ class UpstreamHook
     end
     return client_string
   end
+
   def UpstreamHook.remove(name)
     @@upstream_hooks.delete(name)
   end
+
   def UpstreamHook.list
     @@upstream_hooks.keys.dup
   end
@@ -2108,6 +2186,7 @@ class DownstreamHook
     end
     @@downstream_hooks[name] = action
   end
+
   def DownstreamHook.run(server_string)
     for key in @@downstream_hooks.keys
       begin
@@ -2121,9 +2200,11 @@ class DownstreamHook
     end
     return server_string
   end
+
   def DownstreamHook.remove(name)
     @@downstream_hooks.delete(name)
   end
+
   def DownstreamHook.list
     @@downstream_hooks.keys.dup
   end
@@ -2196,6 +2277,7 @@ module Setting
     if hash.empty?
       next nil
     end
+
     if hash.keys.any? { |k| k.class != String }
       respond "--- Lich: error: Setting.save: non-string given as a setting name"
       respond $!.backtrace[0..2]
@@ -2209,7 +2291,7 @@ module Setting
         retry
       end
     end
-    hash.each { |setting,value|
+    hash.each { |setting, value|
       begin
         if value.nil?
           begin
@@ -2268,9 +2350,11 @@ module Setting
   def Setting.load(*args)
     @@load.call(args)
   end
+
   def Setting.save(hash)
     @@save.call(hash)
   end
+
   def Setting.list
     @@list.call
   end
@@ -2280,9 +2364,10 @@ module GameSetting
   def GameSetting.load(*args)
     Setting.load(args.collect { |a| "#{XMLData.game}:#{a}" })
   end
+
   def GameSetting.save(hash)
     game_hash = Hash.new
-    hash.each_pair { |k,v| game_hash["#{XMLData.game}:#{k}"] = v }
+    hash.each_pair { |k, v| game_hash["#{XMLData.game}:#{k}"] = v }
     Setting.save(game_hash)
   end
 end
@@ -2291,9 +2376,10 @@ module CharSetting
   def CharSetting.load(*args)
     Setting.load(args.collect { |a| "#{XMLData.game}:#{XMLData.name}:#{a}" })
   end
+
   def CharSetting.save(hash)
     game_hash = Hash.new
-    hash.each_pair { |k,v| game_hash["#{XMLData.game}:#{XMLData.name}:#{k}"] = v }
+    hash.each_pair { |k, v| game_hash["#{XMLData.game}:#{XMLData.name}:#{k}"] = v }
     Setting.save(game_hash)
   end
 end
@@ -2341,8 +2427,8 @@ module Settings
   @@save = proc {
     mutex.synchronize {
       sql_began = false
-      settings.each_pair { |script_name,scopedata|
-        scopedata.each_pair { |scope,data|
+      settings.each_pair { |script_name, scopedata|
+        scopedata.each_pair { |scope, data|
           if Digest::MD5.hexdigest(data.to_s) != md5_at_load[script_name][scope]
             unless sql_began
               begin
@@ -2395,15 +2481,19 @@ module Settings
   def Settings.[](name)
     @@settings.call(':')[name]
   end
+
   def Settings.[]=(name, value)
     @@settings.call(':')[name] = value
   end
-  def Settings.to_hash(scope=':')
+
+  def Settings.to_hash(scope = ':')
     @@settings.call(scope)
   end
+
   def Settings.char
     @@settings.call("#{XMLData.game}:#{XMLData.name}")
   end
+
   def Settings.save
     @@save.call
   end
@@ -2413,9 +2503,11 @@ module GameSettings
   def GameSettings.[](name)
     Settings.to_hash(XMLData.game)[name]
   end
+
   def GameSettings.[]=(name, value)
     Settings.to_hash(XMLData.game)[name] = value
   end
+
   def GameSettings.to_hash
     Settings.to_hash(XMLData.game)
   end
@@ -2425,9 +2517,11 @@ module CharSettings
   def CharSettings.[](name)
     Settings.to_hash("#{XMLData.game}:#{XMLData.name}")[name]
   end
+
   def CharSettings.[]=(name, value)
     Settings.to_hash("#{XMLData.game}:#{XMLData.name}")[name] = value
   end
+
   def CharSettings.to_hash
     Settings.to_hash("#{XMLData.game}:#{XMLData.name}")
   end
@@ -2450,7 +2544,7 @@ module Vars
         if h
           begin
             hash = Marshal.load(h)
-            hash.each { |k,v| @@vars[k] = v }
+            hash.each { |k, v| @@vars[k] = v }
             md5 = Digest::MD5.hexdigest(hash.to_s)
           rescue
             respond "--- Lich: error: #{$!}"
@@ -2494,6 +2588,7 @@ module Vars
     @@load.call unless @@loaded
     @@vars[name]
   end
+
   def Vars.[]=(name, val)
     @@load.call unless @@loaded
     if val.nil?
@@ -2502,16 +2597,19 @@ module Vars
       @@vars[name] = val
     end
   end
+
   def Vars.list
     @@load.call unless @@loaded
     @@vars.dup
   end
+
   def Vars.save
     @@save.call
   end
-  def Vars.method_missing(arg1, arg2='')
+
+  def Vars.method_missing(arg1, arg2 = '')
     @@load.call unless @@loaded
-    if arg1[-1,1] == '='
+    if arg1[-1, 1] == '='
       if arg2.nil?
         @@vars.delete(arg1.to_s.chop)
       else
@@ -2542,6 +2640,9 @@ end
 
 TRUSTED_SCRIPT_BINDING = proc { _script }
 
+
+=begin
+Old Script class definitions.
 class Script
   @@elevated_script_start = proc { |args|
     if args.empty?
@@ -2580,10 +2681,11 @@ class Script
       end
       script_args = (options[:args] || String.new)
     end
+
     # fixme: look in wizard script directory
     # fixme: allow subdirectories?
     file_list = Dir.entries(SCRIPT_DIR).delete_if { |fn| (fn == '.') or (fn == '..') }
-    file_list = file_list.sort_by { |fn| fn.sub(/[.](lic|rb|cmd|wiz)$/, '')  }
+    file_list = file_list.sort_by { |fn| fn.sub(/[.](lic|rb|cmd|wiz)$/, '') }
     if file_name = (file_list.find { |val| val =~ /^#{Regexp.escape(script_name)}\.(?:lic|rb|cmd|wiz)(?:\.gz|\.Z)?$/ || val =~ /^#{Regexp.escape(script_name)}\.(?:lic|rb|cmd|wiz)(?:\.gz|\.Z)?$/i } || file_list.find { |val| val =~ /^#{Regexp.escape(script_name)}[^.]+\.(?i:lic|rb|cmd|wiz)(?:\.gz|\.Z)?$/ } || file_list.find { |val| val =~ /^#{Regexp.escape(script_name)}[^.]+\.(?:lic|rb|cmd|wiz)(?:\.gz|\.Z)?$/i })
       script_name = file_name.sub(/\..{1,3}$/, '')
     end
@@ -2604,12 +2706,12 @@ class Script
         if script_obj.labels.length > 1
           trusted = false
         elsif proc { begin; $SAFE = 3; true; rescue; false; end }.call
-        begin
-          trusted = Lich.db.get_first_value('SELECT name FROM trusted_scripts WHERE name=?;', script_name.encode('UTF-8'))
-        rescue SQLite3::BusyException
-          sleep 0.1
-          retry
-        end
+          begin
+            trusted = Lich.db.get_first_value('SELECT name FROM trusted_scripts WHERE name=?;', script_name.encode('UTF-8'))
+          rescue SQLite3::BusyException
+            sleep 0.1
+            retry
+          end
         else
           trusted = true
         end
@@ -2631,6 +2733,7 @@ class Script
     script_obj.quiet = true if options[:quiet]
     new_thread = Thread.new {
       100.times { break if Script.current == script_obj; sleep 0.01 }
+
       if script = Script.current
         eval('script = Script.current', script_binding, script.name)
         Thread.current.priority = 1
@@ -2779,7 +2882,7 @@ class Script
       nil
     end
   }
-  @@elevated_open_file = proc { |ext,mode,block|
+  @@elevated_open_file = proc { |ext, mode, block|
     if script = Script.current
       if script.name =~ /^lich$/i
         respond '--- error: Script.open_file cannot be used by a script named lich'
@@ -2792,9 +2895,9 @@ class Script
         nil
       elsif ext.downcase == 'db3'
         SQLite3::Database.new("#{DATA_DIR}/#{script.name.gsub(/\/|\\/, '_')}.db3")
-        # fixme: block gets elevated... why?
-        #         elsif block
-        #            File.open("#{DATA_DIR}/#{script.name.gsub(/\/|\\/, '_')}.#{ext.gsub(/\/|\\/, '_')}", mode, &block)
+      # fixme: block gets elevated... why?
+      #         elsif block
+      #            File.open("#{DATA_DIR}/#{script.name.gsub(/\/|\\/, '_')}.#{ext.gsub(/\/|\\/, '_')}", mode, &block)
       else
         File.open("#{DATA_DIR}/#{script.name.gsub(/\/|\\/, '_')}.#{ext.gsub(/\/|\\/, '_')}", mode)
       end
@@ -2807,9 +2910,11 @@ class Script
 
   attr_reader :name, :vars, :safe, :file_name, :label_order, :at_exit_procs
   attr_accessor :quiet, :no_echo, :jump_label, :current_label, :want_downstream, :want_downstream_xml, :want_upstream, :want_script_output, :hidden, :paused, :silent, :no_pause_all, :no_kill_all, :downstream_buffer, :upstream_buffer, :unique_buffer, :die_with, :match_stack_labels, :match_stack_strings, :watchfor, :command_line, :ignore_pause
+
   def Script.list
     @@running.dup
   end
+
   def Script.current
     if script = @@running.find { |s| s.has_thread?(Thread.current) }
       sleep 0.2 while script.paused? and not script.ignore_pause
@@ -2818,18 +2923,22 @@ class Script
       nil
     end
   end
+
   def Script.start(*args)
     @@elevated_script_start.call(args)
   end
+
   def Script.run(*args)
     if s = @@elevated_script_start.call(args)
       sleep 0.1 while @@running.include?(s)
     end
   end
+
   def Script.running?(name)
     @@running.any? { |i| (i.name =~ /^#{name}$/i) }
   end
-  def Script.pause(name=nil)
+
+  def Script.pause(name = nil)
     if name.nil?
       Script.current.pause
       Script.current
@@ -2842,6 +2951,7 @@ class Script
       end
     end
   end
+
   def Script.unpause(name)
     if s = (@@running.find { |i| (i.name == name) and i.paused? }) || (@@running.find { |i| (i.name =~ /^#{name}$/i) and i.paused? })
       s.unpause
@@ -2850,6 +2960,7 @@ class Script
       false
     end
   end
+
   def Script.kill(name)
     if s = (@@running.find { |i| i.name == name }) || (@@running.find { |i| i.name =~ /^#{name}$/i })
       s.kill
@@ -2858,6 +2969,7 @@ class Script
       false
     end
   end
+
   def Script.paused?(name)
     if s = (@@running.find { |i| i.name == name }) || (@@running.find { |i| i.name =~ /^#{name}$/i })
       s.paused?
@@ -2865,24 +2977,28 @@ class Script
       nil
     end
   end
+
   def Script.exists?(script_name)
     @@elevated_exists.call(script_name)
   end
+
   def Script.new_downstream_xml(line)
     for script in @@running
       script.downstream_buffer.push(line.chomp) if script.want_downstream_xml
     end
   end
+
   def Script.new_upstream(line)
     for script in @@running
       script.upstream_buffer.push(line.chomp) if script.want_upstream
     end
   end
+
   def Script.new_downstream(line)
     @@running.each { |script|
       script.downstream_buffer.push(line.chomp) if script.want_downstream
       unless script.watchfor.empty?
-        script.watchfor.each_pair { |trigger,action|
+        script.watchfor.each_pair { |trigger, action|
           if line =~ trigger
             new_thread = Thread.new {
               sleep 0.011 until Script.current
@@ -2898,20 +3014,25 @@ class Script
       end
     }
   end
+
   def Script.new_script_output(line)
     for script in @@running
       script.downstream_buffer.push(line.chomp) if script.want_script_output
     end
   end
+
   def Script.log(data)
     @@elevated_log.call(data)
   end
+
   def Script.db
     @@elevated_db.call
   end
-  def Script.open_file(ext, mode='r', &block)
+
+  def Script.open_file(ext, mode = 'r', &block)
     @@elevated_open_file.call(ext, mode, block)
   end
+
   def Script.at_exit(&block)
     if script = Script.current
       script.at_exit(&block)
@@ -2920,6 +3041,7 @@ class Script
       return false
     end
   end
+
   def Script.clear_exit_procs
     if script = Script.current
       script.clear_exit_procs
@@ -2928,6 +3050,7 @@ class Script
       return false
     end
   end
+
   def Script.exit!
     if script = Script.current
       script.exit!
@@ -2952,6 +3075,7 @@ class Script
         false
       end
     end
+
     def Script.distrust(script_name)
       begin
         there = Lich.db.get_first_value('SELECT name FROM trusted_scripts WHERE name=?;', script_name.encode('UTF-8'))
@@ -2971,6 +3095,7 @@ class Script
         false
       end
     end
+
     def Script.list_trusted
       list = Array.new
       begin
@@ -2985,9 +3110,11 @@ class Script
     def Script.trust(script_name)
       true
     end
+
     def Script.distrust(script_name)
       false
     end
+
     def Script.list_trusted
       []
     end
@@ -2999,8 +3126,8 @@ class Script
       if args[:args].empty?
         @vars = Array.new
       else
-        @vars = [ args[:args] ]
-        @vars.concat args[:args].scan(/[^\s"]*(?<!\\)"(?:\\"|[^"])+(?<!\\)"[^\s]*|(?:\\"|[^"\s])+/).collect { |s| s.gsub(/(?<!\\)"/,'').gsub('\\"', '"') }
+        @vars = [args[:args]]
+        @vars.concat args[:args].scan(/[^\s"]*(?<!\\)"(?:\\"|[^"])+(?<!\\)"[^\s]*|(?:\\"|[^"\s])+/).collect { |s| s.gsub(/(?<!\\)"/, '').gsub('\\"', '"') }
       end
     elsif args[:args].class == Array
       @vars = args[:args] # fixme: set @vars[0] ?
@@ -3048,7 +3175,7 @@ class Script
       end
     end
     @quiet = true if data[0] =~ /^[\t\s]*#?[\t\s]*(?:quiet|hush)$/i
-      @current_label = '~start'
+    @current_label = '~start'
     @labels[@current_label] = String.new
     @label_order.push(@current_label)
     for line in data
@@ -3066,6 +3193,7 @@ class Script
     @@running.push(self)
     return self
   end
+
   def kill
     Thread.new {
       @killer_mutex.synchronize {
@@ -3093,6 +3221,7 @@ class Script
     }
     @name
   end
+
   def at_exit(&block)
     if block
       @at_exit_procs.push(block)
@@ -3102,42 +3231,54 @@ class Script
       return false
     end
   end
+
   def clear_exit_procs
     @at_exit_procs.clear
     true
   end
+
   def exit
     kill
   end
+
   def exit!
     @at_exit_procs.clear
     kill
   end
+
   def instance_variable_get(*a); nil; end
+
   def instance_eval(*a);         nil; end
+
   def labels
     ($SAFE == 0) ? @labels : nil
   end
+
   def thread_group
     ($SAFE == 0) ? @thread_group : nil
   end
+
   def has_thread?(t)
     @thread_group.list.include?(t)
   end
+
   def pause
     respond "--- Lich: #{@name} paused."
     @paused = true
   end
+
   def unpause
     respond "--- Lich: #{@name} unpaused."
     @paused = false
   end
+
   def paused?
     @paused
   end
+
   def get_next_label
     if !@jump_label
-      @current_label = @label_order[@label_order.index(@current_label)+1]
+      @current_label = @label_order[@label_order.index(@current_label) + 1]
     else
       if label = @labels.keys.find { |val| val =~ /^#{@jump_label}$/ }
         @current_label = label
@@ -3153,14 +3294,17 @@ class Script
       @current_label
     end
   end
+
   def clear
     to_return = @downstream_buffer.dup
     @downstream_buffer.clear
     to_return
   end
+
   def to_s
     @name
   end
+
   def gets
     # fixme: no xml gets
     if @want_downstream or @want_downstream_xml or @want_script_output
@@ -3172,6 +3316,7 @@ class Script
       false
     end
   end
+
   def gets?
     if @want_downstream or @want_downstream_xml or @want_script_output
       if @downstream_buffer.empty?
@@ -3185,10 +3330,12 @@ class Script
       false
     end
   end
+
   def upstream_gets
     sleep 0.05 while @upstream_buffer.empty?
     @upstream_buffer.shift
   end
+
   def upstream_gets?
     if @upstream_buffer.empty?
       nil
@@ -3196,10 +3343,12 @@ class Script
       @upstream_buffer.shift
     end
   end
+
   def unique_gets
     sleep 0.05 while @unique_buffer.empty?
     @unique_buffer.shift
   end
+
   def unique_gets?
     if @unique_buffer.empty?
       nil
@@ -3207,23 +3356,513 @@ class Script
       @unique_buffer.shift
     end
   end
+
   def safe?
     @safe
   end
+
   def feedme_upstream
     @want_upstream = !@want_upstream
   end
-  def match_stack_add(label,string)
+
+  def match_stack_add(label, string)
     @match_stack_labels.push(label)
     @match_stack_strings.push(string)
   end
+
   def match_stack_clear
     @match_stack_labels.clear
     @match_stack_strings.clear
   end
 end
+=end
 
-class ExecScript<Script
+###
+### New Script class definitions
+###
+require "benchmark"
+
+SCRIPT_CONTEXT = binding()
+
+class Script < Thread
+  GLOBAL_SCRIPT_LOCK ||= Mutex.new
+  @@running          ||= Array.new
+  @@lock_holder      ||= nil
+
+  Script.abort_on_exception  = false
+  Script.report_on_exception = false
+
+  def self.running(); @@running.dup; end
+  def self.list(); Script.running(); end
+  def self.hidden(); running.select(&:hidden?); end
+  def self.atomic(); GLOBAL_SCRIPT_LOCK.synchronize {yield}; end
+
+  def self.namescript_incoming(line)
+     Script.new_downstream(line)
+  end
+
+  def self.current()
+    # prefer current thread
+    script = running.find {|script| script.eql?(Thread.current) }
+    # else check if was launched by a script
+    script = running.find {|script| script.eql?(Thread.current.parent) } if script.nil?
+    return nil if script.nil?
+    sleep 0.1 while script.paused?
+    return script unless block_given?
+    yield script
+  end
+
+  def self.self(); current(); end
+
+  def self.start(*args)
+     Script.of(args)
+  end
+
+  def self.run(*args)
+     s = Script.of(args)
+     s.value
+     return s
+  end
+
+  def self.script_name(file_name)
+     file_name.slice(SCRIPT_DIR.size+1..-(File.extname(file_name).size + 1))
+  end
+
+  def self.running?(name)
+     @@running.any? { |i| (i.name =~ /^#{name}$/i) }
+  end
+
+  def self.pause(name=nil)
+    if name.nil?
+      Script.current.pause
+      return Script.current
+    end
+
+    if s = @@running.reject(&:paused?).find { |i| i.name.downcase == name.downcase}
+      s.pause
+      return s
+    end
+  end
+
+  def self.unpause(name)
+     if s = @@running.select(&:paused?).find { |i| i.name.downcase == name.downcase}
+        s.unpause
+        return s
+     end
+  end
+
+  def self.kill(name)
+    if s = @@running.find { |i| i.name.downcase == name.downcase}
+      return s if s.nil?
+      # this handles the case where a script says `before_dying {Script.kill(<script>)}`
+      # to prevent a recursive dead-lock
+      return s.kill_tree() if @@lock_holder.nil?
+      return s.kill()      if @@lock_holder.eql?(s.parent)
+    end
+  end
+
+  def self.paused?(name)
+    if s = @@running.select(&:paused?).find { |i| i.name.downcase == name.downcase}
+      return s.paused?
+    end
+
+    return nil
+  end
+
+  def self.glob()
+     File.join(SCRIPT_DIR, "**", "*.{lic,rb}")
+  end
+
+  def self.match(script_name)
+     script_name = script_name.downcase
+     Dir.glob(Script.glob)
+        .select {|file| file.downcase.slice(SCRIPT_DIR.size..-1).include?(script_name) }
+        .sort_by {|file|
+           file.index("#{script_name}.lic") || file.index("#{script_name}.rb") || file.size
+        }
+  end
+
+  def self.exists?(script_name)
+     match(script_name).any? {|path| File.file?(path) }
+  end
+
+  def self.new_downstream_xml(line)
+     for script in @@running
+        script.downstream_buffer.push(line.chomp) if script.want_downstream_xml
+     end
+  end
+
+  def self.new_upstream(line)
+     for script in @@running
+        script.upstream_buffer.push(line.chomp) if script.want_upstream
+     end
+  end
+
+  def self.new_downstream(line)
+     @@running.each { |script|
+        script.downstream_buffer.push(line.chomp) if script.want_downstream
+        unless script.watchfor.empty?
+           script.watchfor.each_pair { |trigger,action|
+              if line =~ trigger
+                 new_thread = Thread.new {
+                    sleep 0.011 until Script.current
+                    begin
+                       action.call
+                    rescue
+                       echo "watchfor error: #{$!}"
+                    end
+                 }
+                 script.thread_group.add(new_thread)
+              end
+           }
+        end
+     }
+  end
+
+  def self.new_script_output(line)
+     for script in @@running
+        script.downstream_buffer.push(line.chomp) if script.want_script_output
+     end
+  end
+
+  def self.log(data)
+     script = Script.current
+     begin
+        Dir.mkdir("#{LICH_DIR}/logs") unless File.exists?("#{LICH_DIR}/logs")
+        File.open("#{LICH_DIR}/logs/#{script.name}.log", 'a') { |f| f.puts data }
+        true
+     rescue
+        respond "--- lich: error: Script.log: #{$!}"
+        false
+     end
+  end
+
+  def self.open_file(*args)
+   fail Exception, "Script.open_file() is hard deprecated use the normal File class"
+  end
+
+  def self.at_exit(&block)
+     Script.current do |script|
+        script.at_exit(&block)
+     end
+  end
+
+  def self.clear_exit_procs
+     if script = Script.current
+        script.clear_exit_procs
+     else
+        respond "--- lich: error: Script.clear_exit_procs: can't identify calling script"
+        return false
+     end
+  end
+
+  def self.exit!
+     if script = Script.current
+        script.exit!
+     else
+        respond "--- lich: error: Script.exit!: can't identify calling script"
+        return false
+     end
+  end
+
+  def self.find(name)
+    Script.list.find {|script| script.name.include?(name)}
+  end
+
+  def self.of(args)
+    opts = {}
+    (name, scriptv, kwargs) = args
+    opts.merge!(kwargs) if kwargs.is_a?(Hash)
+    opts[:name] = name
+    opts[:file] = Script.match(opts[:name]).first
+    opts[:args] = scriptv
+
+    opts.merge!(scriptv) if scriptv.is_a?(Hash)
+
+    if opts[:file].nil?
+      return respond "--- lich: could not find script #{opts[:name]} not found in #{Script.glob}"
+    end
+
+    opts[:name] = Script.script_name opts[:file]
+
+    #Log.out(opts, label: %i(script of))
+
+    if Script.running.find { |s| s.name.eql?(opts[:name]) } and not opts[:force]
+      return respond "--- lich: #{opts[:name]} is already running"
+    end
+
+    Script.new(opts) { |script|
+      runtime = SCRIPT_CONTEXT.dup
+      runtime.local_variable_set :script, script
+      runtime.local_variable_set :context, runtime
+      runtime.eval(script.contents, script.file_name)
+    }
+  end
+
+  attr_reader :name, :vars, :safe,
+              :file_name, :at_exit_procs,
+              :thread_group
+
+  attr_accessor :quiet, :no_echo, :paused,
+                :hidden, :silent,
+                :want_downstream, :want_downstream_xml,
+                :want_upstream, :want_script_output,
+                :no_pause_all, :no_kill_all,
+                :downstream_buffer, :upstream_buffer, :unique_buffer,
+                :die_with, :watchfor, :command_line, :ignore_pause,
+                :exit_status, :start_time, :run_time
+
+  def initialize(args, &block)
+   @file_name = args[:file]
+   @name = args[:name]
+   @vars = case args[:args]
+      when Array
+         args[:args]
+      when String
+         if args[:args].empty?
+            []
+         else
+            [args[:args]].concat(args[:args]
+               .scan(/[^\s"]*(?<!\\)"(?:\\"|[^"])+(?<!\\)"[^\s]*|(?:\\"|[^"\s])+/)
+               .collect { |s| s.gsub(/(?<!\\)"/,'')
+               .gsub('\\"', '"') })
+         end
+      else
+         []
+      end
+   @quiet = args.fetch(:quiet, false)
+   @downstream_buffer = LimitedArray.new
+   @want_downstream = true
+   @want_downstream_xml = false
+   @want_script_output = false
+   @upstream_buffer = LimitedArray.new
+   @want_upstream = false
+   @unique_buffer = LimitedArray.new
+   @watchfor = Hash.new
+   @at_exit_procs = Array.new
+   @die_with = Array.new
+   @hidden = false
+   @no_pause_all = false
+   @no_kill_all = false
+   @silent = false
+   @safe = false
+   @paused = false
+   @no_echo = false
+   @thread_group = ThreadGroup.new
+   @start_time = Time.now.to_i
+   @run_time = 0
+   @exit_status = 0
+   @@running.push(self)
+   @thread_group.add(self)
+   super {
+     self[:name] = @name
+     self.priority = 1
+     self.run_time = Benchmark.realtime {
+        begin
+          respond("--- lich: #{self.name} active.") unless self.quiet
+          @value = yield(self)
+          self.exit_status = 0
+        rescue Exception => e
+          respond e
+          respond e.backtrace
+          self.exit_status = 1
+        ensure
+         # ensure before_dying is ran
+         script.before_shutdown()
+         # ensure sub-threads are killed
+         (@thread_group.list + self.child_threads)
+          .each {|child| child.kill unless child.is_a?(Script) }
+        end
+     }
+     script.kill()
+   }
+  end
+
+  def before_shutdown()
+    @at_exit_procs.each { |cb|
+      begin
+        cb.call()
+      rescue => exception
+        respond(exception.message)
+      end
+    }
+    @at_exit_procs.clear
+    # ensure sub-scripts are kills
+    @die_with.each { |script_name| Script.unsafe_kill(script_name) }
+    @die_with.clear
+    @@running.delete(self)
+  end
+
+  def value()
+    super || @value
+  end
+
+  def script
+    self
+  end
+
+  def child_threads()
+    Thread.list.select {|thread| thread.parent.eql? self }
+  end
+
+  def db()
+    SQLite3::Database.new("#{DATA_DIR}/#{script.name.gsub(/\/|\\/, '_')}.db3")
+  end
+
+  def contents()
+    File.read(self.file_name)
+  end
+
+  def hidden?
+     @hidden
+  end
+
+  def inspect
+    "%s<%s>" % [self.class.name, @name]
+  end
+
+  def status()
+    return super if alive?
+    return exit_status
+  end
+
+  def kill()
+    begin
+      return unless @@running.include?(self)
+      super
+      respond("--- lich: #{self.name} exiting with status: #{self.exit_status} in #{Format.time(self.run_time)}")
+      self.dispose()
+      GC.start
+    rescue
+      respond "--- lich: error: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
+      Lich.log "error: #{$!}\n\t#{$!.backtrace.join("\n\t")}"
+    end
+  end
+
+  def kill_tree()
+    #Log.out({this: self.name, parent: self.parent.name}, label: %i(script kill))
+    GLOBAL_SCRIPT_LOCK.synchronize {
+      @@lock_holder = self
+      self.kill()
+      @@lock_holder = nil
+    }
+    self
+  end
+
+  def at_exit(&block)
+     if block
+        @at_exit_procs.push(block)
+        return true
+     else
+        respond '--- warning: Script.at_exit called with no code block'
+        return false
+     end
+  end
+
+  def clear_exit_procs
+     @at_exit_procs.clear
+     true
+  end
+
+  def exit(status = 0)
+    @exit_status = status
+    kill
+  end
+
+  def exit!
+    @at_exit_procs.clear
+    exit(1)
+  end
+
+  def has_thread?(t)
+     @thread_group.list.include?(t)
+  end
+
+  def pause
+     respond "--- lich: #{@name} paused."
+     @paused = true
+  end
+
+  def unpause
+     respond "--- lich: #{@name} unpaused."
+     @paused = false
+  end
+
+  def paused?
+   @paused == true
+  end
+
+  def clear
+     to_return = @downstream_buffer.dup
+     @downstream_buffer.clear
+     to_return
+  end
+
+  def gets
+     # fixme: no xml gets
+     if @want_downstream or @want_downstream_xml or @want_script_output
+        sleep 0.05 while @downstream_buffer.empty?
+        @downstream_buffer.shift
+     else
+        echo 'this script is set as unique but is waiting for game data...'
+        sleep 2
+        false
+     end
+  end
+
+  def gets?
+     if @want_downstream or @want_downstream_xml or @want_script_output
+        if @downstream_buffer.empty?
+           nil
+        else
+           @downstream_buffer.shift
+        end
+     else
+        echo 'this script is set as unique but is waiting for game data...'
+        sleep 2
+        false
+     end
+  end
+
+  def upstream_gets
+     sleep 0.05 while @upstream_buffer.empty?
+     @upstream_buffer.shift
+  end
+
+  def upstream_gets?
+     if @upstream_buffer.empty?
+        nil
+     else
+        @upstream_buffer.shift
+     end
+  end
+
+  def unique_gets
+     sleep 0.05 while @unique_buffer.empty?
+     @unique_buffer.shift
+  end
+
+  def unique_gets?
+     if @unique_buffer.empty?
+        nil
+     else
+        @unique_buffer.shift
+     end
+  end
+
+  def safe?
+     @safe
+  end
+
+  def feedme_upstream
+     @want_upstream = !@want_upstream
+  end
+end
+###
+### End new Script class definitions
+###
+
+class ExecScript < Script
   @@name_exec_mutex = Mutex.new
   @@elevated_start = proc { |cmd_data, options|
     options[:trusted] = false
@@ -3233,6 +3872,7 @@ class ExecScript<Script
     end
     new_thread = Thread.new {
       100.times { break if Script.current == new_script; sleep 0.01 }
+
       if script = Script.current
         Thread.current.priority = 1
         respond("--- Lich: #{script.name} active.") unless script.quiet
@@ -3298,7 +3938,8 @@ class ExecScript<Script
     new_script
   }
   attr_reader :cmd_data
-  def ExecScript.start(cmd_data, options={})
+
+  def ExecScript.start(cmd_data, options = {})
     options = { :quiet => true } if options == true
     if ($SAFE < 2) and (options[:trusted] or (RUBY_VERSION !~ /^2\.[012]\./))
       unless new_script = ExecScript.new(cmd_data, options)
@@ -3307,6 +3948,7 @@ class ExecScript<Script
       end
       new_thread = Thread.new {
         100.times { break if Script.current == new_script; sleep 0.01 }
+
         if script = Script.current
           Thread.current.priority = 1
           respond("--- Lich: #{script.name} active.") unless script.quiet
@@ -3374,7 +4016,8 @@ class ExecScript<Script
       @@elevated_start.call(cmd_data, options)
     end
   end
-  def initialize(cmd_data, flags=Hash.new)
+
+  def initialize(cmd_data, flags = Hash.new)
     @cmd_data = cmd_data
     @vars = Array.new
     @downstream_buffer = LimitedArray.new
@@ -3407,14 +4050,15 @@ class ExecScript<Script
     @@running.push(self)
     self
   end
+
   def get_next_label
     echo 'goto labels are not available in exec scripts.'
     nil
   end
 end
 
-class WizardScript<Script
-  def initialize(file_name, cli_vars=[])
+class WizardScript < Script
+  def initialize(file_name, cli_vars = [])
     @name = /.*[\/\\]+([^\.]+)\./.match(file_name).captures.first
     @file_name = file_name
     @vars = Array.new
@@ -3423,7 +4067,7 @@ class WizardScript<Script
       if cli_vars.is_a?(String)
         cli_vars = cli_vars.split(' ')
       end
-      cli_vars.each_index { |idx| @vars[idx+1] = cli_vars[idx] }
+      cli_vars.each_index { |idx| @vars[idx + 1] = cli_vars[idx] }
       @vars[0] = @vars[1..-1].join(' ')
       cli_vars = nil
     end
@@ -3466,13 +4110,13 @@ class WizardScript<Script
     end
     @quiet = true if data[0] =~ /^[\t\s]*#?[\t\s]*(?:quiet|hush)$/i
 
-      counter_action = {
-      'add'      => '+',
-      'sub'      => '-',
+    counter_action = {
+      'add' => '+',
+      'sub' => '-',
       'subtract' => '-',
       'multiply' => '*',
-      'divide'   => '/',
-      'set'      => ''
+      'divide' => '/',
+      'set' => ''
     }
 
     setvars = Array.new
@@ -3493,136 +4137,138 @@ class WizardScript<Script
       str
     }
 
-        fixline = proc { |line|
-          if line =~ /^[\s\t]*[A-Za-z0-9_\-']+:/i
-            line = line.downcase.strip
-          elsif line =~ /^([\s\t]*)counter\s+(add|sub|subtract|divide|multiply|set)\s+([0-9]+)/i
-            line = "#{$1}c #{counter_action[$2]}= #{$3}"
-          elsif line =~ /^([\s\t]*)counter\s+(add|sub|subtract|divide|multiply|set)\s+(.*)/i
-            indent, action, arg = $1, $2, $3
-            line = "#{indent}c #{counter_action[action]}= #{fixstring.call(arg.inspect)}.to_i"
-          elsif line =~ /^([\s\t]*)save[\s\t]+"?(.*?)"?[\s\t]*$/i
-            indent, arg = $1, $2
-            line = "#{indent}sav = #{fixstring.call(arg.inspect)}"
-          elsif line =~ /^([\s\t]*)echo[\s\t]+(.+)/i
-            indent, arg = $1, $2
-            line = "#{indent}echo #{fixstring.call(arg.inspect)}"
-          elsif line =~ /^([\s\t]*)waitfor[\s\t]+(.+)/i
-            indent, arg = $1, $2
-            line = "#{indent}waitfor #{fixstring.call(Regexp.escape(arg).inspect.gsub("\\\\ ", ' '))}"
-          elsif line =~ /^([\s\t]*)put[\s\t]+\.(.+)$/i
-            indent, arg = $1, $2
-            if arg.include?(' ')
-              line = "#{indent}start_script(#{Regexp.escape(fixstring.call(arg.split[0].inspect))}, #{fixstring.call(arg.split[1..-1].join(' ').scan(/"[^"]+"|[^"\s]+/).inspect)})\n#{indent}exit"
-            else
-              line = "#{indent}start_script(#{Regexp.escape(fixstring.call(arg.inspect))})\n#{indent}exit"
-            end
-          elsif line =~ /^([\s\t]*)put[\s\t]+;(.+)$/i
-            indent, arg = $1, $2
-            if arg.include?(' ')
-              line = "#{indent}start_script(#{Regexp.escape(fixstring.call(arg.split[0].inspect))}, #{fixstring.call(arg.split[1..-1].join(' ').scan(/"[^"]+"|[^"\s]+/).inspect)})"
-            else
-              line = "#{indent}start_script(#{Regexp.escape(fixstring.call(arg.inspect))})"
-            end
-          elsif line =~ /^([\s\t]*)(put|move)[\s\t]+(.+)/i
-            indent, cmd, arg = $1, $2, $3
-            line = "#{indent}waitrt?\n#{indent}clear\n#{indent}#{cmd.downcase} #{fixstring.call(arg.inspect)}"
-          elsif line =~ /^([\s\t]*)goto[\s\t]+(.+)/i
-            indent, arg = $1, $2
-            line = "#{indent}goto #{fixstring.call(arg.inspect).downcase}"
-          elsif line =~ /^([\s\t]*)waitforre[\s\t]+(.+)/i
-            indent, arg = $1, $2
-            line = "#{indent}waitforre #{arg}"
-          elsif line =~ /^([\s\t]*)pause[\s\t]*(.*)/i
-            indent, arg = $1, $2
-            arg = '1' if arg.empty?
-            arg = '0'+arg.strip if arg.strip =~ /^\.[0-9]+$/
-            line = "#{indent}pause #{arg}"
-          elsif line =~ /^([\s\t]*)match[\s\t]+([^\s\t]+)[\s\t]+(.+)/i
-            indent, label, arg = $1, $2, $3
-            line = "#{indent}match #{fixstring.call(label.inspect).downcase}, #{fixstring.call(Regexp.escape(arg).inspect.gsub("\\\\ ", ' '))}"
-          elsif line =~ /^([\s\t]*)matchre[\s\t]+([^\s\t]+)[\s\t]+(.+)/i
-            indent, label, regex = $1, $2, $3
-            line = "#{indent}matchre #{fixstring.call(label.inspect).downcase}, #{regex}"
-          elsif line =~ /^([\s\t]*)setvariable[\s\t]+([^\s\t]+)[\s\t]+(.+)/i
-            indent, var, arg = $1, $2, $3
-            line = "#{indent}#{var.downcase} = #{fixstring.call(arg.inspect)}"
-          elsif line =~ /^([\s\t]*)deletevariable[\s\t]+(.+)/i
-            line = "#{$1}#{$2.downcase} = nil"
-          elsif line =~ /^([\s\t]*)(wait|nextroom|exit|echo)\b/i
-            line = "#{$1}#{$2.downcase}"
-          elsif line =~ /^([\s\t]*)matchwait\b/i
-            line = "#{$1}matchwait"
-          elsif line =~ /^([\s\t]*)if_([0-9])[\s\t]+(.*)/i
-            indent, num, stuff = $1, $2, $3
-            line = "#{indent}if script.vars[#{num}]\n#{indent}\t#{fixline.call($3)}\n#{indent}end"
-          elsif line =~ /^([\s\t]*)shift\b/i
-            line = "#{$1}script.vars.shift"
-          else
-            respond "--- Lich: unknown line: #{line}"
-            line = '#' + line
-          end
-        }
-
-        lich_block = false
-
-        data.each_index { |idx|
-          if lich_block
-            if data[idx] =~ /\}[\s\t]*LICH[\s\t]*$/
-              data[idx] = data[idx].sub(/\}[\s\t]*LICH[\s\t]*$/, '')
-              lich_block = false
-            else
-              next
-            end
-          elsif data[idx] =~ /^[\s\t]*#|^[\s\t]*$/
-            next
-          elsif data[idx] =~ /^[\s\t]*LICH[\s\t]*\{/
-            data[idx] = data[idx].sub(/LICH[\s\t]*\{/, '')
-            if data[idx] =~ /\}[\s\t]*LICH[\s\t]*$/
-              data[idx] = data[idx].sub(/\}[\s\t]*LICH[\s\t]*$/, '')
-            else
-              lich_block = true
-            end
-          else
-            data[idx] = fixline.call(data[idx])
-          end
-        }
-
-        if has_counter or has_save or has_nextroom
-          data.each_index { |idx|
-            next if data[idx] =~ /^[\s\t]*#/
-              data.insert(idx, '')
-            data.insert(idx, 'c = 0') if has_counter
-            data.insert(idx, "sav = Settings['sav'] || String.new\nbefore_dying { Settings['sav'] = sav }") if has_save
-            data.insert(idx, "def nextroom\n\troom_count = XMLData.room_count\n\twait_while { room_count == XMLData.room_count }\nend") if has_nextroom
-            data.insert(idx, '')
-            break
-          }
+    fixline = proc { |line|
+      if line =~ /^[\s\t]*[A-Za-z0-9_\-']+:/i
+        line = line.downcase.strip
+      elsif line =~ /^([\s\t]*)counter\s+(add|sub|subtract|divide|multiply|set)\s+([0-9]+)/i
+        line = "#{$1}c #{counter_action[$2]}= #{$3}"
+      elsif line =~ /^([\s\t]*)counter\s+(add|sub|subtract|divide|multiply|set)\s+(.*)/i
+        indent, action, arg = $1, $2, $3
+        line = "#{indent}c #{counter_action[action]}= #{fixstring.call(arg.inspect)}.to_i"
+      elsif line =~ /^([\s\t]*)save[\s\t]+"?(.*?)"?[\s\t]*$/i
+        indent, arg = $1, $2
+        line = "#{indent}sav = #{fixstring.call(arg.inspect)}"
+      elsif line =~ /^([\s\t]*)echo[\s\t]+(.+)/i
+        indent, arg = $1, $2
+        line = "#{indent}echo #{fixstring.call(arg.inspect)}"
+      elsif line =~ /^([\s\t]*)waitfor[\s\t]+(.+)/i
+        indent, arg = $1, $2
+        line = "#{indent}waitfor #{fixstring.call(Regexp.escape(arg).inspect.gsub("\\\\ ", ' '))}"
+      elsif line =~ /^([\s\t]*)put[\s\t]+\.(.+)$/i
+        indent, arg = $1, $2
+        if arg.include?(' ')
+          line = "#{indent}start_script(#{Regexp.escape(fixstring.call(arg.split[0].inspect))}, #{fixstring.call(arg.split[1..-1].join(' ').scan(/"[^"]+"|[^"\s]+/).inspect)})\n#{indent}exit"
+        else
+          line = "#{indent}start_script(#{Regexp.escape(fixstring.call(arg.inspect))})\n#{indent}exit"
         end
+      elsif line =~ /^([\s\t]*)put[\s\t]+;(.+)$/i
+        indent, arg = $1, $2
+        if arg.include?(' ')
+          line = "#{indent}start_script(#{Regexp.escape(fixstring.call(arg.split[0].inspect))}, #{fixstring.call(arg.split[1..-1].join(' ').scan(/"[^"]+"|[^"\s]+/).inspect)})"
+        else
+          line = "#{indent}start_script(#{Regexp.escape(fixstring.call(arg.inspect))})"
+        end
+      elsif line =~ /^([\s\t]*)(put|move)[\s\t]+(.+)/i
+        indent, cmd, arg = $1, $2, $3
+        line = "#{indent}waitrt?\n#{indent}clear\n#{indent}#{cmd.downcase} #{fixstring.call(arg.inspect)}"
+      elsif line =~ /^([\s\t]*)goto[\s\t]+(.+)/i
+        indent, arg = $1, $2
+        line = "#{indent}goto #{fixstring.call(arg.inspect).downcase}"
+      elsif line =~ /^([\s\t]*)waitforre[\s\t]+(.+)/i
+        indent, arg = $1, $2
+        line = "#{indent}waitforre #{arg}"
+      elsif line =~ /^([\s\t]*)pause[\s\t]*(.*)/i
+        indent, arg = $1, $2
+        arg = '1' if arg.empty?
+        arg = '0' + arg.strip if arg.strip =~ /^\.[0-9]+$/
+        line = "#{indent}pause #{arg}"
+      elsif line =~ /^([\s\t]*)match[\s\t]+([^\s\t]+)[\s\t]+(.+)/i
+        indent, label, arg = $1, $2, $3
+        line = "#{indent}match #{fixstring.call(label.inspect).downcase}, #{fixstring.call(Regexp.escape(arg).inspect.gsub("\\\\ ", ' '))}"
+      elsif line =~ /^([\s\t]*)matchre[\s\t]+([^\s\t]+)[\s\t]+(.+)/i
+        indent, label, regex = $1, $2, $3
+        line = "#{indent}matchre #{fixstring.call(label.inspect).downcase}, #{regex}"
+      elsif line =~ /^([\s\t]*)setvariable[\s\t]+([^\s\t]+)[\s\t]+(.+)/i
+        indent, var, arg = $1, $2, $3
+        line = "#{indent}#{var.downcase} = #{fixstring.call(arg.inspect)}"
+      elsif line =~ /^([\s\t]*)deletevariable[\s\t]+(.+)/i
+        line = "#{$1}#{$2.downcase} = nil"
+      elsif line =~ /^([\s\t]*)(wait|nextroom|exit|echo)\b/i
+        line = "#{$1}#{$2.downcase}"
+      elsif line =~ /^([\s\t]*)matchwait\b/i
+        line = "#{$1}matchwait"
+      elsif line =~ /^([\s\t]*)if_([0-9])[\s\t]+(.*)/i
+        indent, num, stuff = $1, $2, $3
+        line = "#{indent}if script.vars[#{num}]\n#{indent}\t#{fixline.call($3)}\n#{indent}end"
+      elsif line =~ /^([\s\t]*)shift\b/i
+        line = "#{$1}script.vars.shift"
+      else
+        respond "--- Lich: unknown line: #{line}"
+        line = '#' + line
+      end
+    }
 
-        @current_label = '~start'
-        @labels[@current_label] = String.new
+    lich_block = false
+
+    data.each_index { |idx|
+      if lich_block
+        if data[idx] =~ /\}[\s\t]*LICH[\s\t]*$/
+          data[idx] = data[idx].sub(/\}[\s\t]*LICH[\s\t]*$/, '')
+          lich_block = false
+        else
+          next
+        end
+      elsif data[idx] =~ /^[\s\t]*#|^[\s\t]*$/
+        next
+      elsif data[idx] =~ /^[\s\t]*LICH[\s\t]*\{/
+        data[idx] = data[idx].sub(/LICH[\s\t]*\{/, '')
+        if data[idx] =~ /\}[\s\t]*LICH[\s\t]*$/
+          data[idx] = data[idx].sub(/\}[\s\t]*LICH[\s\t]*$/, '')
+        else
+          lich_block = true
+        end
+      else
+        data[idx] = fixline.call(data[idx])
+      end
+    }
+
+    if has_counter or has_save or has_nextroom
+      data.each_index { |idx|
+        next if data[idx] =~ /^[\s\t]*#/
+
+        data.insert(idx, '')
+        data.insert(idx, 'c = 0') if has_counter
+        data.insert(idx, "sav = Settings['sav'] || String.new\nbefore_dying { Settings['sav'] = sav }") if has_save
+        data.insert(idx, "def nextroom\n\troom_count = XMLData.room_count\n\twait_while { room_count == XMLData.room_count }\nend") if has_nextroom
+        data.insert(idx, '')
+        break
+      }
+    end
+
+    @current_label = '~start'
+    @labels[@current_label] = String.new
+    @label_order.push(@current_label)
+    for line in data
+      if line =~ /^([\d_\w]+):$/
+        @current_label = $1
         @label_order.push(@current_label)
-        for line in data
-          if line =~ /^([\d_\w]+):$/
-            @current_label = $1
-            @label_order.push(@current_label)
-            @labels[@current_label] = String.new
-          else
-            @labels[@current_label] += "#{line}\n"
-          end
-        end
-        data = nil
-        @current_label = @label_order[0]
-        @thread_group = ThreadGroup.new
-        @@running.push(self)
-        return self
+        @labels[@current_label] = String.new
+      else
+        @labels[@current_label] += "#{line}\n"
+      end
+    end
+    data = nil
+    @current_label = @label_order[0]
+    @thread_group = ThreadGroup.new
+    @@running.push(self)
+    return self
   end
 end
 
 class Watchfor
-  def initialize(line, theproc=nil, &block)
+  def initialize(line, theproc = nil, &block)
     return nil unless script = Script.current
+
     if line.class == String
       line = Regexp.new(Regexp.escape(line))
     elsif line.class != Regexp
@@ -3639,6 +4285,7 @@ class Watchfor
     end
     script.watchfor[line] = block
   end
+
   def Watchfor.clear
     script.watchfor = Hash.new
   end
@@ -3665,22 +4312,28 @@ class Map
   @@elevated_save_xml        = proc { Map.save_xml }
   attr_reader :id
   attr_accessor :title, :description, :paths, :location, :climate, :terrain, :wayto, :timeto, :image, :image_coords, :tags, :check_location, :unique_loot
-  def initialize(id, title, description, paths, location=nil, climate=nil, terrain=nil, wayto={}, timeto={}, image=nil, image_coords=nil, tags=[], check_location=nil, unique_loot=nil)
+
+  def initialize(id, title, description, paths, location = nil, climate = nil, terrain = nil, wayto = {}, timeto = {}, image = nil, image_coords = nil, tags = [], check_location = nil, unique_loot = nil)
     @id, @title, @description, @paths, @location, @climate, @terrain, @wayto, @timeto, @image, @image_coords, @tags, @check_location, @unique_loot = id, title, description, paths, location, climate, terrain, wayto, timeto, image, image_coords, tags, check_location, unique_loot
     @@list[@id] = self
   end
+
   def outside?
     @paths.first =~ /Obvious paths:/
   end
+
   def to_i
     @id
   end
+
   def to_s
     "##{@id}:\n#{@title[-1]}\n#{@description[-1]}\n#{@paths[-1]}"
   end
+
   def inspect
     self.instance_variables.collect { |var| var.to_s + "=" + self.instance_variable_get(var).inspect }.join("\n")
   end
+
   def Map.get_free_id
     Map.load unless @@loaded
     free_id = 0
@@ -3689,10 +4342,12 @@ class Map
     end
     free_id
   end
+
   def Map.list
     Map.load unless @@loaded
     @@list
   end
+
   def Map.[](val)
     Map.load unless @@loaded
     if (val.class == Integer) or (val.class == Bignum) or val =~ /^[0-9]+$/
@@ -3703,6 +4358,7 @@ class Map
       @@list.find { |room| room.title.find { |title| title =~ chk } } || @@list.find { |room| room.description.find { |desc| desc =~ chk } } || @@list.find { |room| room.description.find { |desc| desc =~ chkre } }
     end
   end
+
   def Map.get_location
     unless XMLData.room_count == @@current_location_count
       if script = Script.current
@@ -3723,6 +4379,7 @@ class Map
     end
     @@current_location
   end
+
   def Map.current
     Map.load unless @@loaded
     if script = Script.current
@@ -3880,12 +4537,14 @@ class Map
       }
     end
   end
+
   def Map.current_or_new
     return nil unless Script.current
+
     if XMLData.game =~ /DR/
       @@current_room_count = -1
       @@fuzzy_room_count = -1
-      Map.current || Map.new(Map.get_free_id, [ XMLData.room_title ], [ XMLData.room_description.strip ], [ XMLData.room_exits_string.strip ])
+      Map.current || Map.new(Map.get_free_id, [XMLData.room_title], [XMLData.room_description.strip], [XMLData.room_exits_string.strip])
     else
       check_peer_tag = proc { |r|
         if peer_tag = r.tags.find { |tag| tag =~ /^(set desc on; )?peer [a-z]+ =~ \/.+\/$/ }
@@ -3940,9 +4599,9 @@ class Map
         room.location = current_location
         return room
       else
-        title = [ XMLData.room_title ]
-        description = [ XMLData.room_description.strip ]
-        paths = [ XMLData.room_exits_string.strip ]
+        title = [XMLData.room_title]
+        description = [XMLData.room_description.strip]
+        paths = [XMLData.room_exits_string.strip]
         room = Map.new(Map.get_free_id, title, description, paths, current_location)
         identical_rooms = @@list.find_all { |r| (r.location != current_location) and r.title.include?(XMLData.room_title) and r.description.include?(XMLData.room_description.strip) and (r.unique_loot.nil? or (r.unique_loot.to_a - GameObj.loot.to_a.collect { |obj| obj.name }).empty?) and (r.paths.include?(XMLData.room_exits_string.strip) or r.tags.include?('random-paths')) }
         if identical_rooms.length > 0
@@ -3953,6 +4612,7 @@ class Map
       end
     end
   end
+
   def Map.tags
     Map.load unless @@loaded
     if @@tags.empty?
@@ -3960,6 +4620,7 @@ class Map
     end
     @@tags.dup
   end
+
   def Map.clear
     @@load_mutex.synchronize {
       @@list.clear
@@ -3969,16 +4630,18 @@ class Map
     }
     true
   end
+
   def Map.reload
     Map.clear
     Map.load
   end
-  def Map.load(filename=nil)
+
+  def Map.load(filename = nil)
     if $SAFE == 0
       if filename.nil?
         file_list = Dir.entries("#{DATA_DIR}/#{XMLData.game}").find_all { |filename| filename =~ /^map\-[0-9]+\.(?:dat|xml|json)$/i }.collect { |filename| "#{DATA_DIR}/#{XMLData.game}/#{filename}" }.sort.reverse
       else
-        file_list = [ filename ]
+        file_list = [filename]
       end
       if file_list.empty?
         respond "--- Lich: error: no map database found"
@@ -4004,14 +4667,15 @@ class Map
       @@elevated_load.call
     end
   end
-  def Map.load_json(filename=nil)
+
+  def Map.load_json(filename = nil)
     if $SAFE == 0
       @@load_mutex.synchronize {
         if @@loaded
           return true
         else
           if filename
-            file_list = [ filename ]
+            file_list = [filename]
           else
             file_list = Dir.entries("#{DATA_DIR}/#{XMLData.game}").find_all { |filename|
               filename =~ /^map\-[0-9]+\.json$/i
@@ -4053,7 +4717,8 @@ class Map
       @@elevated_load_json.call
     end
   end
-  def Map.load_dat(filename=nil)
+
+  def Map.load_dat(filename = nil)
     if $SAFE == 0
       @@load_mutex.synchronize {
         if @@loaded
@@ -4062,7 +4727,7 @@ class Map
           if filename.nil?
             file_list = Dir.entries("#{DATA_DIR}/#{XMLData.game}").find_all { |filename| filename =~ /^map\-[0-9]+\.dat$/ }.collect { |filename| "#{DATA_DIR}/#{XMLData.game}/#{filename}" }.sort.reverse
           else
-            file_list = [ filename ]
+            file_list = [filename]
           end
           if file_list.empty?
             respond "--- Lich: error: no map database found"
@@ -4091,7 +4756,8 @@ class Map
       @@elevated_load_dat.call
     end
   end
-  def Map.load_xml(filename="#{DATA_DIR}/#{XMLData.game}/map.xml")
+
+  def Map.load_xml(filename = "#{DATA_DIR}/#{XMLData.game}/map.xml")
     if $SAFE == 0
       @@load_mutex.synchronize {
         if @@loaded
@@ -4100,13 +4766,14 @@ class Map
           unless File.exists?(filename)
             raise Exception.exception("MapDatabaseError"), "Fatal error: file `#{filename}' does not exist!"
           end
+
           missing_end = false
           current_tag = nil
           current_attributes = nil
           room = nil
           buffer = String.new
           unescape = { 'lt' => '<', 'gt' => '>', 'quot' => '"', 'apos' => "'", 'amp' => '&' }
-          tag_start = proc { |element,attributes|
+          tag_start = proc { |element, attributes|
             current_tag = element
             current_attributes = attributes
             if element == 'room'
@@ -4124,7 +4791,7 @@ class Map
               room['unique_loot'] = Array.new
             elsif element =~ /^(?:image|tsoran)$/ and attributes['name'] and attributes['x'] and attributes['y'] and attributes['size']
               room['image'] = attributes['name']
-              room['image_coords'] = [ (attributes['x'].to_i - (attributes['size']/2.0).round), (attributes['y'].to_i - (attributes['size']/2.0).round), (attributes['x'].to_i + (attributes['size']/2.0).round), (attributes['y'].to_i + (attributes['size']/2.0).round) ]
+              room['image_coords'] = [(attributes['x'].to_i - (attributes['size'] / 2.0).round), (attributes['y'].to_i - (attributes['size'] / 2.0).round), (attributes['x'].to_i + (attributes['size'] / 2.0).round), (attributes['y'].to_i + (attributes['size'] / 2.0).round)]
             elsif (element == 'image') and attributes['name'] and attributes['coords'] and (attributes['coords'] =~ /[0-9]+,[0-9]+,[0-9]+,[0-9]+/)
               room['image'] = attributes['name']
               room['image_coords'] = attributes['coords'].split(',').collect { |num| num.to_i }
@@ -4140,8 +4807,7 @@ class Map
             elsif current_tag == 'exit' and current_attributes['target']
               if current_attributes['type'].downcase == 'string'
                 room['wayto'][current_attributes['target']] = text_string
-              elsif
-                room['wayto'][current_attributes['target']] = StringProc.new(text_string)
+              elsif room['wayto'][current_attributes['target']] = StringProc.new(text_string)
               end
               if current_attributes['cost'] =~ /^[0-9\.]+$/
                 room['timeto'][current_attributes['target']] = current_attributes['cost'].to_f
@@ -4167,8 +4833,8 @@ class Map
                 buffer.concat(line)
                 # fixme: remove   (?=<)   ?
                 while str = buffer.slice!(/^<([^>]+)><\/\1>|^[^<]+(?=<)|^<[^<]+>/)
-                  if str[0,1] == '<'
-                    if str[1,1] == '/'
+                  if str[0, 1] == '<'
+                    if str[1, 1] == '/'
                       element = /^<\/([^\s>\/]+)/.match(str).captures.first
                       tag_end.call(element)
                     else
@@ -4182,7 +4848,7 @@ class Map
                         attributes = Hash.new
                         str.scan(/([A-z][A-z0-9_\-]*)=(["'])(.*?)\2/).each { |attr| attributes[attr[0]] = attr[2].gsub(/&(#{unescape.keys.join('|')});/) { unescape[$1] } }
                         tag_start.call(element, attributes)
-                        tag_end.call(element) if str[-2,1] == '/'
+                        tag_end.call(element) if str[-2, 1] == '/'
                       end
                     end
                   else
@@ -4208,7 +4874,8 @@ class Map
       @@elevated_load_xml.call
     end
   end
-  def Map.save(filename="#{DATA_DIR}/#{XMLData.game}/map-#{Time.now.to_i}.dat")
+
+  def Map.save(filename = "#{DATA_DIR}/#{XMLData.game}/map-#{Time.now.to_i}.dat")
     if $SAFE == 0
       if File.exists?(filename)
         respond "--- Backing up map database"
@@ -4234,10 +4901,12 @@ class Map
       @@elevated_save.call
     end
   end
+
   def Map.to_json(*args)
     @@list.delete_if { |r| r.nil? }
     @@list.to_json(args)
   end
+
   def to_json(*args)
     ({
       :id => @id,
@@ -4254,9 +4923,10 @@ class Map
       :tags => @tags,
       :check_location => @check_location,
       :unique_loot => @unique_loot
-    }).delete_if { |a,b| b.nil? or (b.class == Array and b.empty?) }.to_json(args)
+    }).delete_if { |a, b| b.nil? or (b.class == Array and b.empty?) }.to_json(args)
   end
-  def Map.save_json(filename="#{DATA_DIR}/#{XMLData.game}/map-#{Time.now.to_i}.json")
+
+  def Map.save_json(filename = "#{DATA_DIR}/#{XMLData.game}/map-#{Time.now.to_i}.json")
     if File.exists?(filename)
       respond "File exists!  Backing it up before proceeding..."
       begin
@@ -4274,7 +4944,8 @@ class Map
       file.write(Map.to_json)
     }
   end
-  def Map.save_xml(filename="#{DATA_DIR}/#{XMLData.game}/map-#{Time.now.to_i}.xml")
+
+  def Map.save_xml(filename = "#{DATA_DIR}/#{XMLData.game}/map-#{Time.now.to_i}.xml")
     if $SAFE == 0
       if File.exists?(filename)
         respond "File exists!  Backing it up before proceeding..."
@@ -4295,6 +4966,7 @@ class Map
           file.write "<map>\n"
           @@list.each { |room|
             next if room == nil
+
             if room.location
               location = " location=#{(room.location.gsub(/(<|>|"|'|&)/) { escape[$1] }).inspect}"
             else
@@ -4345,11 +5017,13 @@ class Map
       @@elevated_save_xml.call
     end
   end
+
   def Map.estimate_time(array)
     Map.load unless @@loaded
     unless array.class == Array
       raise Exception.exception("MapError"), "Map.estimate_time was given something not an array!"
     end
+
     time = 0.to_f
     until array.length < 2
       room = array.shift
@@ -4365,7 +5039,8 @@ class Map
     end
     time
   end
-  def Map.dijkstra(source, destination=nil)
+
+  def Map.dijkstra(source, destination = nil)
     if source.class == Map
       source.dijkstra(destination)
     elsif room = Map[source]
@@ -4375,14 +5050,15 @@ class Map
       nil
     end
   end
-  def dijkstra(destination=nil)
+
+  def dijkstra(destination = nil)
     begin
       Map.load unless @@loaded
       source = @id
       visited = Array.new
       shortest_distances = Array.new
       previous = Array.new
-      pq = [ source ]
+      pq = [source]
       pq_push = proc { |val|
         for i in 0...pq.size
           if shortest_distances[val] <= shortest_distances[pq[i]]
@@ -4390,7 +5066,7 @@ class Map
             break
           end
         end
-        pq.push(val) if i.nil? or (i == pq.size-1)
+        pq.push(val) if i.nil? or (i == pq.size - 1)
       }
       visited[source] = true
       shortest_distances[source] = 0
@@ -4421,6 +5097,7 @@ class Map
         until pq.size == 0
           v = pq.shift
           break if v == destination
+
           visited[v] = true
           @@list[v].wayto.keys.each { |adj_room|
             adj_room_i = adj_room.to_i
@@ -4446,6 +5123,7 @@ class Map
         until pq.size == 0
           v = pq.shift
           break if dest_list.include?(v) and (shortest_distances[v] < 20)
+
           visited[v] = true
           @@list[v].wayto.keys.each { |adj_room|
             adj_room_i = adj_room.to_i
@@ -4474,6 +5152,7 @@ class Map
       nil
     end
   end
+
   def Map.findpath(source, destination)
     if source.class == Map
       source.path_to(destination)
@@ -4484,17 +5163,20 @@ class Map
       nil
     end
   end
+
   def path_to(destination)
     Map.load unless @@loaded
     destination = destination.to_i
     previous, shortest_distances = dijkstra(destination)
     return nil unless previous[destination]
-    path = [ destination ]
+
+    path = [destination]
     path.push(previous[path[-1]]) until previous[path[-1]] == @id
     path.reverse!
     path.pop
     return path
   end
+
   def find_nearest_by_tag(tag_name)
     target_list = Array.new
     @@list.each { |room| target_list.push(room.id) if room.tags.include?(tag_name) }
@@ -4503,16 +5185,18 @@ class Map
       @id
     else
       target_list.delete_if { |room_num| shortest_distances[room_num].nil? }
-      target_list.sort { |a,b| shortest_distances[a] <=> shortest_distances[b] }.first
+      target_list.sort { |a, b| shortest_distances[a] <=> shortest_distances[b] }.first
     end
   end
+
   def find_all_nearest_by_tag(tag_name)
     target_list = Array.new
     @@list.each { |room| target_list.push(room.id) if room.tags.include?(tag_name) }
     previous, shortest_distances = Map.dijkstra(@id)
     target_list.delete_if { |room_num| shortest_distances[room_num].nil? }
-    target_list.sort { |a,b| shortest_distances[a] <=> shortest_distances[b] }
+    target_list.sort { |a, b| shortest_distances[a] <=> shortest_distances[b] }
   end
+
   def find_nearest(target_list)
     target_list = target_list.collect { |num| num.to_i }
     if target_list.include?(@id)
@@ -4520,7 +5204,7 @@ class Map
     else
       previous, shortest_distances = Map.dijkstra(@id, target_list)
       target_list.delete_if { |room_num| shortest_distances[room_num].nil? }
-      target_list.sort { |a,b| shortest_distances[a] <=> shortest_distances[b] }.first
+      target_list.sort { |a, b| shortest_distances[a] <=> shortest_distances[b] }.first
     end
   end
 end
@@ -4554,8 +5238,8 @@ end
 def silence_me
   unless script = Script.current then echo 'silence_me: cannot identify calling script.'; return nil; end
   if script.safe? then echo("WARNING: 'safe' script attempted to silence itself.  Ignoring the request.")
-    sleep 1
-    return true
+                       sleep 1
+                       return true
   end
   script.silent = !script.silent
 end
@@ -4805,7 +5489,7 @@ def dec2bin(n)
 end
 
 def bin2dec(n)
-  [("0"*32+n.to_s)[-32..-1]].pack("B32").unpack("N")[0]
+  [("0" * 32 + n.to_s)[-32..-1]].pack("B32").unpack("N")[0]
 end
 
 def idle?(time = 60)
@@ -4814,11 +5498,12 @@ end
 
 def selectput(string, success, failure, timeout = nil)
   timeout = timeout.to_f if timeout and !timeout.kind_of?(Numeric)
-  success = [ success ] if success.kind_of? String
-  failure = [ failure ] if failure.kind_of? String
+  success = [success] if success.kind_of? String
+  failure = [failure] if failure.kind_of? String
   if !string.kind_of?(String) or !success.kind_of?(Array) or !failure.kind_of?(Array) or timeout && !timeout.kind_of?(Numeric)
     raise ArgumentError, "usage is: selectput(game_command,success_array,failure_array[,timeout_in_secs])"
   end
+
   success.flatten!
   failure.flatten!
   regex = /#{(success + failure).join('|')}/i
@@ -4861,7 +5546,7 @@ end
 def upstream_waitfor(*strings)
   strings.flatten!
   script = Script.current
-  unless script.want_upstream then echo("This script wants to listen to the upstream, but it isn't set as receiving the upstream! This will cause a permanent hang, aborting (ask for the upstream with 'toggle_upstream' in the script)") ; return false end
+  unless script.want_upstream then echo("This script wants to listen to the upstream, but it isn't set as receiving the upstream! This will cause a permanent hang, aborting (ask for the upstream with 'toggle_upstream' in the script)"); return false end
   regexpstr = strings.join('|')
   while line = script.upstream_gets
     if line =~ /#{regexpstr}/i
@@ -4925,23 +5610,36 @@ def multimove(*dirs)
 end
 
 def n;    'north';     end
+
 def ne;   'northeast'; end
+
 def e;    'east';      end
+
 def se;   'southeast'; end
+
 def s;    'south';     end
+
 def sw;   'southwest'; end
+
 def w;    'west';      end
+
 def nw;   'northwest'; end
+
 def u;    'up';        end
-def up;   'up';          end
+
+def up;   'up'; end
+
 def down; 'down';      end
+
 def d;    'down';      end
+
 def o;    'out';       end
+
 def out;  'out';       end
 
-def move(dir='none', giveup_seconds=30, giveup_lines=30)
-  #[LNet]-[Private]-Casis: "You begin to make your way up the steep headland pathway.  Before traveling very far, however, you lose your footing on the loose stones.  You struggle in vain to maintain your balance, then find yourself falling to the bay below!"  (20:35:36)
-  #[LNet]-[Private]-Casis: "You smack into the water with a splash and sink far below the surface."  (20:35:50)
+def move(dir = 'none', giveup_seconds = 30, giveup_lines = 30)
+  # [LNet]-[Private]-Casis: "You begin to make your way up the steep headland pathway.  Before traveling very far, however, you lose your footing on the loose stones.  You struggle in vain to maintain your balance, then find yourself falling to the bay below!"  (20:35:36)
+  # [LNet]-[Private]-Casis: "You smack into the water with a splash and sink far below the surface."  (20:35:50)
   # You approach the entrance and identify yourself to the guard.  The guard checks over a long scroll of names and says, "I'm sorry, the Guild is open to invitees only.  Please do return at a later date when we will be open to the public."
   if dir == 'none'
     echo 'move: no direction given'
@@ -4990,12 +5688,12 @@ def move(dir='none', giveup_seconds=30, giveup_lines=30)
       fput 'unhide'
       put_dir.call
     elsif (line =~ /^You (?:take a few steps toward|trudge up to|limp towards|march up to|sashay gracefully up to|skip happily towards|sneak up to|stumble toward) a rusty doorknob/) and (dir =~ /door/)
-      which = [ 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eight', 'ninth', 'tenth', 'eleventh', 'twelfth' ]
+      which = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eight', 'ninth', 'tenth', 'eleventh', 'twelfth']
       if dir =~ /\b#{which.join('|')}\b/
-        dir.sub!(/\b(#{which.join('|')})\b/) { "#{which[which.index($1)+1]}" }
+        dir.sub!(/\b(#{which.join('|')})\b/) { "#{which[which.index($1) + 1]}" }
       else
         dir.sub!('door', 'second door')
-        end
+      end
       put_dir.call
     elsif line =~ /^You can't go there|^You can't (?:go|swim) in that direction\.|^Where are you trying to go\?|^What were you referring to\?|^I could not find what you were referring to\.|^How do you plan to do that here\?|^You take a few steps towards|^You cannot do that\.|^You settle yourself on|^You shouldn't annoy|^You can't go to|^That's probably not a very good idea|^You can't do that|^Maybe you should look|^You are already|^You walk over to|^You step over to|The [\w\s]+ is too far away|You may not pass\.|become impassable\.|prevents you from entering\.|Please leave promptly\.|is too far above you to attempt that\.$|^Uh, yeah\.  Right\.$|^Definitely NOT a good idea\.$|^Your attempt fails|^There doesn't seem to be any way to do that at the moment\.$/
       echo 'move: failed'
@@ -5107,6 +5805,7 @@ def move(dir='none', giveup_seconds=30, giveup_lines=30)
     elsif line == "You don't seem to be able to move to do that."
       30.times {
         break if clear.include?('You regain control of your senses!')
+
         sleep 0.1
       }
       put_dir.call
@@ -5134,7 +5833,7 @@ def move(dir='none', giveup_seconds=30, giveup_lines=30)
   }
 end
 
-def watchhealth(value, theproc=nil, &block)
+def watchhealth(value, theproc = nil, &block)
   value = value.to_i
   if block.nil?
     if !theproc.respond_to? :call
@@ -5150,7 +5849,7 @@ def watchhealth(value, theproc=nil, &block)
   }
 end
 
-def wait_until(announce=nil)
+def wait_until(announce = nil)
   priosave = Thread.current.priority
   Thread.current.priority = 0
   unless announce.nil? or yield
@@ -5162,7 +5861,7 @@ def wait_until(announce=nil)
   Thread.current.priority = priosave
 end
 
-def wait_while(announce=nil)
+def wait_while(announce = nil)
   priosave = Thread.current.priority
   Thread.current.priority = 0
   unless announce.nil? or !yield
@@ -5174,7 +5873,7 @@ def wait_while(announce=nil)
   Thread.current.priority = priosave
 end
 
-def checkpaths(dir="none")
+def checkpaths(dir = "none")
   if dir == "none"
     if XMLData.room_exits.empty?
       return false
@@ -5240,7 +5939,7 @@ def run
   loop { break unless walk }
 end
 
-def check_mind(string=nil)
+def check_mind(string = nil)
   if string.nil?
     return XMLData.mind_text
   elsif (string.class == String) and (string.to_i == 0)
@@ -5249,15 +5948,15 @@ def check_mind(string=nil)
     else
       return false
     end
-  elsif string.to_i.between?(0,100)
+  elsif string.to_i.between?(0, 100)
     return string.to_i <= XMLData.mind_value.to_i
   else
-    echo("check_mind error! You must provide an integer ranging from 0-100, the common abbreviation of how full your head is, or provide no input to have check_mind return an abbreviation of how filled your head is.") ; sleep 1
+    echo("check_mind error! You must provide an integer ranging from 0-100, the common abbreviation of how full your head is, or provide no input to have check_mind return an abbreviation of how filled your head is."); sleep 1
     return false
   end
 end
 
-def checkmind(string=nil)
+def checkmind(string = nil)
   if string.nil?
     return XMLData.mind_text
   elsif string.class == String and string.to_i == 0
@@ -5266,8 +5965,8 @@ def checkmind(string=nil)
     else
       return false
     end
-  elsif string.to_i.between?(1,8)
-    mind_state = ['clear as a bell','fresh and clear','clear','muddled','becoming numbed','numbed','must rest','saturated']
+  elsif string.to_i.between?(1, 8)
+    mind_state = ['clear as a bell', 'fresh and clear', 'clear', 'muddled', 'becoming numbed', 'numbed', 'must rest', 'saturated']
     if mind_state.index(XMLData.mind_text)
       mind = mind_state.index(XMLData.mind_text) + 1
       return string.to_i <= mind
@@ -5276,12 +5975,12 @@ def checkmind(string=nil)
       nil
     end
   else
-    echo("Checkmind error! You must provide an integer ranging from 1-8 (7 is fried, 8 is 100% fried), the common abbreviation of how full your head is, or provide no input to have checkmind return an abbreviation of how filled your head is.") ; sleep 1
+    echo("Checkmind error! You must provide an integer ranging from 1-8 (7 is fried, 8 is 100% fried), the common abbreviation of how full your head is, or provide no input to have checkmind return an abbreviation of how filled your head is."); sleep 1
     return false
   end
 end
 
-def percentmind(num=nil)
+def percentmind(num = nil)
   if num.nil?
     XMLData.mind_value
   else
@@ -5305,7 +6004,7 @@ def checksaturated
   end
 end
 
-def checkmana(num=nil)
+def checkmana(num = nil)
   if num.nil?
     XMLData.mana
   else
@@ -5317,7 +6016,7 @@ def maxmana
   XMLData.max_mana
 end
 
-def percentmana(num=nil)
+def percentmana(num = nil)
   if XMLData.max_mana == 0
     percent = 100
   else
@@ -5330,7 +6029,7 @@ def percentmana(num=nil)
   end
 end
 
-def checkhealth(num=nil)
+def checkhealth(num = nil)
   if num.nil?
     XMLData.health
   else
@@ -5342,7 +6041,7 @@ def maxhealth
   XMLData.max_health
 end
 
-def percenthealth(num=nil)
+def percenthealth(num = nil)
   if num.nil?
     ((XMLData.health.to_f / XMLData.max_health.to_f) * 100).to_i
   else
@@ -5350,7 +6049,7 @@ def percenthealth(num=nil)
   end
 end
 
-def checkspirit(num=nil)
+def checkspirit(num = nil)
   if num.nil?
     XMLData.spirit
   else
@@ -5362,7 +6061,7 @@ def maxspirit
   XMLData.max_spirit
 end
 
-def percentspirit(num=nil)
+def percentspirit(num = nil)
   if num.nil?
     ((XMLData.spirit.to_f / XMLData.max_spirit.to_f) * 100).to_i
   else
@@ -5370,7 +6069,7 @@ def percentspirit(num=nil)
   end
 end
 
-def checkstamina(num=nil)
+def checkstamina(num = nil)
   if num.nil?
     XMLData.stamina
   else
@@ -5382,7 +6081,7 @@ def maxstamina()
   XMLData.max_stamina
 end
 
-def percentstamina(num=nil)
+def percentstamina(num = nil)
   if XMLData.max_stamina == 0
     percent = 100
   else
@@ -5395,7 +6094,7 @@ def percentstamina(num=nil)
   end
 end
 
-def checkstance(num=nil)
+def checkstance(num = nil)
   if num.nil?
     XMLData.stance_text
   elsif (num.class == String) and (num.to_i == 0)
@@ -5423,7 +6122,7 @@ def checkstance(num=nil)
   end
 end
 
-def percentstance(num=nil)
+def percentstance(num = nil)
   if num.nil?
     XMLData.stance_value
   else
@@ -5431,7 +6130,7 @@ def percentstance(num=nil)
   end
 end
 
-def checkencumbrance(string=nil)
+def checkencumbrance(string = nil)
   if string.nil?
     XMLData.encumbrance_text
   elsif (string.class == Integer) or (string =~ /^[0-9]+$/ and string = string.to_i)
@@ -5446,7 +6145,7 @@ def checkencumbrance(string=nil)
   end
 end
 
-def percentencumbrance(num=nil)
+def percentencumbrance(num = nil)
   if num.nil?
     XMLData.encumbrance_value
   else
@@ -5457,7 +6156,7 @@ end
 def checkarea(*strings)
   strings.flatten!
   if strings.empty?
-    XMLData.room_title.split(',').first.sub('[','')
+    XMLData.room_title.split(',').first.sub('[', '')
   else
     XMLData.room_title.split(',').first =~ /#{strings.join('|')}/i
   end
@@ -5482,11 +6181,12 @@ end
 
 def checkfamarea(*strings)
   strings.flatten!
-  if strings.empty? then return XMLData.familiar_room_title.split(',').first.sub('[','') end
+  if strings.empty? then return XMLData.familiar_room_title.split(',').first.sub('[', '') end
+
   XMLData.familiar_room_title.split(',').first =~ /#{strings.join('|')}/i
 end
 
-def checkfampaths(dir="none")
+def checkfampaths(dir = "none")
   if dir == "none"
     if XMLData.familiar_room_exits.empty?
       return false
@@ -5499,7 +6199,8 @@ def checkfampaths(dir="none")
 end
 
 def checkfamroom(*strings)
-  strings.flatten! ; if strings.empty? then return XMLData.familiar_room_title.chomp end
+  strings.flatten!; if strings.empty? then return XMLData.familiar_room_title.chomp end
+
   XMLData.familiar_room_title =~ /#{strings.join('|')}/i
 end
 
@@ -5523,7 +6224,7 @@ end
 
 def checkfampcs(*strings)
   familiar_pcs = Array.new
-  XMLData.familiar_pcs.to_s.gsub(/Lord |Lady |Great |High |Renowned |Grand |Apprentice |Novice |Journeyman /,'').split(',').each { |line| familiar_pcs.push(line.slice(/[A-Z][a-z]+/)) }
+  XMLData.familiar_pcs.to_s.gsub(/Lord |Lady |Great |High |Renowned |Grand |Apprentice |Novice |Journeyman /, '').split(',').each { |line| familiar_pcs.push(line.slice(/[A-Z][a-z]+/)) }
   if familiar_pcs.empty?
     return false
   elsif strings.empty?
@@ -5573,6 +6274,7 @@ end
 
 def checkright(*hand)
   if GameObj.right_hand.nil? then return nil end
+
   hand.flatten!
   if GameObj.right_hand.name == "Empty" or GameObj.right_hand.name.empty?
     nil
@@ -5585,6 +6287,7 @@ end
 
 def checkleft(*hand)
   if GameObj.left_hand.nil? then return nil end
+
   hand.flatten!
   if GameObj.left_hand.name == "Empty" or GameObj.left_hand.name.empty?
     nil
@@ -5616,11 +6319,12 @@ end
 def checkspell(*spells)
   spells.flatten!
   return false if Spell.active.empty?
+
   spells.each { |spell| return false unless Spell[spell].active? }
   true
 end
 
-def checkprep(spell=nil)
+def checkprep(spell = nil)
   if spell.nil?
     XMLData.prepared_spell
   elsif spell.class != String
@@ -5631,8 +6335,9 @@ def checkprep(spell=nil)
   end
 end
 
-def setpriority(val=nil)
+def setpriority(val = nil)
   if val.nil? then return Thread.current.priority end
+
   if val.to_i > 3
     echo("You're trying to set a script's priority as being higher than the send/recv threads (this is telling Lich to run the script before it even gets data to give the script, and is useless); the limit is 3")
     return Thread.current.priority
@@ -5653,30 +6358,39 @@ end
 def checksleeping
   return $infomon_sleeping
 end
+
 def sleeping?
   return $infomon_sleeping
 end
+
 def checkbound
   return $infomon_bound
 end
+
 def bound?
   return $infomon_bound
 end
+
 def checksilenced
   $infomon_silenced
 end
+
 def silenced?
   $infomon_silenced
 end
+
 def checkcalmed
   $infomon_calmed
 end
+
 def calmed?
   $infomon_calmed
 end
+
 def checkcutthroat
   $infomon_cutthroat
 end
+
 def cutthroat?
   $infomon_cutthroat
 end
@@ -5686,7 +6400,7 @@ def variable
   script.vars
 end
 
-def pause(num=1)
+def pause(num = 1)
   if num =~ /m/
     sleep((num.sub(/m/, '').to_f * 60))
   elsif num =~ /h/
@@ -5698,10 +6412,10 @@ def pause(num=1)
   end
 end
 
-def cast(spell, target=nil, results_of_interest=nil)
+def cast(spell, target = nil, results_of_interest = nil)
   if spell.class == Spell
     spell.cast(target, results_of_interest)
-  elsif ((spell.class == Integer) or (spell.to_s =~ /^[0-9]+$/) ) and (find_spell = Spell[spell.to_i])
+  elsif ((spell.class == Integer) or (spell.to_s =~ /^[0-9]+$/)) and (find_spell = Spell[spell.to_i])
     find_spell.cast(target, results_of_interest)
   elsif (spell.class == String) and (find_spell = Spell[spell])
     find_spell.cast(target, results_of_interest)
@@ -5711,7 +6425,7 @@ def cast(spell, target=nil, results_of_interest=nil)
   end
 end
 
-def clear(opt=0)
+def clear(opt = 0)
   unless script = Script.current then respond('--- clear: Unable to identify calling script.'); return false; end
   to_return = script.downstream_buffer.dup
   script.downstream_buffer.clear
@@ -5719,10 +6433,10 @@ def clear(opt=0)
 end
 
 def match(label, string)
-  strings = [ label, string ]
+  strings = [label, string]
   strings.flatten!
-  unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting...") ; Thread.current.kill ; return false end
-  if strings.empty? then echo("Error! 'match' was given no strings to look for!") ; sleep 1 ; return false end
+  unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting..."); Thread.current.kill; return false end
+  if strings.empty? then echo("Error! 'match' was given no strings to look for!"); sleep 1; return false end
   unless strings.length == 2
     while line_in = script.gets
       strings.each { |string|
@@ -5740,7 +6454,7 @@ def match(label, string)
 end
 
 def matchtimeout(secs, *strings)
-  unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting...") ; Thread.current.kill ; return false end
+  unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting..."); Thread.current.kill; return false end
   unless (secs.class == Float || secs.class == Integer)
     echo('matchtimeout error! You appear to have given it a string, not a #! Syntax:  matchtimeout(30, "You stand up")')
     return false
@@ -5768,27 +6482,27 @@ end
 
 def matchbefore(*strings)
   strings.flatten!
-  unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting...") ; Thread.current.kill ; return false end
-  if strings.empty? then echo("matchbefore without any strings to wait for!") ; return false end
+  unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting..."); Thread.current.kill; return false end
+  if strings.empty? then echo("matchbefore without any strings to wait for!"); return false end
   regexpstr = strings.join('|')
   loop { if (line_in = script.gets) =~ /#{regexpstr}/ then return $`.to_s end }
 end
 
 def matchafter(*strings)
   strings.flatten!
-  unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting...") ; Thread.current.kill ; return false end
-  if strings.empty? then echo("matchafter without any strings to wait for!") ; return end
+  unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting..."); Thread.current.kill; return false end
+  if strings.empty? then echo("matchafter without any strings to wait for!"); return end
   regexpstr = strings.join('|')
   loop { if (line_in = script.gets) =~ /#{regexpstr}/ then return $'.to_s end }
 end
 
 def matchboth(*strings)
   strings.flatten!
-  unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting...") ; Thread.current.kill ; return false end
-  if strings.empty? then echo("matchboth without any strings to wait for!") ; return end
+  unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting..."); Thread.current.kill; return false end
+  if strings.empty? then echo("matchboth without any strings to wait for!"); return end
   regexpstr = strings.join('|')
   loop { if (line_in = script.gets) =~ /#{regexpstr}/ then break end }
-  return [ $`.to_s, $'.to_s ]
+  return [$`.to_s, $'.to_s]
 end
 
 def matchwait(*strings)
@@ -5826,6 +6540,7 @@ def waitfor(*strings)
   if (script.class == WizardScript) and (strings.length == 1) and (strings.first.strip == '>')
     return script.gets
   end
+
   if strings.empty?
     echo 'waitfor: no string to wait for'
     return false
@@ -5869,7 +6584,7 @@ def reget(*lines)
   end
   history = history.split("\n").delete_if { |line| line.nil? or line.empty? or line =~ /^[\r\n\s\t]*$/ }
   if lines.first.kind_of?(Numeric) or lines.first.to_i.nonzero?
-    history = history[-([lines.shift.to_i,history.length].min)..-1]
+    history = history[-([lines.shift.to_i, history.length].min)..-1]
   end
   unless lines.empty? or lines.nil?
     regex = /#{lines.join('|')}/i
@@ -5960,18 +6675,18 @@ end
 
 def matchfindexact(*strings)
   strings.flatten!
-  unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting...") ; Thread.current.kill ; return false end
-  if strings.empty? then echo("error! 'matchfind' with no strings to look for!") ; sleep 1 ; return false end
+  unless script = Script.current then echo("An unknown script thread tried to fetch a game line from the queue, but Lich can't process the call without knowing which script is calling! Aborting..."); Thread.current.kill; return false end
+  if strings.empty? then echo("error! 'matchfind' with no strings to look for!"); sleep 1; return false end
   looking = Array.new
   strings.each { |str| looking.push(str.gsub('?', '(\b.+\b)')) }
-  if looking.empty? then echo("matchfind without any strings to wait for!") ; return false end
+  if looking.empty? then echo("matchfind without any strings to wait for!"); return false end
   regexpstr = looking.join('|')
   while line_in = script.gets
     if gotit = line_in.slice(/#{regexpstr}/)
       matches = Array.new
-      looking.each_with_index { |str,idx|
+      looking.each_with_index { |str, idx|
         if gotit =~ /#{str}/i
-          strings[idx].count('?').times { |n| matches.push(eval("$#{n+1}")) }
+          strings[idx].count('?').times { |n| matches.push(eval("$#{n + 1}")) }
         end
       }
       break
@@ -6028,7 +6743,7 @@ def send_scripts(*messages)
   true
 end
 
-def status_tags(onoff="none")
+def status_tags(onoff = "none")
   script = Script.current
   if onoff == "on"
     script.want_downstream = false
@@ -6096,32 +6811,32 @@ end
 
 def noded_pulse
   if Stats.prof =~ /warrior|rogue|sorcerer/i
-    stats = [ Skills.smc.to_i, Skills.emc.to_i ]
+    stats = [Skills.smc.to_i, Skills.emc.to_i]
   elsif Stats.prof =~ /empath|bard/i
-    stats = [ Skills.smc.to_i, Skills.mmc.to_i ]
+    stats = [Skills.smc.to_i, Skills.mmc.to_i]
   elsif Stats.prof =~ /wizard/i
-    stats = [ Skills.emc.to_i, 0 ]
+    stats = [Skills.emc.to_i, 0]
   elsif Stats.prof =~ /paladin|cleric|ranger/i
-    stats = [ Skills.smc.to_i, 0 ]
+    stats = [Skills.smc.to_i, 0]
   else
-    stats = [ 0, 0 ]
+    stats = [0, 0]
   end
-  return (maxmana * 25 / 100) + (stats.max/10) + (stats.min/20)
+  return (maxmana * 25 / 100) + (stats.max / 10) + (stats.min / 20)
 end
 
 def unnoded_pulse
   if Stats.prof =~ /warrior|rogue|sorcerer/i
-    stats = [ Skills.smc.to_i, Skills.emc.to_i ]
+    stats = [Skills.smc.to_i, Skills.emc.to_i]
   elsif Stats.prof =~ /empath|bard/i
-    stats = [ Skills.smc.to_i, Skills.mmc.to_i ]
+    stats = [Skills.smc.to_i, Skills.mmc.to_i]
   elsif Stats.prof =~ /wizard/i
-    stats = [ Skills.emc.to_i, 0 ]
+    stats = [Skills.emc.to_i, 0]
   elsif Stats.prof =~ /paladin|cleric|ranger/i
-    stats = [ Skills.smc.to_i, 0 ]
+    stats = [Skills.smc.to_i, 0]
   else
-    stats = [ 0, 0 ]
+    stats = [0, 0]
   end
-  return (maxmana * 15 / 100) + (stats.max/10) + (stats.min/20)
+  return (maxmana * 15 / 100) + (stats.max / 10) + (stats.min / 20)
 end
 
 def empty_hands
@@ -6142,7 +6857,7 @@ def empty_hands
       result = dothistimeout 'inventory containers', 5, /^You are wearing/
       Script.current.want_downstream_xml = false
       Script.current.want_downstream = true
-      other_containers_ids = result.scan(/exist="(.*?)"/).flatten - [ lootsack.id ]
+      other_containers_ids = result.scan(/exist="(.*?)"/).flatten - [lootsack.id]
       other_containers_var = GameObj.inv.find_all { |obj| other_containers_ids.include?(obj.id) }
     end
     other_containers_var
@@ -6150,17 +6865,19 @@ def empty_hands
   if left_hand.id
     waitrt?
     if (left_hand.noun =~ /shield|buckler|targe|heater|parma|aegis|scutum|greatshield|mantlet|pavis|arbalest|bow|crossbow|yumi|arbalest/) and (wear_result = dothistimeout("wear ##{left_hand.id}", 8, /^You .*#{left_hand.noun}|^You can only wear \w+ items in that location\.$|^You can't wear that\.$/)) and (wear_result !~ /^You can only wear \w+ items in that location\.$|^You can't wear that\.$/)
-        actions.unshift proc {
-      dothistimeout "remove ##{left_hand.id}", 3, /^You|^Remove what\?/
-      20.times { break if GameObj.left_hand.id == left_hand.id or GameObj.right_hand.id == left_hand.id; sleep 0.1 }
-      if GameObj.right_hand.id == left_hand.id
-        dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
-      end
-    }
+      actions.unshift proc {
+        dothistimeout "remove ##{left_hand.id}", 3, /^You|^Remove what\?/
+        20.times { break if GameObj.left_hand.id == left_hand.id or GameObj.right_hand.id == left_hand.id; sleep 0.1 }
+
+        if GameObj.right_hand.id == left_hand.id
+          dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
+        end
+      }
     else
       actions.unshift proc {
         dothistimeout "get ##{left_hand.id}", 3, /^You (?:shield the opening of .*? from view as you |discreetly |carefully |deftly )?(?:remove|draw|grab|get|reach|slip|tuck|retrieve|already have)|^Get what\?$|^Why don't you leave some for others\?$|^You need a free hand/
         20.times { break if (GameObj.left_hand.id == left_hand.id) or (GameObj.right_hand.id == left_hand.id); sleep 0.1 }
+
         if GameObj.right_hand.id == left_hand.id
           dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
         end
@@ -6193,6 +6910,7 @@ def empty_hands
     actions.unshift proc {
       dothistimeout "get ##{right_hand.id}", 3, /^You (?:shield the opening of .*? from view as you |discreetly |carefully |deftly )?(?:remove|draw|grab|get|reach|slip|tuck|retrieve|already have)|^Get what\?$|^Why don't you leave some for others\?$|^You need a free hand/
       20.times { break if GameObj.left_hand.id == right_hand.id or GameObj.right_hand.id == right_hand.id; sleep 0.1 }
+
       if GameObj.left_hand.id == right_hand.id
         dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
       end
@@ -6257,17 +6975,18 @@ def empty_hand
       result = dothistimeout 'inventory containers', 5, /^You are wearing/
       Script.current.want_downstream_xml = false
       Script.current.want_downstream = true
-      other_containers_ids = result.scan(/exist="(.*?)"/).flatten - [ lootsack.id ]
+      other_containers_ids = result.scan(/exist="(.*?)"/).flatten - [lootsack.id]
       other_containers_var = GameObj.inv.find_all { |obj| other_containers_ids.include?(obj.id) }
     end
     other_containers_var
   }
-  unless (right_hand.id.nil? and ([ Wounds.rightArm, Wounds.rightHand, Scars.rightArm, Scars.rightHand ].max < 3)) or (left_hand.id.nil? and ([ Wounds.leftArm, Wounds.leftHand, Scars.leftArm, Scars.leftHand ].max < 3))
-    if right_hand.id and ([ Wounds.rightArm, Wounds.rightHand, Scars.rightArm, Scars.rightHand ].max < 3 or [ Wounds.leftArm, Wounds.leftHand, Scars.leftArm, Scars.leftHand ].max = 3)
+  unless (right_hand.id.nil? and ([Wounds.rightArm, Wounds.rightHand, Scars.rightArm, Scars.rightHand].max < 3)) or (left_hand.id.nil? and ([Wounds.leftArm, Wounds.leftHand, Scars.leftArm, Scars.leftHand].max < 3))
+    if right_hand.id and ([Wounds.rightArm, Wounds.rightHand, Scars.rightArm, Scars.rightHand].max < 3 or [Wounds.leftArm, Wounds.leftHand, Scars.leftArm, Scars.leftHand].max = 3)
       waitrt?
       actions.unshift proc {
         dothistimeout "get ##{right_hand.id}", 3, /^You (?:shield the opening of .*? from view as you |discreetly |carefully |deftly )?(?:remove|draw|grab|get|reach|slip|tuck|retrieve|already have)|^Get what\?$|^Why don't you leave some for others\?$|^You need a free hand/
         20.times { break if GameObj.left_hand.id == right_hand.id or GameObj.right_hand.id == right_hand.id; sleep 0.1 }
+
         if GameObj.left_hand.id == right_hand.id
           dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
         end
@@ -6301,26 +7020,28 @@ def empty_hand
             result = dothistimeout "put ##{right_hand.id} in ##{container.id}", 3, /^You (?:attempt to shield .*? from view as you |discreetly |carefully |absent-mindedly )?(?:put|place|slip|tuck|add|drop|untie your|find an incomplete bundle|wipe off .*? and sheathe|secure)|^A sigh of grateful pleasure can be heard as you feed .*? to your|^As you place|^I could not find what you were referring to\.$|^Your bundle would be too large|^The .+ is too large to be bundled\.|^As you place your|^As you prepare to drop|^The .*? is already a bundle|^Your .*? won't fit in .*?\.$|^You can't .+ It's closed!$/
           end
           break if result =~ /^You (?:put|absent-mindedly drop|slip)/
-        end
+         end
       end
     else
       waitrt?
       if (left_hand.noun =~ /shield|buckler|targe|heater|parma|aegis|scutum|greatshield|mantlet|pavis|arbalest|bow|crossbow|yumi|arbalest/) and (wear_result = dothistimeout("wear ##{left_hand.id}", 8, /^You .*#{left_hand.noun}|^You can only wear \w+ items in that location\.$|^You can't wear that\.$/)) and (wear_result !~ /^You can only wear \w+ items in that location\.$|^You can't wear that\.$/)
-          actions.unshift proc {
-        dothistimeout "remove ##{left_hand.id}", 3, /^You|^Remove what\?/
-        20.times { break if GameObj.left_hand.id == left_hand.id or GameObj.right_hand.id == left_hand.id; sleep 0.1 }
-        if GameObj.right_hand.id == left_hand.id
-          dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
-        end
-      }
+        actions.unshift proc {
+                          dothistimeout "remove ##{left_hand.id}", 3, /^You|^Remove what\?/
+                          20.times { break if GameObj.left_hand.id == left_hand.id or GameObj.right_hand.id == left_hand.id; sleep 0.1 }
+
+                          if GameObj.right_hand.id == left_hand.id
+                            dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
+                          end
+                        }
       else
         actions.unshift proc {
-          dothistimeout "get ##{left_hand.id}", 3, /^You (?:shield the opening of .*? from view as you |discreetly |carefully |deftly )?(?:remove|draw|grab|get|reach|slip|tuck|retrieve|already have)|^Get what\?$|^Why don't you leave some for others\?$|^You need a free hand/
-          20.times { break if GameObj.left_hand.id == left_hand.id or GameObj.right_hand.id == left_hand.id; sleep 0.1 }
-          if GameObj.right_hand.id == left_hand.id
-            dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
-          end
-        }
+                          dothistimeout "get ##{left_hand.id}", 3, /^You (?:shield the opening of .*? from view as you |discreetly |carefully |deftly )?(?:remove|draw|grab|get|reach|slip|tuck|retrieve|already have)|^Get what\?$|^Why don't you leave some for others\?$|^You need a free hand/
+                          20.times { break if GameObj.left_hand.id == left_hand.id or GameObj.right_hand.id == left_hand.id; sleep 0.1 }
+
+                          if GameObj.right_hand.id == left_hand.id
+                            dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
+                          end
+                        }
         if lootsack
           result = dothistimeout "put ##{left_hand.id} in ##{lootsack.id}", 4, /^You (?:attempt to shield .*? from view as you |discreetly |carefully |absent-mindedly )?(?:put|place|slip|tuck|add|drop|untie your|find an incomplete bundle|wipe off .*? and sheathe|secure)|^A sigh of grateful pleasure can be heard as you feed .*? to your|^As you place|^I could not find what you were referring to\.$|^Your bundle would be too large|^The .+ is too large to be bundled\.|^As you place your|^As you prepare to drop|^The .*? is already a bundle|^Your .*? won't fit in .*?\.$|^You can't .+ It's closed!$/
           if result =~ /^You can't .+ It's closed!$/
@@ -6340,7 +7061,7 @@ def empty_hand
               result = dothistimeout "put ##{left_hand.id} in ##{container.id}", 3, /^You (?:attempt to shield .*? from view as you |discreetly |carefully |absent-mindedly )?(?:put|place|slip|tuck|add|drop|untie your|find an incomplete bundle|wipe off .*? and sheathe|secure)|^A sigh of grateful pleasure can be heard as you feed .*? to your|^As you place|^I could not find what you were referring to\.$|^Your bundle would be too large|^The .+ is too large to be bundled\.|^As you place your|^As you prepare to drop|^The .*? is already a bundle|^Your .*? won't fit in .*?\.$|^You can't .+ It's closed!$/
             end
             break if result =~ /^You (?:put|absent-mindedly drop|slip)/
-          end
+           end
         end
       end
     end
@@ -6372,7 +7093,7 @@ def empty_right_hand
       result = dothistimeout 'inventory containers', 5, /^You are wearing/
       Script.current.want_downstream_xml = false
       Script.current.want_downstream = true
-      other_containers_ids = result.scan(/exist="(.*?)"/).flatten - [ lootsack.id ]
+      other_containers_ids = result.scan(/exist="(.*?)"/).flatten - [lootsack.id]
       other_containers_var = GameObj.inv.find_all { |obj| other_containers_ids.include?(obj.id) }
     end
     other_containers_var
@@ -6382,6 +7103,7 @@ def empty_right_hand
     actions.unshift proc {
       dothistimeout "get ##{right_hand.id}", 3, /^You (?:shield the opening of .*? from view as you |discreetly |carefully |deftly )?(?:remove|draw|grab|get|reach|slip|tuck|retrieve|already have)|^Get what\?$|^Why don't you leave some for others\?$|^You need a free hand/
       20.times { break if GameObj.left_hand.id == right_hand.id or GameObj.right_hand.id == right_hand.id; sleep 0.1 }
+
       if GameObj.left_hand.id == right_hand.id
         dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
       end
@@ -6445,7 +7167,7 @@ def empty_left_hand
       result = dothistimeout 'inventory containers', 5, /^You are wearing/
       Script.current.want_downstream_xml = false
       Script.current.want_downstream = true
-      other_containers_ids = result.scan(/exist="(.*?)"/).flatten - [ lootsack.id ]
+      other_containers_ids = result.scan(/exist="(.*?)"/).flatten - [lootsack.id]
       other_containers_var = GameObj.inv.find_all { |obj| other_containers_ids.include?(obj.id) }
     end
     other_containers_var
@@ -6453,17 +7175,19 @@ def empty_left_hand
   if left_hand.id
     waitrt?
     if (left_hand.noun =~ /shield|buckler|targe|heater|parma|aegis|scutum|greatshield|mantlet|pavis|arbalest|bow|crossbow|yumi|arbalest/) and (wear_result = dothistimeout("wear ##{left_hand.id}", 8, /^You .*#{left_hand.noun}|^You can only wear \w+ items in that location\.$|^You can't wear that\.$/)) and (wear_result !~ /^You can only wear \w+ items in that location\.$|^You can't wear that\.$/)
-        actions.unshift proc {
-      dothistimeout "remove ##{left_hand.id}", 3, /^You|^Remove what\?/
-      20.times { break if GameObj.left_hand.id == left_hand.id or GameObj.right_hand.id == left_hand.id; sleep 0.1 }
-      if GameObj.right_hand.id == left_hand.id
-        dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
-      end
-    }
+      actions.unshift proc {
+        dothistimeout "remove ##{left_hand.id}", 3, /^You|^Remove what\?/
+        20.times { break if GameObj.left_hand.id == left_hand.id or GameObj.right_hand.id == left_hand.id; sleep 0.1 }
+
+        if GameObj.right_hand.id == left_hand.id
+          dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
+        end
+      }
     else
       actions.unshift proc {
         dothistimeout "get ##{left_hand.id}", 3, /^You (?:shield the opening of .*? from view as you |discreetly |carefully |deftly )?(?:remove|draw|grab|get|reach|slip|tuck|retrieve|already have)|^Get what\?$|^Why don't you leave some for others\?$|^You need a free hand/
         20.times { break if GameObj.left_hand.id == left_hand.id or GameObj.right_hand.id == left_hand.id; sleep 0.1 }
+
         if GameObj.right_hand.id == left_hand.id
           dothistimeout 'swap', 3, /^You don't have anything to swap!|^You swap/
         end
@@ -6501,7 +7225,7 @@ def fill_left_hand
   end
 end
 
-def dothis (action, success_line)
+def dothis(action, success_line)
   loop {
     Script.current.clear
     put action
@@ -6558,7 +7282,7 @@ def dothis (action, success_line)
   }
 end
 
-def dothistimeout (action, timeout, success_line)
+def dothistimeout(action, timeout, success_line)
   end_time = Time.now.to_f + timeout
   line = nil
   loop {
@@ -6686,6 +7410,7 @@ def sf_to_wiz(line)
     line = line.gsub('&gt;', '>')
     line = line.gsub('&lt;', '<')
     return nil if line.gsub("\r\n", '').length < 1
+
     return line
   rescue
     $_CLIENT_.puts "--- Error: sf_to_wiz: #{$!}"
@@ -6714,6 +7439,7 @@ def strip_xml(line)
   line = line.gsub('&lt;', '<')
 
   return nil if line.gsub("\n", '').gsub("\r", '').gsub(' ', '').length < 1
+
   return line
 end
 
@@ -6747,8 +7473,9 @@ def do_client(client_string)
   client_string = UpstreamHook.run(client_string)
   #   Buffer.update(client_string, Buffer::UPSTREAM_MOD)
   return nil if client_string.nil?
+
   if client_string =~ /^(?:<c>)?#{$lich_char}(.+)$/
-      cmd = $1
+    cmd = $1
     if cmd =~ /^k$|^kill$|^stop$/
       if Script.running.empty?
         respond '--- Lich: no scripts to kill'
@@ -6775,7 +7502,7 @@ def do_client(client_string)
       respond('--- Lich: no scripts to kill') unless did_something
     elsif cmd =~ /^pa$|^pause\s?all$/
       did_something = false
-      Script.running.find_all { |s| not s.paused? and not s.no_pause_all }.each { |s| s.pause; did_something  = true }
+      Script.running.find_all { |s| not s.paused? and not s.no_pause_all }.each { |s| s.pause; did_something = true }
       respond('--- Lich: no scripts to pause') unless did_something
     elsif cmd =~ /^ua$|^unpause\s?all$/
       did_something = false
@@ -6789,9 +7516,9 @@ def do_client(client_string)
         respond "--- Lich: #{target} does not appear to be running! Use ';list' or ';listall' to see what's active."
       elsif action =~ /^(?:k|kill|stop)$/
         script.kill
-      elsif action =~/^(?:p|pause)$/
+      elsif action =~ /^(?:p|pause)$/
         script.pause
-      elsif action =~/^(?:u|unpause)$/
+      elsif action =~ /^(?:u|unpause)$/
         script.unpause
       end
       action = target = script = nil
@@ -6840,9 +7567,9 @@ def do_client(client_string)
     elsif cmd =~ /^(?:exec|e)(q)? (.+)$/
       cmd_data = $2
       if $1.nil?
-        ExecScript.start(cmd_data, flags={ :quiet => false, :trusted => true })
+        ExecScript.start(cmd_data, flags = { :quiet => false, :trusted => true })
       else
-        ExecScript.start(cmd_data, flags={ :quiet => true, :trusted => true })
+        ExecScript.start(cmd_data, flags = { :quiet => true, :trusted => true })
       end
     elsif cmd =~ /^trust\s+(.*)/i
       script_name = $1
@@ -7030,6 +7757,7 @@ module Buffer
     }
     return line
   end
+
   def Buffer.gets?
     thread_id = Thread.current.object_id
     if @@index[thread_id].nil?
@@ -7043,6 +7771,7 @@ module Buffer
       if (@@index[thread_id] - @@offset) >= @@buffer.length
         return nil
       end
+
       @@mutex.synchronize {
         if @@index[thread_id] < @@offset
           @@index[thread_id] = @@offset
@@ -7054,12 +7783,14 @@ module Buffer
     }
     return line
   end
+
   def Buffer.rewind
     thread_id = Thread.current.object_id
     @@index[thread_id] = @@offset
     @@streams[thread_id] ||= DOWNSTREAM_STRIPPED
     return self
   end
+
   def Buffer.clear
     thread_id = Thread.current.object_id
     if @@index[thread_id].nil?
@@ -7073,6 +7804,7 @@ module Buffer
       if (@@index[thread_id] - @@offset) >= @@buffer.length
         return lines
       end
+
       line = nil
       @@mutex.synchronize {
         if @@index[thread_id] < @@offset
@@ -7085,7 +7817,8 @@ module Buffer
     }
     return lines
   end
-  def Buffer.update(line, stream=nil)
+
+  def Buffer.update(line, stream = nil)
     @@mutex.synchronize {
       frozen_line = line.dup
       unless stream.nil?
@@ -7100,9 +7833,11 @@ module Buffer
     }
     return self
   end
+
   def Buffer.streams
     @@streams[Thread.current.object_id]
   end
+
   def Buffer.streams=(val)
     if (val.class != Integer) or ((val & 63) == 0)
       respond "--- Lich: error: invalid streams value\n\t#{$!.caller[0..2].join("\n\t")}"
@@ -7110,16 +7845,18 @@ module Buffer
     end
     @@streams[Thread.current.object_id] = val
   end
+
   def Buffer.cleanup
-    @@index.delete_if { |k,v| not Thread.list.any? { |t| t.object_id == k } }
-    @@streams.delete_if { |k,v| not Thread.list.any? { |t| t.object_id == k } }
+    @@index.delete_if { |k, v| not Thread.list.any? { |t| t.object_id == k } }
+    @@streams.delete_if { |k, v| not Thread.list.any? { |t| t.object_id == k } }
     return self
   end
 end
 
 class SharedBuffer
   attr_accessor :max_size
-  def initialize(args={})
+
+  def initialize(args = {})
     @buffer = Array.new
     @buffer_offset = 0
     @buffer_index = Hash.new
@@ -7127,6 +7864,7 @@ class SharedBuffer
     @max_size = args[:max_size] || 500
     return self
   end
+
   def gets
     thread_id = Thread.current.object_id
     if @buffer_index[thread_id].nil?
@@ -7145,6 +7883,7 @@ class SharedBuffer
     @buffer_index[thread_id] += 1
     return line
   end
+
   def gets?
     thread_id = Thread.current.object_id
     if @buffer_index[thread_id].nil?
@@ -7153,6 +7892,7 @@ class SharedBuffer
     if (@buffer_index[thread_id] - @buffer_offset) >= @buffer.length
       return nil
     end
+
     line = nil
     @buffer_mutex.synchronize {
       if @buffer_index[thread_id] < @buffer_offset
@@ -7163,6 +7903,7 @@ class SharedBuffer
     @buffer_index[thread_id] += 1
     return line
   end
+
   def clear
     thread_id = Thread.current.object_id
     if @buffer_index[thread_id].nil?
@@ -7172,6 +7913,7 @@ class SharedBuffer
     if (@buffer_index[thread_id] - @buffer_offset) >= @buffer.length
       return Array.new
     end
+
     lines = Array.new
     @buffer_mutex.synchronize {
       if @buffer_index[thread_id] < @buffer_offset
@@ -7182,10 +7924,12 @@ class SharedBuffer
     }
     return lines
   end
+
   def rewind
     @buffer_index[Thread.current.object_id] = @buffer_offset
     return self
   end
+
   def update(line)
     @buffer_mutex.synchronize {
       fline = line.dup
@@ -7198,8 +7942,9 @@ class SharedBuffer
     }
     return self
   end
+
   def cleanup_threads
-    @buffer_index.delete_if { |k,v| not Thread.list.any? { |t| t.object_id == k } }
+    @buffer_index.delete_if { |k, v| not Thread.list.any? { |t| t.object_id == k } }
     return self
   end
 end
@@ -7212,6 +7957,7 @@ class SpellRanks
   @@elevated_save = proc { SpellRanks.save }
   attr_reader :name
   attr_accessor :minorspiritual, :majorspiritual, :cleric, :minorelemental, :majorelemental, :minormental, :ranger, :sorcerer, :wizard, :bard, :empath, :paladin, :arcanesymbols, :magicitemuse, :monk
+
   def SpellRanks.load
     if $SAFE == 0
       if File.exists?("#{DATA_DIR}/#{XMLData.game}/spell-ranks.dat")
@@ -7238,6 +7984,7 @@ class SpellRanks
       @@elevated_load.call
     end
   end
+
   def SpellRanks.save
     if $SAFE == 0
       begin
@@ -7252,26 +7999,32 @@ class SpellRanks
       @@elevated_save.call
     end
   end
+
   def SpellRanks.timestamp
     SpellRanks.load unless @@loaded
     @@timestamp
   end
+
   def SpellRanks.timestamp=(val)
     SpellRanks.load unless @@loaded
     @@timestamp = val
   end
+
   def SpellRanks.[](name)
     SpellRanks.load unless @@loaded
     @@list.find { |n| n.name == name }
   end
+
   def SpellRanks.list
     SpellRanks.load unless @@loaded
     @@list
   end
-  def SpellRanks.method_missing(arg=nil)
+
+  def SpellRanks.method_missing(arg = nil)
     echo "error: unknown method #{arg} for class SpellRanks"
     respond caller[0..1]
   end
+
   def initialize(name)
     SpellRanks.load unless @@loaded
     @name = name
@@ -7279,7 +8032,6 @@ class SpellRanks
     @@list.push(self)
   end
 end
-
 
 module Games
   module Unknown
@@ -7329,7 +8081,7 @@ module Games
                 $cmd_prefix = String.new if $_SERVERSTRING_ =~ /^\034GSw/
                 # The Rift, Scatter is broken...
                 if $_SERVERSTRING_ =~ /<compDef id='room text'><\/compDef>/
-                  $_SERVERSTRING_.sub!(/(.*)\s\s<compDef id='room text'><\/compDef>/)  { "<compDef id='room desc'>#{$1}</compDef>" }
+                  $_SERVERSTRING_.sub!(/(.*)\s\s<compDef id='room text'><\/compDef>/) { "<compDef id='room desc'>#{$1}</compDef>" }
                 end
                 if atmospherics
                   atmospherics = false
@@ -7370,7 +8122,7 @@ module Games
                   end
                   begin
                     REXML::Document.parse_stream($_SERVERSTRING_, XMLData)
-                    # XMLData.parse($_SERVERSTRING_)
+                  # XMLData.parse($_SERVERSTRING_)
                   rescue
                     unless $!.to_s =~ /invalid byte sequence/
                       if $_SERVERSTRING_ =~ /<[^>]+='[^=>'\\]+'[^=>']+'[\s>]/
@@ -7410,9 +8162,11 @@ module Games
         @@thread.priority = 4
         $_SERVER_ = @@socket # deprecated
       end
+
       def Game.thread
         @@thread
       end
+
       def Game.closed?
         if @@socket.nil?
           true
@@ -7420,17 +8174,20 @@ module Games
           @@socket.closed?
         end
       end
+
       def Game.close
         if @@socket
           @@socket.close rescue nil
           @@thread.kill rescue nil
         end
       end
+
       def Game._puts(str)
         @@mutex.synchronize {
           @@socket.puts(str)
         }
       end
+
       def Game.puts(str)
         $_SCRIPTIDLETIMESTAMP_ = Time.now
         if script = Script.current
@@ -7445,15 +8202,19 @@ module Games
         Game._puts "#{$cmd_prefix}#{str}"
         $_LASTUPSTREAM_ = "[#{script_name}]#{$SEND_CHARACTER}#{str}"
       end
+
       def Game.gets
         @@buffer.gets
       end
+
       def Game.buffer
         @@buffer
       end
+
       def Game._gets
         @@_buffer.gets
       end
+
       def Game._buffer
         @@_buffer
       end
@@ -7465,70 +8226,85 @@ module Games
       def Char.init(blah)
         echo 'Char.init is no longer used.  Update or fix your script.'
       end
+
       def Char.name
         XMLData.name
       end
+
       def Char.name=(name)
         nil
       end
+
       def Char.health(*args)
         health(*args)
       end
+
       def Char.mana(*args)
         checkmana(*args)
       end
+
       def Char.spirit(*args)
         checkspirit(*args)
       end
+
       def Char.maxhealth
         Object.module_eval { maxhealth }
       end
+
       def Char.maxmana
         Object.module_eval { maxmana }
       end
+
       def Char.maxspirit
         Object.module_eval { maxspirit }
       end
+
       def Char.stamina(*args)
         checkstamina(*args)
       end
+
       def Char.maxstamina
         Object.module_eval { maxstamina }
       end
-      def Char.cha(val=nil)
+
+      def Char.cha(val = nil)
         nil
       end
+
       def Char.dump_info
         Marshal.dump([
-          Spell.detailed?,
-          Spell.serialize,
-          Spellsong.serialize,
-          Stats.serialize,
-          Skills.serialize,
-          Spells.serialize,
-          Gift.serialize,
-          Society.serialize,
-        ])
+                       Spell.detailed?,
+                       Spell.serialize,
+                       Spellsong.serialize,
+                       Stats.serialize,
+                       Skills.serialize,
+                       Spells.serialize,
+                       Gift.serialize,
+                       Society.serialize,
+                     ])
       end
+
       def Char.load_info(string)
         save = Char.dump_info
         begin
           Spell.load_detailed,
-            Spell.load_active,
-            Spellsong.load_serialized,
-            Stats.load_serialized,
-            Skills.load_serialized,
-            Spells.load_serialized,
-            Gift.load_serialized,
-            Society.load_serialized = Marshal.load(string)
+          Spell.load_active,
+          Spellsong.load_serialized,
+          Stats.load_serialized,
+          Skills.load_serialized,
+          Spells.load_serialized,
+          Gift.load_serialized,
+          Society.load_serialized = Marshal.load(string)
         rescue
           raise $! if string == save
+
           string = save
           retry
         end
       end
+
       def Char.method_missing(meth, *args)
-        [ Stats, Skills, Spellsong, Society ].each { |klass|
+        [Stats, Skills, Spellsong, Society].each { |klass|
           begin
             result = klass.__send__(meth, *args)
             return result
@@ -7538,12 +8314,13 @@ module Games
         respond 'missing method: ' + meth
         raise NoMethodError
       end
+
       def Char.info
         ary = []
         ary.push sprintf("Name: %s  Race: %s  Profession: %s", XMLData.name, Stats.race, Stats.prof)
         ary.push sprintf("Gender: %s    Age: %d    Expr: %d    Level: %d", Stats.gender, Stats.age, Stats.exp, Stats.level)
         ary.push sprintf("%017.17s Normal (Bonus)  ...  Enhanced (Bonus)", "")
-        %w[ Strength Constitution Dexterity Agility Discipline Aura Logic Intuition Wisdom Influence ].each { |stat|
+        %w[Strength Constitution Dexterity Agility Discipline Aura Logic Intuition Wisdom Influence].each { |stat|
           val, bon = Stats.send(stat[0..2].downcase)
           enh_val, enh_bon = Stats.send("enhanced_#{stat[0..2].downcase}")
           spc = " " * (4 - bon.to_s.length)
@@ -7552,12 +8329,13 @@ module Games
         ary.push sprintf("Mana: %04s", mana)
         ary
       end
+
       def Char.skills
         ary = []
         ary.push sprintf("%s (at level %d), your current skill bonuses and ranks (including all modifiers) are:", XMLData.name, Stats.level)
         ary.push sprintf("  %-035s| Current Current", 'Skill Name')
         ary.push sprintf("  %-035s|%08s%08s", '', 'Bonus', 'Ranks')
-        fmt = [ [ 'Two Weapon Combat', 'Armor Use', 'Shield Use', 'Combat Maneuvers', 'Edged Weapons', 'Blunt Weapons', 'Two-Handed Weapons', 'Ranged Weapons', 'Thrown Weapons', 'Polearm Weapons', 'Brawling', 'Ambush', 'Multi Opponent Combat', 'Combat Leadership', 'Physical Fitness', 'Dodging', 'Arcane Symbols', 'Magic Item Use', 'Spell Aiming', 'Harness Power', 'Elemental Mana Control', 'Mental Mana Control', 'Spirit Mana Control', 'Elemental Lore - Air', 'Elemental Lore - Earth', 'Elemental Lore - Fire', 'Elemental Lore - Water', 'Spiritual Lore - Blessings', 'Spiritual Lore - Religion', 'Spiritual Lore - Summoning', 'Sorcerous Lore - Demonology', 'Sorcerous Lore - Necromancy', 'Mental Lore - Divination', 'Mental Lore - Manipulation', 'Mental Lore - Telepathy', 'Mental Lore - Transference', 'Mental Lore - Transformation', 'Survival', 'Disarming Traps', 'Picking Locks', 'Stalking and Hiding', 'Perception', 'Climbing', 'Swimming', 'First Aid', 'Trading', 'Pickpocketing' ], [ 'twoweaponcombat', 'armoruse', 'shielduse', 'combatmaneuvers', 'edgedweapons', 'bluntweapons', 'twohandedweapons', 'rangedweapons', 'thrownweapons', 'polearmweapons', 'brawling', 'ambush', 'multiopponentcombat', 'combatleadership', 'physicalfitness', 'dodging', 'arcanesymbols', 'magicitemuse', 'spellaiming', 'harnesspower', 'emc', 'mmc', 'smc', 'elair', 'elearth', 'elfire', 'elwater', 'slblessings', 'slreligion', 'slsummoning', 'sldemonology', 'slnecromancy', 'mldivination', 'mlmanipulation', 'mltelepathy', 'mltransference', 'mltransformation', 'survival', 'disarmingtraps', 'pickinglocks', 'stalkingandhiding', 'perception', 'climbing', 'swimming', 'firstaid', 'trading', 'pickpocketing' ] ]
+        fmt = [['Two Weapon Combat', 'Armor Use', 'Shield Use', 'Combat Maneuvers', 'Edged Weapons', 'Blunt Weapons', 'Two-Handed Weapons', 'Ranged Weapons', 'Thrown Weapons', 'Polearm Weapons', 'Brawling', 'Ambush', 'Multi Opponent Combat', 'Combat Leadership', 'Physical Fitness', 'Dodging', 'Arcane Symbols', 'Magic Item Use', 'Spell Aiming', 'Harness Power', 'Elemental Mana Control', 'Mental Mana Control', 'Spirit Mana Control', 'Elemental Lore - Air', 'Elemental Lore - Earth', 'Elemental Lore - Fire', 'Elemental Lore - Water', 'Spiritual Lore - Blessings', 'Spiritual Lore - Religion', 'Spiritual Lore - Summoning', 'Sorcerous Lore - Demonology', 'Sorcerous Lore - Necromancy', 'Mental Lore - Divination', 'Mental Lore - Manipulation', 'Mental Lore - Telepathy', 'Mental Lore - Transference', 'Mental Lore - Transformation', 'Survival', 'Disarming Traps', 'Picking Locks', 'Stalking and Hiding', 'Perception', 'Climbing', 'Swimming', 'First Aid', 'Trading', 'Pickpocketing'], ['twoweaponcombat', 'armoruse', 'shielduse', 'combatmaneuvers', 'edgedweapons', 'bluntweapons', 'twohandedweapons', 'rangedweapons', 'thrownweapons', 'polearmweapons', 'brawling', 'ambush', 'multiopponentcombat', 'combatleadership', 'physicalfitness', 'dodging', 'arcanesymbols', 'magicitemuse', 'spellaiming', 'harnesspower', 'emc', 'mmc', 'smc', 'elair', 'elearth', 'elfire', 'elwater', 'slblessings', 'slreligion', 'slsummoning', 'sldemonology', 'slnecromancy', 'mldivination', 'mlmanipulation', 'mltelepathy', 'mltransference', 'mltransformation', 'survival', 'disarmingtraps', 'pickinglocks', 'stalkingandhiding', 'perception', 'climbing', 'swimming', 'firstaid', 'trading', 'pickpocketing']]
         0.upto(fmt.first.length - 1) { |n|
           dots = '.' * (35 - fmt[0][n].length)
           rnk = Skills.send(fmt[1][n])
@@ -7574,9 +8352,11 @@ module Games
         }
         ary
       end
+
       def Char.citizenship
         @@citizenship
       end
+
       def Char.citizenship=(val)
         @@citizenship = val.to_s
       end
@@ -7586,17 +8366,21 @@ module Games
       @@status ||= String.new
       @@rank ||= 0
       def Society.serialize
-        [@@status,@@rank]
+        [@@status, @@rank]
       end
+
       def Society.load_serialized=(val)
-        @@status,@@rank = val
+        @@status, @@rank = val
       end
+
       def Society.status=(val)
         @@status = val
       end
+
       def Society.status
         @@status.dup
       end
+
       def Society.rank=(val)
         if val =~ /Master/
           if @@status =~ /Voln/
@@ -7610,15 +8394,19 @@ module Games
           @@rank = val.slice(/[0-9]+/).to_i
         end
       end
+
       def Society.step
         @@rank
       end
+
       def Society.member
         @@status.dup
       end
+
       def Society.rank
         @@rank
       end
+
       def Society.task
         XMLData.society_task
       end
@@ -7629,18 +8417,23 @@ module Games
       def Spellsong.renewed
         @@renewed = Time.now
       end
+
       def Spellsong.renewed=(val)
         @@renewed = val
       end
+
       def Spellsong.renewed_at
         @@renewed
       end
+
       def Spellsong.timeleft
         (Spellsong.duration - ((Time.now - @@renewed) % Spellsong.duration)) / 60.to_f
       end
+
       def Spellsong.serialize
         Spellsong.timeleft
       end
+
       def Spellsong.load_serialized=(old)
         Thread.new {
           n = 0
@@ -7657,6 +8450,7 @@ module Games
         }
         nil
       end
+
       def Spellsong.duration
         total = 120
         1.upto(Stats.level.to_i) { |n|
@@ -7672,10 +8466,11 @@ module Games
         }
         total + Stats.log[1].to_i + (Stats.inf[1].to_i * 3) + (Skills.mltelepathy.to_i * 2)
       end
+
       def Spellsong.renew_cost
         # fixme: multi-spell penalty?
         total = num_active = 0
-        [ 1003, 1006, 1009, 1010, 1012, 1014, 1018, 1019, 1025 ].each { |song_num|
+        [1003, 1006, 1009, 1010, 1012, 1014, 1018, 1019, 1025].each { |song_num|
           if song = Spell[song_num]
             if song.active?
               total += song.renew_cost
@@ -7687,33 +8482,41 @@ module Games
         }
         return total
       end
+
       def Spellsong.sonicarmordurability
         210 + (Stats.level / 2).round + Skills.to_bonus(Skills.elair)
       end
+
       def Spellsong.sonicbladedurability
         160 + (Stats.level / 2).round + Skills.to_bonus(Skills.elair)
       end
+
       def Spellsong.sonicweapondurability
         Spellsong.sonicbladedurability
       end
+
       def Spellsong.sonicshielddurability
         125 + (Stats.level / 2).round + Skills.to_bonus(Skills.elair)
       end
+
       def Spellsong.tonishastebonus
         bonus = -1
-        thresholds = [30,75]
+        thresholds = [30, 75]
         thresholds.each { |val| if Skills.elair >= val then bonus -= 1 end }
         bonus
       end
+
       def Spellsong.depressionpushdown
         20 + Skills.mltelepathy
       end
+
       def Spellsong.depressionslow
-        thresholds = [10,25,45,70,100]
+        thresholds = [10, 25, 45, 70, 100]
         bonus = -2
         thresholds.each { |val| if Skills.mltelepathy >= val then bonus -= 1 end }
         bonus
       end
+
       def Spellsong.holdingtargets
         1 + ((Spells.bard - 1) / 7).truncate
       end
@@ -7768,107 +8571,202 @@ module Games
       @@trading ||= 0
       @@pickpocketing ||= 0
 
-      def Skills.twoweaponcombat;           @@twoweaponcombat;         end
-      def Skills.twoweaponcombat=(val);     @@twoweaponcombat=val;     end
-      def Skills.armoruse;                  @@armoruse;                end
-      def Skills.armoruse=(val);            @@armoruse=val;            end
-      def Skills.shielduse;                 @@shielduse;               end
-      def Skills.shielduse=(val);           @@shielduse=val;           end
-      def Skills.combatmaneuvers;           @@combatmaneuvers;         end
-      def Skills.combatmaneuvers=(val);     @@combatmaneuvers=val;     end
-      def Skills.edgedweapons;              @@edgedweapons;            end
-      def Skills.edgedweapons=(val);        @@edgedweapons=val;        end
-      def Skills.bluntweapons;              @@bluntweapons;            end
-      def Skills.bluntweapons=(val);        @@bluntweapons=val;        end
-      def Skills.twohandedweapons;          @@twohandedweapons;        end
-      def Skills.twohandedweapons=(val);    @@twohandedweapons=val;    end
-      def Skills.rangedweapons;             @@rangedweapons;           end
-      def Skills.rangedweapons=(val);       @@rangedweapons=val;       end
-      def Skills.thrownweapons;             @@thrownweapons;           end
-      def Skills.thrownweapons=(val);       @@thrownweapons=val;       end
-      def Skills.polearmweapons;            @@polearmweapons;          end
-      def Skills.polearmweapons=(val);      @@polearmweapons=val;      end
-      def Skills.brawling;                  @@brawling;                end
-      def Skills.brawling=(val);            @@brawling=val;            end
-      def Skills.ambush;                    @@ambush;                  end
-      def Skills.ambush=(val);              @@ambush=val;              end
-      def Skills.multiopponentcombat;       @@multiopponentcombat;     end
-      def Skills.multiopponentcombat=(val); @@multiopponentcombat=val; end
-      def Skills.combatleadership;          @@combatleadership;        end
-      def Skills.combatleadership=(val);    @@combatleadership=val;    end
-      def Skills.physicalfitness;           @@physicalfitness;         end
-      def Skills.physicalfitness=(val);     @@physicalfitness=val;     end
-      def Skills.dodging;                   @@dodging;                 end
-      def Skills.dodging=(val);             @@dodging=val;             end
-      def Skills.arcanesymbols;             @@arcanesymbols;           end
-      def Skills.arcanesymbols=(val);       @@arcanesymbols=val;       end
-      def Skills.magicitemuse;              @@magicitemuse;            end
-      def Skills.magicitemuse=(val);        @@magicitemuse=val;        end
-      def Skills.spellaiming;               @@spellaiming;             end
-      def Skills.spellaiming=(val);         @@spellaiming=val;         end
-      def Skills.harnesspower;              @@harnesspower;            end
-      def Skills.harnesspower=(val);        @@harnesspower=val;        end
-      def Skills.emc;                       @@emc;                     end
-      def Skills.emc=(val);                 @@emc=val;                 end
-      def Skills.mmc;                       @@mmc;                     end
-      def Skills.mmc=(val);                 @@mmc=val;                 end
-      def Skills.smc;                       @@smc;                     end
-      def Skills.smc=(val);                 @@smc=val;                 end
-      def Skills.elair;                     @@elair;                   end
-      def Skills.elair=(val);               @@elair=val;               end
-      def Skills.elearth;                   @@elearth;                 end
-      def Skills.elearth=(val);             @@elearth=val;             end
-      def Skills.elfire;                    @@elfire;                  end
-      def Skills.elfire=(val);              @@elfire=val;              end
-      def Skills.elwater;                   @@elwater;                 end
-      def Skills.elwater=(val);             @@elwater=val;             end
-      def Skills.slblessings;               @@slblessings;             end
-      def Skills.slblessings=(val);         @@slblessings=val;         end
-      def Skills.slreligion;                @@slreligion;              end
-      def Skills.slreligion=(val);          @@slreligion=val;          end
-      def Skills.slsummoning;               @@slsummoning;             end
-      def Skills.slsummoning=(val);         @@slsummoning=val;         end
-      def Skills.sldemonology;              @@sldemonology;            end
-      def Skills.sldemonology=(val);        @@sldemonology=val;        end
-      def Skills.slnecromancy;              @@slnecromancy;            end
-      def Skills.slnecromancy=(val);        @@slnecromancy=val;        end
-      def Skills.mldivination;              @@mldivination;            end
-      def Skills.mldivination=(val);        @@mldivination=val;        end
-      def Skills.mlmanipulation;            @@mlmanipulation;          end
-      def Skills.mlmanipulation=(val);      @@mlmanipulation=val;      end
-      def Skills.mltelepathy;               @@mltelepathy;             end
-      def Skills.mltelepathy=(val);         @@mltelepathy=val;         end
-      def Skills.mltransference;            @@mltransference;          end
-      def Skills.mltransference=(val);      @@mltransference=val;      end
-      def Skills.mltransformation;          @@mltransformation;        end
-      def Skills.mltransformation=(val);    @@mltransformation=val;    end
-      def Skills.survival;                  @@survival;                end
-      def Skills.survival=(val);            @@survival=val;            end
-      def Skills.disarmingtraps;            @@disarmingtraps;          end
-      def Skills.disarmingtraps=(val);      @@disarmingtraps=val;      end
-      def Skills.pickinglocks;              @@pickinglocks;            end
-      def Skills.pickinglocks=(val);        @@pickinglocks=val;        end
-      def Skills.stalkingandhiding;         @@stalkingandhiding;       end
-      def Skills.stalkingandhiding=(val);   @@stalkingandhiding=val;   end
-      def Skills.perception;                @@perception;              end
-      def Skills.perception=(val);          @@perception=val;          end
-      def Skills.climbing;                  @@climbing;                end
-      def Skills.climbing=(val);            @@climbing=val;            end
-      def Skills.swimming;                  @@swimming;                end
-      def Skills.swimming=(val);            @@swimming=val;            end
-      def Skills.firstaid;                  @@firstaid;                end
-      def Skills.firstaid=(val);            @@firstaid=val;            end
-      def Skills.trading;                   @@trading;                 end
-      def Skills.trading=(val);             @@trading=val;             end
-      def Skills.pickpocketing;             @@pickpocketing;           end
-      def Skills.pickpocketing=(val);       @@pickpocketing=val;       end
+      def Skills.twoweaponcombat;           @@twoweaponcombat; end
+
+      def Skills.twoweaponcombat=(val);     @@twoweaponcombat = val; end
+
+      def Skills.armoruse;                  @@armoruse; end
+
+      def Skills.armoruse=(val);            @@armoruse = val; end
+
+      def Skills.shielduse;                 @@shielduse; end
+
+      def Skills.shielduse=(val);           @@shielduse = val; end
+
+      def Skills.combatmaneuvers;           @@combatmaneuvers; end
+
+      def Skills.combatmaneuvers=(val);     @@combatmaneuvers = val; end
+
+      def Skills.edgedweapons;              @@edgedweapons; end
+
+      def Skills.edgedweapons=(val);        @@edgedweapons = val; end
+
+      def Skills.bluntweapons;              @@bluntweapons; end
+
+      def Skills.bluntweapons=(val);        @@bluntweapons = val; end
+
+      def Skills.twohandedweapons;          @@twohandedweapons; end
+
+      def Skills.twohandedweapons=(val);    @@twohandedweapons = val; end
+
+      def Skills.rangedweapons;             @@rangedweapons; end
+
+      def Skills.rangedweapons=(val);       @@rangedweapons = val; end
+
+      def Skills.thrownweapons;             @@thrownweapons; end
+
+      def Skills.thrownweapons=(val);       @@thrownweapons = val; end
+
+      def Skills.polearmweapons;            @@polearmweapons; end
+
+      def Skills.polearmweapons=(val);      @@polearmweapons = val; end
+
+      def Skills.brawling;                  @@brawling; end
+
+      def Skills.brawling=(val);            @@brawling = val; end
+
+      def Skills.ambush;                    @@ambush; end
+
+      def Skills.ambush=(val);              @@ambush = val; end
+
+      def Skills.multiopponentcombat;       @@multiopponentcombat; end
+
+      def Skills.multiopponentcombat=(val); @@multiopponentcombat = val; end
+
+      def Skills.combatleadership;          @@combatleadership; end
+
+      def Skills.combatleadership=(val);    @@combatleadership = val; end
+
+      def Skills.physicalfitness;           @@physicalfitness; end
+
+      def Skills.physicalfitness=(val);     @@physicalfitness = val; end
+
+      def Skills.dodging;                   @@dodging; end
+
+      def Skills.dodging=(val);             @@dodging = val; end
+
+      def Skills.arcanesymbols;             @@arcanesymbols; end
+
+      def Skills.arcanesymbols=(val);       @@arcanesymbols = val; end
+
+      def Skills.magicitemuse;              @@magicitemuse; end
+
+      def Skills.magicitemuse=(val);        @@magicitemuse = val; end
+
+      def Skills.spellaiming;               @@spellaiming; end
+
+      def Skills.spellaiming=(val);         @@spellaiming = val; end
+
+      def Skills.harnesspower;              @@harnesspower; end
+
+      def Skills.harnesspower=(val);        @@harnesspower = val; end
+
+      def Skills.emc;                       @@emc; end
+
+      def Skills.emc=(val);                 @@emc = val; end
+
+      def Skills.mmc;                       @@mmc; end
+
+      def Skills.mmc=(val);                 @@mmc = val; end
+
+      def Skills.smc;                       @@smc; end
+
+      def Skills.smc=(val);                 @@smc = val; end
+
+      def Skills.elair;                     @@elair; end
+
+      def Skills.elair=(val);               @@elair = val; end
+
+      def Skills.elearth;                   @@elearth; end
+
+      def Skills.elearth=(val);             @@elearth = val; end
+
+      def Skills.elfire;                    @@elfire; end
+
+      def Skills.elfire=(val);              @@elfire = val; end
+
+      def Skills.elwater;                   @@elwater; end
+
+      def Skills.elwater=(val);             @@elwater = val; end
+
+      def Skills.slblessings;               @@slblessings; end
+
+      def Skills.slblessings=(val);         @@slblessings = val; end
+
+      def Skills.slreligion;                @@slreligion; end
+
+      def Skills.slreligion=(val);          @@slreligion = val; end
+
+      def Skills.slsummoning;               @@slsummoning; end
+
+      def Skills.slsummoning=(val);         @@slsummoning = val; end
+
+      def Skills.sldemonology;              @@sldemonology; end
+
+      def Skills.sldemonology=(val);        @@sldemonology = val; end
+
+      def Skills.slnecromancy;              @@slnecromancy; end
+
+      def Skills.slnecromancy=(val);        @@slnecromancy = val; end
+
+      def Skills.mldivination;              @@mldivination; end
+
+      def Skills.mldivination=(val);        @@mldivination = val; end
+
+      def Skills.mlmanipulation;            @@mlmanipulation; end
+
+      def Skills.mlmanipulation=(val);      @@mlmanipulation = val; end
+
+      def Skills.mltelepathy;               @@mltelepathy; end
+
+      def Skills.mltelepathy=(val);         @@mltelepathy = val; end
+
+      def Skills.mltransference;            @@mltransference; end
+
+      def Skills.mltransference=(val);      @@mltransference = val; end
+
+      def Skills.mltransformation;          @@mltransformation; end
+
+      def Skills.mltransformation=(val);    @@mltransformation = val; end
+
+      def Skills.survival;                  @@survival; end
+
+      def Skills.survival=(val);            @@survival = val; end
+
+      def Skills.disarmingtraps;            @@disarmingtraps; end
+
+      def Skills.disarmingtraps=(val);      @@disarmingtraps = val; end
+
+      def Skills.pickinglocks;              @@pickinglocks; end
+
+      def Skills.pickinglocks=(val);        @@pickinglocks = val; end
+
+      def Skills.stalkingandhiding;         @@stalkingandhiding; end
+
+      def Skills.stalkingandhiding=(val);   @@stalkingandhiding = val; end
+
+      def Skills.perception;                @@perception; end
+
+      def Skills.perception=(val);          @@perception = val; end
+
+      def Skills.climbing;                  @@climbing; end
+
+      def Skills.climbing=(val);            @@climbing = val; end
+
+      def Skills.swimming;                  @@swimming; end
+
+      def Skills.swimming=(val);            @@swimming = val; end
+
+      def Skills.firstaid;                  @@firstaid; end
+
+      def Skills.firstaid=(val);            @@firstaid = val; end
+
+      def Skills.trading;                   @@trading; end
+
+      def Skills.trading=(val);             @@trading = val; end
+
+      def Skills.pickpocketing;             @@pickpocketing; end
+
+      def Skills.pickpocketing=(val);       @@pickpocketing = val; end
 
       def Skills.serialize
         [@@twoweaponcombat, @@armoruse, @@shielduse, @@combatmaneuvers, @@edgedweapons, @@bluntweapons, @@twohandedweapons, @@rangedweapons, @@thrownweapons, @@polearmweapons, @@brawling, @@ambush, @@multiopponentcombat, @@combatleadership, @@physicalfitness, @@dodging, @@arcanesymbols, @@magicitemuse, @@spellaiming, @@harnesspower, @@emc, @@mmc, @@smc, @@elair, @@elearth, @@elfire, @@elwater, @@slblessings, @@slreligion, @@slsummoning, @@sldemonology, @@slnecromancy, @@mldivination, @@mlmanipulation, @@mltelepathy, @@mltransference, @@mltransformation, @@survival, @@disarmingtraps, @@pickinglocks, @@stalkingandhiding, @@perception, @@climbing, @@swimming, @@firstaid, @@trading, @@pickpocketing]
       end
+
       def Skills.load_serialized=(array)
         @@twoweaponcombat, @@armoruse, @@shielduse, @@combatmaneuvers, @@edgedweapons, @@bluntweapons, @@twohandedweapons, @@rangedweapons, @@thrownweapons, @@polearmweapons, @@brawling, @@ambush, @@multiopponentcombat, @@combatleadership, @@physicalfitness, @@dodging, @@arcanesymbols, @@magicitemuse, @@spellaiming, @@harnesspower, @@emc, @@mmc, @@smc, @@elair, @@elearth, @@elfire, @@elwater, @@slblessings, @@slreligion, @@slsummoning, @@sldemonology, @@slnecromancy, @@mldivination, @@mlmanipulation, @@mltelepathy, @@mltransference, @@mltransformation, @@survival, @@disarmingtraps, @@pickinglocks, @@stalkingandhiding, @@perception, @@climbing, @@swimming, @@firstaid, @@trading, @@pickpocketing = array
       end
+
       def Skills.to_bonus(ranks)
         bonus = 0
         while ranks > 0
@@ -7907,33 +8805,61 @@ module Games
       @@cleric         ||= 0
       @@bard           ||= 0
       def Spells.minorelemental=(val); @@minorelemental = val; end
+
       def Spells.minorelemental;       @@minorelemental;       end
+
       def Spells.minormental=(val);    @@minormental = val;    end
+
       def Spells.minormental;          @@minormental;          end
+
       def Spells.majorelemental=(val); @@majorelemental = val; end
+
       def Spells.majorelemental;       @@majorelemental;       end
+
       def Spells.minorspiritual=(val); @@minorspiritual = val; end
+
       def Spells.minorspiritual;       @@minorspiritual;       end
+
       def Spells.minorspirit=(val);    @@minorspiritual = val; end
+
       def Spells.minorspirit;          @@minorspiritual;       end
+
       def Spells.majorspiritual=(val); @@majorspiritual = val; end
+
       def Spells.majorspiritual;       @@majorspiritual;       end
+
       def Spells.majorspirit=(val);    @@majorspiritual = val; end
+
       def Spells.majorspirit;          @@majorspiritual;       end
+
       def Spells.wizard=(val);         @@wizard = val;         end
+
       def Spells.wizard;               @@wizard;               end
+
       def Spells.sorcerer=(val);       @@sorcerer = val;       end
+
       def Spells.sorcerer;             @@sorcerer;             end
+
       def Spells.ranger=(val);         @@ranger = val;         end
+
       def Spells.ranger;               @@ranger;               end
+
       def Spells.paladin=(val);        @@paladin = val;        end
+
       def Spells.paladin;              @@paladin;              end
+
       def Spells.empath=(val);         @@empath = val;         end
+
       def Spells.empath;               @@empath;               end
+
       def Spells.cleric=(val);         @@cleric = val;         end
+
       def Spells.cleric;               @@cleric;               end
+
       def Spells.bard=(val);           @@bard = val;           end
+
       def Spells.bard;                 @@bard;                 end
+
       def Spells.get_circle_name(num)
         val = num.to_s
         if val == '1'
@@ -7982,19 +8908,23 @@ module Games
           'Unknown Circle'
         end
       end
+
       def Spells.active
         Spell.active
       end
+
       def Spells.known
         known_spells = Array.new
         Spell.list.each { |spell| known_spells.push(spell) if spell.known? }
         return known_spells
       end
+
       def Spells.serialize
-        [@@minorelemental,@@majorelemental,@@minorspiritual,@@majorspiritual,@@wizard,@@sorcerer,@@ranger,@@paladin,@@empath,@@cleric,@@bard,@@minormental]
+        [@@minorelemental, @@majorelemental, @@minorspiritual, @@majorspiritual, @@wizard, @@sorcerer, @@ranger, @@paladin, @@empath, @@cleric, @@bard, @@minormental]
       end
+
       def Spells.load_serialized=(val)
-        @@minorelemental,@@majorelemental,@@minorspiritual,@@majorspiritual,@@wizard,@@sorcerer,@@ranger,@@paladin,@@empath,@@cleric,@@bard,@@minormental = val
+        @@minorelemental, @@majorelemental, @@minorspiritual, @@majorspiritual, @@wizard, @@sorcerer, @@ranger, @@paladin, @@empath, @@cleric, @@bard, @@minormental = val
         # new spell circle added 2012-07-18; old data files will make @@minormental nil
         @@minormental ||= 0
       end
@@ -8011,6 +8941,7 @@ module Games
       @@after_stance = nil
       attr_reader :num, :name, :timestamp, :msgup, :msgdn, :circle, :active, :type, :cast_proc, :real_time, :persist_on_death, :availability, :no_incant
       attr_accessor :stance, :channel
+
       def initialize(xml_spell)
         @num = xml_spell.attributes['number'].to_i
         @name = xml_spell.attributes['name']
@@ -8084,10 +9015,12 @@ module Games
         @@list.push(self) unless @@list.find { |spell| spell.num == @num }
         self
       end
+
       def Spell.after_stance=(val)
         @@after_stance = val
       end
-      def Spell.load(filename=nil)
+
+      def Spell.load(filename = nil)
         if $SAFE == 0
           if filename.nil?
             if File.exists?("#{DATA_DIR}/spell-list.xml")
@@ -8101,6 +9034,7 @@ module Games
           script = Script.current
           @@load_mutex.synchronize {
             return true if @loaded
+
             begin
               spell_times = Hash.new
               # reloading spell data should not reset spell tracking...
@@ -8136,6 +9070,7 @@ module Games
           @@elevated_load.call
         end
       end
+
       def Spell.[](val)
         Spell.load unless @@loaded
         if val.class == Spell
@@ -8147,32 +9082,38 @@ module Games
           (@@list.find { |s| s.name =~ /^#{val}$/i } || @@list.find { |s| s.name =~ /^#{val}/i } || @@list.find { |s| s.msgup =~ /#{val}/i or s.msgdn =~ /#{val}/i })
         end
       end
+
       def Spell.active
         Spell.load unless @@loaded
         active = Array.new
         @@list.each { |spell| active.push(spell) if spell.active? }
         active
       end
+
       def Spell.active?(val)
         Spell.load unless @@loaded
         Spell[val].active?
       end
+
       def Spell.list
         Spell.load unless @@loaded
         @@list
       end
+
       def Spell.upmsgs
         Spell.load unless @@loaded
         @@list.collect { |spell| spell.msgup }.compact
       end
+
       def Spell.dnmsgs
         Spell.load unless @@loaded
         @@list.collect { |spell| spell.msgdn }.compact
       end
-      def time_per_formula(options={})
+
+      def time_per_formula(options = {})
         activator_modifier = { 'tap' => 0.5, 'rub' => 1, 'wave' => 1, 'raise' => 1.33, 'drink' => 0, 'bite' => 0, 'eat' => 0, 'gobble' => 0 }
         can_haz_spell_ranks = /Spells\.(?:minorelemental|majorelemental|minorspiritual|majorspiritual|wizard|sorcerer|ranger|paladin|empath|cleric|bard|minormental)/
-        skills = [ 'Spells.minorelemental', 'Spells.majorelemental', 'Spells.minorspiritual', 'Spells.majorspiritual', 'Spells.wizard', 'Spells.sorcerer', 'Spells.ranger', 'Spells.paladin', 'Spells.empath', 'Spells.cleric', 'Spells.bard', 'Spells.minormental', 'Skills.magicitemuse', 'Skills.arcanesymbols' ]
+        skills = ['Spells.minorelemental', 'Spells.majorelemental', 'Spells.minorspiritual', 'Spells.majorspiritual', 'Spells.wizard', 'Spells.sorcerer', 'Spells.ranger', 'Spells.paladin', 'Spells.empath', 'Spells.cleric', 'Spells.bard', 'Spells.minormental', 'Skills.magicitemuse', 'Skills.arcanesymbols']
         if options[:caster] and (options[:caster] !~ /^(?:self|#{XMLData.name})$/i)
           if options[:target] and (options[:target].downcase == options[:caster].downcase)
             formula = @duration['self'][:duration].to_s.dup
@@ -8180,12 +9121,12 @@ module Games
             formula = @duration['target'][:duration].dup || @duration['self'][:duration].to_s.dup
           end
           if options[:activator] =~ /^(#{activator_modifier.keys.join('|')})$/i
-              if formula =~ can_haz_spell_ranks
-                skills.each { |skill_name| formula.gsub!(skill_name, "(SpellRanks['#{options[:caster]}'].magicitemuse * #{activator_modifier[options[:activator]]}).to_i") }
-                formula = "(#{formula})/2.0"
-          elsif formula =~ /Skills\.(?:magicitemuse|arcanesymbols)/
-            skills.each { |skill_name| formula.gsub!(skill_name, "(SpellRanks['#{options[:caster]}'].magicitemuse * #{activator_modifier[options[:activator]]}).to_i") }
-          end
+            if formula =~ can_haz_spell_ranks
+              skills.each { |skill_name| formula.gsub!(skill_name, "(SpellRanks['#{options[:caster]}'].magicitemuse * #{activator_modifier[options[:activator]]}).to_i") }
+              formula = "(#{formula})/2.0"
+            elsif formula =~ /Skills\.(?:magicitemuse|arcanesymbols)/
+              skills.each { |skill_name| formula.gsub!(skill_name, "(SpellRanks['#{options[:caster]}'].magicitemuse * #{activator_modifier[options[:activator]]}).to_i") }
+            end
           elsif options[:activator] =~ /^(invoke|scroll)$/i
             if formula =~ can_haz_spell_ranks
               skills.each { |skill_name| formula.gsub!(skill_name, "SpellRanks['#{options[:caster]}'].arcanesymbols.to_i") }
@@ -8203,12 +9144,12 @@ module Games
             formula = @duration['self'][:duration].to_s.dup
           end
           if options[:activator] =~ /^(#{activator_modifier.keys.join('|')})$/i
-              if formula =~ can_haz_spell_ranks
-                skills.each { |skill_name| formula.gsub!(skill_name, "(Skills.magicitemuse * #{activator_modifier[options[:activator]]}).to_i") }
-                formula = "(#{formula})/2.0"
-          elsif formula =~ /Skills\.(?:magicitemuse|arcanesymbols)/
-            skills.each { |skill_name| formula.gsub!(skill_name, "(Skills.magicitemuse * #{activator_modifier[options[:activator]]}).to_i") }
-          end
+            if formula =~ can_haz_spell_ranks
+              skills.each { |skill_name| formula.gsub!(skill_name, "(Skills.magicitemuse * #{activator_modifier[options[:activator]]}).to_i") }
+              formula = "(#{formula})/2.0"
+            elsif formula =~ /Skills\.(?:magicitemuse|arcanesymbols)/
+              skills.each { |skill_name| formula.gsub!(skill_name, "(Skills.magicitemuse * #{activator_modifier[options[:activator]]}).to_i") }
+            end
           elsif options[:activator] =~ /^(invoke|scroll)$/i
             if formula =~ can_haz_spell_ranks
               skills.each { |skill_name| formula.gsub!(skill_name, "Skills.arcanesymbols.to_i") }
@@ -8221,17 +9162,20 @@ module Games
         formula.untaint
         formula
       end
-      def time_per(options={})
+
+      def time_per(options = {})
         formula = self.time_per_formula(options)
         if options[:line]
           line = options[:line]
         end
         proc { begin; $SAFE = 3; rescue; nil; end; eval(formula) }.call.to_f
       end
+
       def timeleft=(val)
         @timeleft = val
         @timestamp = Time.now
       end
+
       def timeleft
         if self.time_per_formula.to_s == 'Spellsong.timeleft'
           @timeleft = Spellsong.timeleft
@@ -8245,19 +9189,24 @@ module Games
         @timestamp = Time.now
         @timeleft
       end
+
       def minsleft
         self.timeleft
       end
+
       def secsleft
         self.timeleft * 60
       end
+
       def active=(val)
         @active = val
       end
+
       def active?
         (self.timeleft > 0) and @active
       end
-      def stackable?(options={})
+
+      def stackable?(options = {})
         if options[:caster] and (options[:caster] !~ /^(?:self|#{XMLData.name})$/i)
           if options[:target] and (options[:target].downcase == options[:caster].downcase)
             @duration['self'][:stackable]
@@ -8280,7 +9229,8 @@ module Games
           end
         end
       end
-      def refreshable?(options={})
+
+      def refreshable?(options = {})
         if options[:caster] and (options[:caster] !~ /^(?:self|#{XMLData.name})$/i)
           if options[:target] and (options[:target].downcase == options[:caster].downcase)
             @duration['self'][:refreshable]
@@ -8303,7 +9253,8 @@ module Games
           end
         end
       end
-      def multicastable?(options={})
+
+      def multicastable?(options = {})
         if options[:caster] and (options[:caster] !~ /^(?:self|#{XMLData.name})$/i)
           if options[:target] and (options[:target].downcase == options[:caster].downcase)
             @duration['self'][:multicastable]
@@ -8326,6 +9277,7 @@ module Games
           end
         end
       end
+
       def known?
         if @num.to_s.length == 3
           circle_num = @num.to_s[0..0].to_i
@@ -8335,29 +9287,29 @@ module Games
           return false
         end
         if circle_num == 1
-          ranks = [ Spells.minorspiritual, XMLData.level ].min
+          ranks = [Spells.minorspiritual, XMLData.level].min
         elsif circle_num == 2
-          ranks = [ Spells.majorspiritual, XMLData.level ].min
+          ranks = [Spells.majorspiritual, XMLData.level].min
         elsif circle_num == 3
-          ranks = [ Spells.cleric, XMLData.level ].min
+          ranks = [Spells.cleric, XMLData.level].min
         elsif circle_num == 4
-          ranks = [ Spells.minorelemental, XMLData.level ].min
+          ranks = [Spells.minorelemental, XMLData.level].min
         elsif circle_num == 5
-          ranks = [ Spells.majorelemental, XMLData.level ].min
+          ranks = [Spells.majorelemental, XMLData.level].min
         elsif circle_num == 6
-          ranks = [ Spells.ranger, XMLData.level ].min
+          ranks = [Spells.ranger, XMLData.level].min
         elsif circle_num == 7
-          ranks = [ Spells.sorcerer, XMLData.level ].min
+          ranks = [Spells.sorcerer, XMLData.level].min
         elsif circle_num == 9
-          ranks = [ Spells.wizard, XMLData.level ].min
+          ranks = [Spells.wizard, XMLData.level].min
         elsif circle_num == 10
-          ranks = [ Spells.bard, XMLData.level ].min
+          ranks = [Spells.bard, XMLData.level].min
         elsif circle_num == 11
-          ranks = [ Spells.empath, XMLData.level ].min
+          ranks = [Spells.empath, XMLData.level].min
         elsif circle_num == 12
-          ranks = [ Spells.minormental, XMLData.level ].min
+          ranks = [Spells.minormental, XMLData.level].min
         elsif circle_num == 16
-          ranks = [ Spells.paladin, XMLData.level ].min
+          ranks = [Spells.paladin, XMLData.level].min
         elsif circle_num == 17
           if (@num == 1700) and (Char.prof =~ /^(?:Wizard|Cleric|Empath|Sorcerer|Savant)$/)
             return true
@@ -8385,7 +9337,8 @@ module Games
           return false
         end
       end
-      def available?(options={})
+
+      def available?(options = {})
         if self.known?
           if options[:caster] and (options[:caster] !~ /^(?:self|#{XMLData.name})$/i)
             if options[:target] and (options[:target].downcase == options[:caster].downcase)
@@ -8404,16 +9357,20 @@ module Games
           false
         end
       end
+
       def incant?
         !@no_incant
       end
+
       def incant=(val)
         @no_incant = !val
       end
+
       def to_s
         @name.to_s
       end
-      def max_duration(options={})
+
+      def max_duration(options = {})
         if options[:caster] and (options[:caster] !~ /^(?:self|#{XMLData.name})$/i)
           if options[:target] and (options[:target].downcase == options[:caster].downcase)
             @duration['self'][:max_duration]
@@ -8428,35 +9385,40 @@ module Games
           end
         end
       end
-      def putup(options={})
+
+      def putup(options = {})
         if stackable?(options)
-          self.timeleft = [ self.timeleft + self.time_per(options), self.max_duration(options) ].min
+          self.timeleft = [self.timeleft + self.time_per(options), self.max_duration(options)].min
         else
-          self.timeleft = [ self.time_per(options), self.max_duration(options) ].min
+          self.timeleft = [self.time_per(options), self.max_duration(options)].min
         end
         @active = true
       end
+
       def putdown
         self.timeleft = 0
         @active = false
       end
+
       def remaining
         self.timeleft.as_time
       end
-      def affordable?(options={})
+
+      def affordable?(options = {})
         # fixme: deal with them dirty bards!
         release_options = options.dup
         release_options[:multicast] = nil
-        if (self.mana_cost(options) > 0) and (  !checkmana(self.mana_cost(options)) or (Spell[515].active? and !checkmana(self.mana_cost(options) + [self.mana_cost(release_options)/4, 1].max))  )
+        if (self.mana_cost(options) > 0) and (!checkmana(self.mana_cost(options)) or (Spell[515].active? and !checkmana(self.mana_cost(options) + [self.mana_cost(release_options) / 4, 1].max)))
           false
         elsif (self.stamina_cost(options) > 0) and (Spell[9699].active? or not checkstamina(self.stamina_cost(options)))
           false
-        elsif (self.spirit_cost(options) > 0) and not checkspirit(self.spirit_cost(options) + 1 + [ 9912, 9913, 9914, 9916, 9916, 9916 ].delete_if { |num| !Spell[num].active? }.length)
+        elsif (self.spirit_cost(options) > 0) and not checkspirit(self.spirit_cost(options) + 1 + [9912, 9913, 9914, 9916, 9916, 9916].delete_if { |num| !Spell[num].active? }.length)
           false
         else
           true
         end
       end
+
       def Spell.lock_cast
         script = Script.current
         @@cast_lock.push(script)
@@ -8466,10 +9428,12 @@ module Games
           @@cast_lock.delete_if { |s| s.paused or not Script.list.include?(s) }
         end
       end
+
       def Spell.unlock_cast
         @@cast_lock.delete(Script.current)
       end
-      def cast(target=nil, results_of_interest=nil)
+
+      def cast(target = nil, results_of_interest = nil)
         # fixme: find multicast in target and check mana for it
         script = Script.current
         if @type.nil?
@@ -8482,7 +9446,7 @@ module Games
           sleep 0.1
           return false
         end
-        unless (self.spirit_cost > 0) or checkspirit(self.spirit_cost + 1 + [ 9912, 9913, 9914, 9916, 9916, 9916 ].delete_if { |num| !Spell[num].active? }.length)
+        unless (self.spirit_cost > 0) or checkspirit(self.spirit_cost + 1 + [9912, 9913, 9914, 9916, 9916, 9916].delete_if { |num| !Spell[num].active? }.length)
           echo 'cast: not enough spirit'
           sleep 0.1
           return false
@@ -8508,7 +9472,7 @@ module Games
             sleep 0.1
             return false
           end
-          unless (self.spirit_cost > 0) or checkspirit(self.spirit_cost + 1 + [ 9912, 9913, 9914, 9916, 9916, 9916 ].delete_if { |num| !Spell[num].active? }.length)
+          unless (self.spirit_cost > 0) or checkspirit(self.spirit_cost + 1 + [9912, 9913, 9914, 9916, 9916, 9916].delete_if { |num| !Spell[num].active? }.length)
             echo 'cast: not enough spirit'
             sleep 0.1
             return false
@@ -8526,7 +9490,7 @@ module Games
               sleep 0.1
               return false
             end
-            unless (self.spirit_cost > 0) or checkspirit(self.spirit_cost + 1 + [ 9912, 9913, 9914, 9916, 9916, 9916 ].delete_if { |num| !Spell[num].active? }.length)
+            unless (self.spirit_cost > 0) or checkspirit(self.spirit_cost + 1 + [9912, 9913, 9914, 9916, 9916, 9916].delete_if { |num| !Spell[num].active? }.length)
               echo 'cast: not enough spirit'
               sleep 0.1
               return false
@@ -8551,7 +9515,7 @@ module Games
             end
             if (target.nil? or target.to_s.empty?) and not @no_incant
               cast_cmd = "incant #{@num}"
-            elsif (target.nil? or target.to_s.empty?) and (@type =~ /attack/i) and not [410,435,525,912,909,609].include?(@num)
+            elsif (target.nil? or target.to_s.empty?) and (@type =~ /attack/i) and not [410, 435, 525, 912, 909, 609].include?(@num)
               cast_cmd += ' target'
             elsif target.class == GameObj
               cast_cmd += " ##{target.id}"
@@ -8577,993 +9541,1346 @@ module Games
                       return false
                     end
                     unless (self.spirit_cost <= 0) or checkspirit(self.spirit_cost + 1 + (if checkspell(9912) then 1 else 0 end) + (if checkspell(9913) then 1 else 0 end) + (if checkspell(9914) then 1 else 0 end) + (if checkspell(9916) then 5 else 0 end))
-                    echo 'cast: not enough spirit'
-                    sleep 0.1
-                    return false
-          end
-          unless (self.stamina_cost <= 0) or checkstamina(self.stamina_cost)
-            echo 'cast: not enough stamina'
-            sleep 0.1
-            return false
-          end
-        end
-        loop {
-          waitrt?
-          waitcastrt?
-          prepare_result = dothistimeout "prepare #{@num}", 8, /^You already have a spell readied!  You must RELEASE it if you wish to prepare another!$|^Your spell(?:song)? is ready\.|^You can't think clearly enough to prepare a spell!$|^You are concentrating too intently .*?to prepare a spell\.$|^You are too injured to make that dextrous of a movement|^The searing pain in your throat makes that impossible|^But you don't have any mana!\.$|^You can't make that dextrous of a move!$|^As you begin to prepare the spell the wind blows small objects at you thwarting your attempt\.$|^You do not know that spell!$|^All you manage to do is cough up some blood\.$|The incantations of countless spells swirl through your mind as a golden light flashes before your eyes\./
-          if prepare_result =~ /^Your spell(?:song)? is ready\./
-            break
-          elsif prepare_result == 'You already have a spell readied!  You must RELEASE it if you wish to prepare another!'
-            dothistimeout 'release', 5, /^You feel the magic of your spell rush away from you\.$|^You don't have a prepared spell to release!$/
-            unless (self.mana_cost <= 0) or checkmana(self.mana_cost)
-              echo 'cast: not enough mana'
-              sleep 0.1
-              return false
-            end
-          elsif prepare_result =~ /^You can't think clearly enough to prepare a spell!$|^You are concentrating too intently .*?to prepare a spell\.$|^You are too injured to make that dextrous of a movement|^The searing pain in your throat makes that impossible|^But you don't have any mana!\.$|^You can't make that dextrous of a move!$|^As you begin to prepare the spell the wind blows small objects at you thwarting your attempt\.$|^You do not know that spell!$|^All you manage to do is cough up some blood\.$|The incantations of countless spells swirl through your mind as a golden light flashes before your eyes\./
-            sleep 0.1
-            return prepare_result
-          end
-        }
-      end
-    end
-    waitcastrt?
-    if @stance and checkstance != 'offensive'
-      put 'stance offensive'
-      # dothistimeout 'stance offensive', 5, /^You (?:are now in|move into) an? offensive stance|^You are unable to change your stance\.$/
-    end
-    if results_of_interest.class == Regexp
-      results_regex = /^(?:Cast|Sing) Roundtime [0-9]+ Seconds?\.$|^Cast at what\?$|^But you don't have any mana!$|^\[Spell Hindrance for|^You don't have a spell prepared!$|keeps? the spell from working\.|^Be at peace my child, there is no need for spells of war in here\.$|Spells of War cannot be cast|^As you focus on your magic, your vision swims with a swirling haze of crimson\.$|^Your magic fizzles ineffectually\.$|^All you manage to do is cough up some blood\.$|^And give yourself away!  Never!$|^You are unable to do that right now\.$|^You feel a sudden rush of power as you absorb [0-9]+ mana!$|^You are unable to drain it!$|leaving you casting at nothing but thin air!$|^You don't seem to be able to move to do that\.$|^Provoking a GameMaster is not such a good idea\.$|^You can't think clearly enough to prepare a spell!$|^You do not currently have a target\.$|The incantations of countless spells swirl through your mind as a golden light flashes before your eyes\.|#{results_of_interest.to_s}/
-    else
-      results_regex = /^(?:Cast|Sing) Roundtime [0-9]+ Seconds?\.$|^Cast at what\?$|^But you don't have any mana!$|^\[Spell Hindrance for|^You don't have a spell prepared!$|keeps? the spell from working\.|^Be at peace my child, there is no need for spells of war in here\.$|Spells of War cannot be cast|^As you focus on your magic, your vision swims with a swirling haze of crimson\.$|^Your magic fizzles ineffectually\.$|^All you manage to do is cough up some blood\.$|^And give yourself away!  Never!$|^You are unable to do that right now\.$|^You feel a sudden rush of power as you absorb [0-9]+ mana!$|^You are unable to drain it!$|leaving you casting at nothing but thin air!$|^You don't seem to be able to move to do that\.$|^Provoking a GameMaster is not such a good idea\.$|^You can't think clearly enough to prepare a spell!$|^You do not currently have a target\.$|The incantations of countless spells swirl through your mind as a golden light flashes before your eyes\./
-    end
-    cast_result = dothistimeout cast_cmd, 5, results_regex
-    if cast_result == "You don't seem to be able to move to do that."
-      100.times { break if clear.any? { |line| line =~ /^You regain control of your senses!$/ }; sleep 0.1 }
-      cast_result = dothistimeout cast_cmd, 5, results_regex
-    end
-    if @stance
-      if @@after_stance
-        if checkstance !~ /#{@@after_stance}/
-          waitrt?
-          dothistimeout "stance #{@@after_stance}", 3, /^You (?:are now in|move into) an? \w+ stance|^You are unable to change your stance\.$/
-        end
-      elsif checkstance !~ /^guarded$|^defensive$/
-        waitrt?
-        if checkcastrt > 0
-          dothistimeout 'stance guarded', 3, /^You (?:are now in|move into) an? \w+ stance|^You are unable to change your stance\.$/
-        else
-          dothistimeout 'stance defensive', 3, /^You (?:are now in|move into) an? \w+ stance|^You are unable to change your stance\.$/
-        end
-      end
-    end
-    if cast_result =~ /^Cast at what\?$|^Be at peace my child, there is no need for spells of war in here\.$|^Provoking a GameMaster is not such a good idea\.$/
-      dothistimeout 'release', 5, /^You feel the magic of your spell rush away from you\.$|^You don't have a prepared spell to release!$/
-    end
-    break unless (@circle.to_i == 10) and (cast_result =~ /^\[Spell Hindrance for/)
+                      echo 'cast: not enough spirit'
+                      sleep 0.1
+                      return false
+                    end
+                    unless (self.stamina_cost <= 0) or checkstamina(self.stamina_cost)
+                      echo 'cast: not enough stamina'
+                      sleep 0.1
+                      return false
+                    end
+                  end
+                  loop {
+                    waitrt?
+                    waitcastrt?
+                    prepare_result = dothistimeout "prepare #{@num}", 8, /^You already have a spell readied!  You must RELEASE it if you wish to prepare another!$|^Your spell(?:song)? is ready\.|^You can't think clearly enough to prepare a spell!$|^You are concentrating too intently .*?to prepare a spell\.$|^You are too injured to make that dextrous of a movement|^The searing pain in your throat makes that impossible|^But you don't have any mana!\.$|^You can't make that dextrous of a move!$|^As you begin to prepare the spell the wind blows small objects at you thwarting your attempt\.$|^You do not know that spell!$|^All you manage to do is cough up some blood\.$|The incantations of countless spells swirl through your mind as a golden light flashes before your eyes\./
+                    if prepare_result =~ /^Your spell(?:song)? is ready\./
+                      break
+                    elsif prepare_result == 'You already have a spell readied!  You must RELEASE it if you wish to prepare another!'
+                      dothistimeout 'release', 5, /^You feel the magic of your spell rush away from you\.$|^You don't have a prepared spell to release!$/
+                      unless (self.mana_cost <= 0) or checkmana(self.mana_cost)
+                        echo 'cast: not enough mana'
+                        sleep 0.1
+                        return false
+                      end
+                    elsif prepare_result =~ /^You can't think clearly enough to prepare a spell!$|^You are concentrating too intently .*?to prepare a spell\.$|^You are too injured to make that dextrous of a movement|^The searing pain in your throat makes that impossible|^But you don't have any mana!\.$|^You can't make that dextrous of a move!$|^As you begin to prepare the spell the wind blows small objects at you thwarting your attempt\.$|^You do not know that spell!$|^All you manage to do is cough up some blood\.$|The incantations of countless spells swirl through your mind as a golden light flashes before your eyes\./
+                      sleep 0.1
+                      return prepare_result
+                    end
+                  }
+                end
+              end
+              waitcastrt?
+              if @stance and checkstance != 'offensive'
+                put 'stance offensive'
+                # dothistimeout 'stance offensive', 5, /^You (?:are now in|move into) an? offensive stance|^You are unable to change your stance\.$/
+              end
+              if results_of_interest.class == Regexp
+                results_regex = /^(?:Cast|Sing) Roundtime [0-9]+ Seconds?\.$|^Cast at what\?$|^But you don't have any mana!$|^\[Spell Hindrance for|^You don't have a spell prepared!$|keeps? the spell from working\.|^Be at peace my child, there is no need for spells of war in here\.$|Spells of War cannot be cast|^As you focus on your magic, your vision swims with a swirling haze of crimson\.$|^Your magic fizzles ineffectually\.$|^All you manage to do is cough up some blood\.$|^And give yourself away!  Never!$|^You are unable to do that right now\.$|^You feel a sudden rush of power as you absorb [0-9]+ mana!$|^You are unable to drain it!$|leaving you casting at nothing but thin air!$|^You don't seem to be able to move to do that\.$|^Provoking a GameMaster is not such a good idea\.$|^You can't think clearly enough to prepare a spell!$|^You do not currently have a target\.$|The incantations of countless spells swirl through your mind as a golden light flashes before your eyes\.|#{results_of_interest.to_s}/
+              else
+                results_regex = /^(?:Cast|Sing) Roundtime [0-9]+ Seconds?\.$|^Cast at what\?$|^But you don't have any mana!$|^\[Spell Hindrance for|^You don't have a spell prepared!$|keeps? the spell from working\.|^Be at peace my child, there is no need for spells of war in here\.$|Spells of War cannot be cast|^As you focus on your magic, your vision swims with a swirling haze of crimson\.$|^Your magic fizzles ineffectually\.$|^All you manage to do is cough up some blood\.$|^And give yourself away!  Never!$|^You are unable to do that right now\.$|^You feel a sudden rush of power as you absorb [0-9]+ mana!$|^You are unable to drain it!$|leaving you casting at nothing but thin air!$|^You don't seem to be able to move to do that\.$|^Provoking a GameMaster is not such a good idea\.$|^You can't think clearly enough to prepare a spell!$|^You do not currently have a target\.$|The incantations of countless spells swirl through your mind as a golden light flashes before your eyes\./
+              end
+              cast_result = dothistimeout cast_cmd, 5, results_regex
+              if cast_result == "You don't seem to be able to move to do that."
+                100.times { break if clear.any? { |line| line =~ /^You regain control of your senses!$/ }; sleep 0.1 }
+
+                cast_result = dothistimeout cast_cmd, 5, results_regex
+              end
+              if @stance
+                if @@after_stance
+                  if checkstance !~ /#{@@after_stance}/
+                    waitrt?
+                    dothistimeout "stance #{@@after_stance}", 3, /^You (?:are now in|move into) an? \w+ stance|^You are unable to change your stance\.$/
+                  end
+                elsif checkstance !~ /^guarded$|^defensive$/
+                  waitrt?
+                  if checkcastrt > 0
+                    dothistimeout 'stance guarded', 3, /^You (?:are now in|move into) an? \w+ stance|^You are unable to change your stance\.$/
+                  else
+                    dothistimeout 'stance defensive', 3, /^You (?:are now in|move into) an? \w+ stance|^You are unable to change your stance\.$/
+                  end
+                end
+              end
+              if cast_result =~ /^Cast at what\?$|^Be at peace my child, there is no need for spells of war in here\.$|^Provoking a GameMaster is not such a good idea\.$/
+                dothistimeout 'release', 5, /^You feel the magic of your spell rush away from you\.$|^You don't have a prepared spell to release!$/
+              end
+              break unless (@circle.to_i == 10) and (cast_result =~ /^\[Spell Hindrance for/)
             }
             cast_result
-  end
-ensure
-  script.want_downstream = save_want_downstream
-  script.want_downstream_xml = save_want_downstream_xml
-  @@cast_lock.delete(script)
-end
-end
-def _bonus
-  @bonus.dup
-end
-def _cost
-  @cost.dup
-end
-def method_missing(*args)
-  if @@bonus_list.include?(args[0].to_s.gsub('_', '-'))
-    if @bonus[args[0].to_s.gsub('_', '-')]
-      proc { begin; $SAFE = 3; rescue; nil; end; eval(@bonus[args[0].to_s.gsub('_', '-')]) }.call.to_i
-    else
-      0
-    end
-  elsif @@bonus_list.include?(args[0].to_s.sub(/_formula$/, '').gsub('_', '-'))
-    @bonus[args[0].to_s.sub(/_formula$/, '').gsub('_', '-')].dup
-  elsif (args[0].to_s =~ /_cost(?:_formula)?$/) and @@cost_list.include?(args[0].to_s.sub(/_formula$/, '').sub(/_cost$/, ''))
-    options = args[1].to_hash
-    if options[:caster] and (options[:caster] !~ /^(?:self|#{XMLData.name})$/i)
-      if options[:target] and (options[:target].downcase == options[:caster].downcase)
-        formula = @cost[args[0].to_s.sub(/_formula$/, '').sub(/_cost$/, '')]['self'].dup
-      else
-        formula = @cost[args[0].to_s.sub(/_formula$/, '').sub(/_cost$/, '')]['target'].dup || @cost[args[0].to_s.gsub('_', '-')]['self'].dup
+          end
+        ensure
+          script.want_downstream = save_want_downstream
+          script.want_downstream_xml = save_want_downstream_xml
+          @@cast_lock.delete(script)
+        end
       end
-      skills = { 'Spells.minorelemental' => "SpellRanks['#{options[:caster]}'].minorelemental.to_i", 'Spells.majorelemental' => "SpellRanks['#{options[:caster]}'].majorelemental.to_i", 'Spells.minorspiritual' => "SpellRanks['#{options[:caster]}'].minorspiritual.to_i", 'Spells.majorspiritual' => "SpellRanks['#{options[:caster]}'].majorspiritual.to_i", 'Spells.wizard' => "SpellRanks['#{options[:caster]}'].wizard.to_i", 'Spells.sorcerer' => "SpellRanks['#{options[:caster]}'].sorcerer.to_i", 'Spells.ranger' => "SpellRanks['#{options[:caster]}'].ranger.to_i", 'Spells.paladin' => "SpellRanks['#{options[:caster]}'].paladin.to_i", 'Spells.empath' => "SpellRanks['#{options[:caster]}'].empath.to_i", 'Spells.cleric' => "SpellRanks['#{options[:caster]}'].cleric.to_i", 'Spells.bard' => "SpellRanks['#{options[:caster]}'].bard.to_i", 'Stats.level' => '100' }
-      skills.each_pair { |a, b| formula.gsub!(a, b) }
-    else
-      if options[:target] and (options[:target] !~ /^(?:self|#{XMLData.name})$/i)
-        formula = @cost[args[0].to_s.sub(/_formula$/, '').sub(/_cost$/, '')]['target'].dup || @cost[args[0].to_s.gsub('_', '-')]['self'].dup
-      else
-        formula = @cost[args[0].to_s.sub(/_formula$/, '').sub(/_cost$/, '')]['self'].dup
+
+      def _bonus
+        @bonus.dup
       end
-    end
-    if args[0].to_s =~ /mana/ and Spell[597].active? # Rapid Fire Penalty
-      formula = "#{formula}+5"
-    end
-    if options[:multicast].to_i > 1
-      formula = "(#{formula})*#{options[:multicast].to_i}"
-    end
-    if args[0].to_s =~ /_formula$/
-      formula.dup
-    else
-      if formula
-        formula.untaint if formula.tainted?
-        proc { begin; $SAFE = 3; rescue; nil; end; eval(formula) }.call.to_i
-      else
-        0
+
+      def _cost
+        @cost.dup
       end
-    end
-  else
-    respond 'missing method: ' + args.inspect.to_s
-    raise NoMethodError
-  end
-end
-def circle_name
-  Spells.get_circle_name(@circle)
-end
-def clear_on_death
-  !@persist_on_death
-end
-# for backwards compatiblity
-def duration;      self.time_per_formula;            end
-def cost;          self.mana_cost_formula    || '0'; end
-def manaCost;      self.mana_cost_formula    || '0'; end
-def spiritCost;    self.spirit_cost_formula  || '0'; end
-def staminaCost;   self.stamina_cost_formula || '0'; end
-def boltAS;        self.bolt_as_formula;             end
-def physicalAS;    self.physical_as_formula;         end
-def boltDS;        self.bolt_ds_formula;             end
-def physicalDS;    self.physical_ds_formula;         end
-def elementalCS;   self.elemental_cs_formula;        end
-def mentalCS;      self.mental_cs_formula;           end
-def spiritCS;      self.spirit_cs_formula;           end
-def sorcererCS;    self.sorcerer_cs_formula;         end
-def elementalTD;   self.elemental_td_formula;        end
-def mentalTD;      self.mental_td_formula;           end
-def spiritTD;      self.spirit_td_formula;           end
-def sorcererTD;    self.sorcerer_td_formula;         end
-def castProc;      @cast_proc;                       end
-def stacks;        self.stackable?                   end
-def command;       nil;                              end
-def circlename;    self.circle_name;                 end
-def selfonly;      @availability != 'all';           end
-end
 
-class CMan
-  @@acrobats_leap      ||= 0     ## added by Doug for Cman update
-  @@armor_spike_focus      ||= 0
-  @@bearhug                ||= 0
-  @@berserk                ||= 0
-  @@block_mastery          ||= 0
-  @@bull_rush              ||= 0
-  @@burst_of_swiftness     ||= 0
-  @@charge                 ||= 0
-  @@cheapshots             ||= 0
-  @@combat_focus           ||= 0
-  @@combat_mastery         ||= 0
-  @@combat_mobility        ||= 0
-  @@combat_movement        ||= 0
-  @@combat_toughness       ||= 0
-  @@coup_de_grace          ||= 0
-  @@crowd_press            ||= 0
-  @@cunning_defense        ||= 0
-  @@cutthroat              ||= 0
-  @@dirtkick               ||= 0
-  @@disarm_weapon          ||= 0
-  @@dislodge         ||= 0     ## added by Doug for Cman update
-  @@divert                 ||= 0
-  @@duck_and_weave         ||= 0
-  @@dust_shroud            ||= 0
-  @@evade_mastery          ||= 0
-  @@executioners_stance    ||= 0
-  @@feint                  ||= 0
-  @@flurry_of_blows        ||= 0
-  @@garrote                ||= 0
-  @@grapple_mastery        ||= 0
-  @@griffins_voice         ||= 0
-  @@groin_kick             ||= 0
-  @@hamstring              ||= 0
-  @@haymaker               ||= 0
-  @@headbutt               ||= 0
-  @@inner_harmony          ||= 0
-  @@internal_power         ||= 0
-  @@ki_focus               ||= 0
-  @@kick_mastery           ||= 0
-  @@mighty_blow            ||= 0
-  #         @@multi_fire             ||= 0    ## removed by Doug for Cman update
-  @@mystic_strike          ||= 0
-  @@parry_mastery          ||= 0
-  @@perfect_self           ||= 0
-  @@precision              ||= 0
-  @@predators_eye          ||= 0
-  @@punch_mastery          ||= 0
-  @@quickstrike            ||= 0
-  @@rolling_krynch_stance  ||= 0
-  @@shadow_dance       ||= 0     ## added by Doug for Cman update
-  @@shadow_mastery         ||= 0
-  @@shield_bash            ||= 0
-  @@shield_charge          ||= 0
-  @@side_by_side           ||= 0
-  @@silent_strike          ||= 0
-  @@slippery_mind          ||= 0
-  @@specialization_i       ||= 0
-  @@specialization_ii      ||= 0
-  @@specialization_iii     ||= 0
-  @@spell_cleaving         ||= 0
-  @@spell_parry            ||= 0
-  @@spell_thieve           ||= 0
-  @@spin_attack            ||= 0
-  @@staggering_blow        ||= 0
-  @@stance_of_the_mongoose ||= 0
-  @@striking_asp           ||= 0
-  @@stun_maneuvers         ||= 0
-  @@subdual_strike         ||= 0
-  @@subdue                 ||= 0
-  @@sucker_punch           ||= 0
-  @@sunder_shield          ||= 0
-  @@surge_of_strength      ||= 0
-  @@sweep                  ||= 0
-  @@tackle                 ||= 0
-  @@tainted_bond           ||= 0
-  @@trip                   ||= 0
-  #         @@truehand               ||= 0    ## removed by Doug for Cman update
-  @@true_strike        ||= 0     ## added by Doug for Cman update
-  @@twin_hammerfists       ||= 0
-  @@unarmed_specialist     ||= 0
-  @@weapon_bonding         ||= 0
-  @@vanish                 ||= 0
-  @@whirling_dervish       ||= 0
-
-  def CMan.acrobats_leap;      @@acrobats_leap;      end  ## Cman update add by Doug
-  def CMan.armor_spike_focus;        @@armor_spike_focus;      end
-  def CMan.bearhug;                  @@bearhug;                end
-  def CMan.berserk;                  @@berserk;                end
-  def CMan.block_mastery;            @@block_mastery;          end
-  def CMan.bull_rush;                @@bull_rush;              end
-  def CMan.burst_of_swiftness;       @@burst_of_swiftness;     end
-  def CMan.charge;                   @@charge;                 end
-  def CMan.cheapshots;               @@cheapshots;             end
-  def CMan.combat_focus;             @@combat_focus;           end
-  def CMan.combat_mastery;           @@combat_mastery;         end
-  def CMan.combat_mobility;          @@combat_mobility;        end
-  def CMan.combat_movement;          @@combat_movement;        end
-  def CMan.combat_toughness;         @@combat_toughness;       end
-  def CMan.coup_de_grace;            @@coup_de_grace;          end
-  def CMan.crowd_press;              @@crowd_press;            end
-  def CMan.cunning_defense;          @@cunning_defense;        end
-  def CMan.cutthroat;                @@cutthroat;              end
-  def CMan.dirtkick;                 @@dirtkick;               end
-  def CMan.disarm_weapon;            @@disarm_weapon;          end
-  def CMan.dislodge;         @@dislodge;         end ## Cman update add by Doug
-  def CMan.divert;                   @@divert;                 end
-  def CMan.duck_and_weave;           @@duck_and_weave;         end
-  def CMan.dust_shroud;              @@dust_shroud;            end
-  def CMan.evade_mastery;            @@evade_mastery;          end
-  def CMan.executioners_stance;      @@executioners_stance;    end
-  def CMan.feint;                    @@feint;                  end
-  def CMan.flurry_of_blows;          @@flurry_of_blows;        end
-  def CMan.garrote;                  @@garrote;                end
-  def CMan.grapple_mastery;          @@grapple_mastery;        end
-  def CMan.griffins_voice;           @@griffins_voice;         end
-  def CMan.groin_kick;               @@groin_kick;             end
-  def CMan.hamstring;                @@hamstring;              end
-  def CMan.haymaker;                 @@haymaker;               end
-  def CMan.headbutt;                 @@headbutt;               end
-  def CMan.inner_harmony;            @@inner_harmony;          end
-  def CMan.internal_power;           @@internal_power;         end
-  def CMan.ki_focus;                 @@ki_focus;               end
-  def CMan.kick_mastery;             @@kick_mastery;           end
-  def CMan.mighty_blow;              @@mighty_blow;            end
-  #         def CMan.multi_fire;               @@multi_fire;             end  ## Cman update remove by Doug
-  def CMan.mystic_strike;            @@mystic_strike;          end
-  def CMan.parry_mastery;            @@parry_mastery;          end
-  def CMan.perfect_self;             @@perfect_self;           end
-  def CMan.precision;                @@precision;              end
-  def CMan.predators_eye;            @@predators_eye;          end
-  def CMan.punch_mastery;            @@punch_mastery;          end
-  def CMan.quickstrike;              @@quickstrike;            end
-  def CMan.rolling_krynch_stance;    @@rolling_krynch_stance;  end
-  def CMan.shadow_dance;       @@shadow_dance;       end ## Cman update add by Doug
-  def CMan.shadow_mastery;           @@shadow_mastery;         end
-  def CMan.shield_bash;              @@shield_bash;            end
-  def CMan.shield_charge;            @@shield_charge;          end
-  def CMan.side_by_side;             @@side_by_side;           end
-  def CMan.silent_strike;            @@silent_strike;          end
-  def CMan.slippery_mind;            @@slippery_mind;          end
-  def CMan.specialization_i;         @@specialization_i;       end
-  def CMan.specialization_ii;        @@specialization_ii;      end
-  def CMan.specialization_iii;       @@specialization_iii;     end
-  def CMan.spell_cleaving;           @@spell_cleaving;         end
-  def CMan.spell_parry;              @@spell_parry;            end
-  def CMan.spell_thieve;             @@spell_thieve;           end
-  def CMan.spin_attack;              @@spin_attack;            end
-  def CMan.staggering_blow;          @@staggering_blow;        end
-  def CMan.stance_of_the_mongoose;   @@stance_of_the_mongoose; end
-  def CMan.striking_asp;             @@striking_asp;           end
-  def CMan.stun_maneuvers;           @@stun_maneuvers;         end
-  def CMan.subdual_strike;           @@subdual_strike;         end
-  def CMan.subdue;                   @@subdue;                 end
-  def CMan.sucker_punch;             @@sucker_punch;           end
-  def CMan.sunder_shield;            @@sunder_shield;          end
-  def CMan.surge_of_strength;        @@surge_of_strength;      end
-  def CMan.sweep;                    @@sweep;                  end
-  def CMan.tackle;                   @@tackle;                 end
-  def CMan.tainted_bond;             @@tainted_bond;           end
-  def CMan.trip;                     @@trip;                   end
-  #         def CMan.truehand;                 @@truehand;               end  ## Cman update remove by Doug
-  def CMan.true_strike;        @@true_strike;        end ## Cman update add by Doug
-  def CMan.twin_hammerfists;         @@twin_hammerfists;       end
-  def CMan.unarmed_specialist;       @@unarmed_specialist;     end
-  def CMan.vanish;                   @@vanish;                 end
-  def CMan.weapon_bonding;           @@weapon_bonding;         end
-  def CMan.whirling_dervish;         @@whirling_dervish;       end
-
-  def CMan.acrobats_leap=(val);        @@acrobats_leap=val;      end ## add by Doug
-  def CMan.armor_spike_focus=(val);        @@armor_spike_focus=val;      end
-  def CMan.bearhug=(val);                  @@bearhug=val;                end
-  def CMan.berserk=(val);                  @@berserk=val;                end
-  def CMan.block_mastery=(val);            @@block_mastery=val;          end
-  def CMan.bull_rush=(val);                @@bull_rush=val;              end
-  def CMan.burst_of_swiftness=(val);       @@burst_of_swiftness=val;     end
-  def CMan.charge=(val);                   @@charge=val;                 end
-  def CMan.cheapshots=(val);               @@cheapshots=val;             end
-  def CMan.combat_focus=(val);             @@combat_focus=val;           end
-  def CMan.combat_mastery=(val);           @@combat_mastery=val;         end
-  def CMan.combat_mobility=(val);          @@combat_mobility=val;        end
-  def CMan.combat_movement=(val);          @@combat_movement=val;        end
-  def CMan.combat_toughness=(val);         @@combat_toughness=val;       end
-  def CMan.coup_de_grace=(val);            @@coup_de_grace=val;          end
-  def CMan.crowd_press=(val);              @@crowd_press=val;            end
-  def CMan.cunning_defense=(val);          @@cunning_defense=val;        end
-  def CMan.cutthroat=(val);                @@cutthroat=val;              end
-  def CMan.dirtkick=(val);                 @@dirtkick=val;               end
-  def CMan.disarm_weapon=(val);            @@disarm_weapon=val;          end
-  def CMan.dislodge=(val);         @@dislodge=val;       end ## add by Doug
-  def CMan.divert=(val);                   @@divert=val;                 end
-  def CMan.duck_and_weave=(val);           @@duck_and_weave=val;         end
-  def CMan.dust_shroud=(val);              @@dust_shroud=val;            end
-  def CMan.evade_mastery=(val);            @@evade_mastery=val;          end
-  def CMan.executioners_stance=(val);      @@executioners_stance=val;    end
-  def CMan.feint=(val);                    @@feint=val;                  end
-  def CMan.flurry_of_blows=(val);          @@flurry_of_blows=val;        end
-  def CMan.garrote=(val);                  @@garrote=val;                end
-  def CMan.grapple_mastery=(val);          @@grapple_mastery=val;        end
-  def CMan.griffins_voice=(val);           @@griffins_voice=val;         end
-  def CMan.groin_kick=(val);               @@groin_kick=val;             end
-  def CMan.hamstring=(val);                @@hamstring=val;              end
-  def CMan.haymaker=(val);                 @@haymaker=val;               end
-  def CMan.headbutt=(val);                 @@headbutt=val;               end
-  def CMan.inner_harmony=(val);            @@inner_harmony=val;          end
-  def CMan.internal_power=(val);           @@internal_power=val;         end
-  def CMan.ki_focus=(val);                 @@ki_focus=val;               end
-  def CMan.kick_mastery=(val);             @@kick_mastery=val;           end
-  def CMan.mighty_blow=(val);              @@mighty_blow=val;            end
-  #         def CMan.multi_fire=(val);               @@multi_fire=val;             end  ## Remove by Doug
-  def CMan.mystic_strike=(val);            @@mystic_strike=val;          end
-  def CMan.parry_mastery=(val);            @@parry_mastery=val;          end
-  def CMan.perfect_self=(val);             @@perfect_self=val;           end
-  def CMan.precision=(val);                @@precision=val;              end
-  def CMan.predators_eye=(val);            @@predators_eye=val;          end
-  def CMan.punch_mastery=(val);            @@punch_mastery=val;          end
-  def CMan.quickstrike=(val);              @@quickstrike=val;            end
-  def CMan.rolling_krynch_stance=(val);    @@rolling_krynch_stance=val;  end
-  def CMan.shadow_dance=(val);       @@shadow_dance=val;     end ## add by Doug
-  def CMan.shadow_mastery=(val);           @@shadow_mastery=val;         end
-  def CMan.shield_bash=(val);              @@shield_bash=val;            end
-  def CMan.shield_charge=(val);            @@shield_charge=val;          end
-  def CMan.side_by_side=(val);             @@side_by_side=val;           end
-  def CMan.silent_strike=(val);            @@silent_strike=val;          end
-  def CMan.slippery_mind=(val);            @@slippery_mind=val;          end
-  def CMan.specialization_i=(val);         @@specialization_i=val;       end
-  def CMan.specialization_ii=(val);        @@specialization_ii=val;      end
-  def CMan.specialization_iii=(val);       @@specialization_iii=val;     end
-  def CMan.spell_cleaving=(val);           @@spell_cleaving=val;         end
-  def CMan.spell_parry=(val);              @@spell_parry=val;            end
-  def CMan.spell_thieve=(val);             @@spell_thieve=val;           end
-  def CMan.spin_attack=(val);              @@spin_attack=val;            end
-  def CMan.staggering_blow=(val);          @@staggering_blow=val;        end
-  def CMan.stance_of_the_mongoose=(val);   @@stance_of_the_mongoose=val; end
-  def CMan.striking_asp=(val);             @@striking_asp=val;           end
-  def CMan.stun_maneuvers=(val);           @@stun_maneuvers=val;         end
-  def CMan.subdual_strike=(val);           @@subdual_strike=val;         end
-  def CMan.subdue=(val);                   @@subdue=val;                 end
-  def CMan.sucker_punch=(val);             @@sucker_punch=val;           end
-  def CMan.sunder_shield=(val);            @@sunder_shield=val;          end
-  def CMan.surge_of_strength=(val);        @@surge_of_strength=val;      end
-  def CMan.sweep=(val);                    @@sweep=val;                  end
-  def CMan.tackle=(val);                   @@tackle=val;                 end
-  def CMan.tainted_bond=(val);             @@tainted_bond=val;           end
-  def CMan.trip=(val);                     @@trip=val;                   end
-  #         def CMan.truehand=(val);                 @@truehand=val;               end ## remove by Doug
-  def CMan.true_strike=(val);        @@true_strike=val;      end ## add by Doug
-  def CMan.twin_hammerfists=(val);         @@twin_hammerfists=val;       end
-  def CMan.unarmed_specialist=(val);       @@unarmed_specialist=val;     end
-  def CMan.vanish=(val);                   @@vanish=val;                 end
-  def CMan.weapon_bonding=(val);           @@weapon_bonding=val;         end
-  def CMan.whirling_dervish=(val);         @@whirling_dervish=val;       end
-
-  def CMan.method_missing(arg1, arg2=nil)
-    nil
-  end
-  def CMan.[](name)
-    CMan.send(name.gsub(/[\s\-]/, '_').gsub("'", "").downcase)
-  end
-  def CMan.[]=(name,val)
-    CMan.send("#{name.gsub(/[\s\-]/, '_').gsub("'", "").downcase}=", val.to_i)
-  end
-end
-
-class Stats
-  @@race ||= 'unknown'
-  @@prof ||= 'unknown'
-  @@gender ||= 'unknown'
-  @@age ||= 0
-  @@level ||= 0
-  @@str ||= [0,0]
-  @@con ||= [0,0]
-  @@dex ||= [0,0]
-  @@agi ||= [0,0]
-  @@dis ||= [0,0]
-  @@aur ||= [0,0]
-  @@log ||= [0,0]
-  @@int ||= [0,0]
-  @@wis ||= [0,0]
-  @@inf ||= [0,0]
-  @@enhanced_str ||= [0,0]
-  @@enhanced_con ||= [0,0]
-  @@enhanced_dex ||= [0,0]
-  @@enhanced_agi ||= [0,0]
-  @@enhanced_dis ||= [0,0]
-  @@enhanced_aur ||= [0,0]
-  @@enhanced_log ||= [0,0]
-  @@enhanced_int ||= [0,0]
-  @@enhanced_wis ||= [0,0]
-  @@enhanced_inf ||= [0,0]
-  def Stats.race;         @@race;       end
-  def Stats.race=(val);   @@race=val;   end
-  def Stats.prof;         @@prof;       end
-  def Stats.prof=(val);   @@prof=val;   end
-  def Stats.gender;       @@gender;     end
-  def Stats.gender=(val); @@gender=val; end
-  def Stats.age;          @@age;        end
-  def Stats.age=(val);    @@age=val;    end
-  def Stats.level;        @@level;      end
-  def Stats.level=(val);  @@level=val;  end
-  def Stats.str;          @@str;        end
-  def Stats.str=(val);    @@str=val;    end
-  def Stats.con;          @@con;        end
-  def Stats.con=(val);    @@con=val;    end
-  def Stats.dex;          @@dex;        end
-  def Stats.dex=(val);    @@dex=val;    end
-  def Stats.agi;          @@agi;        end
-  def Stats.agi=(val);    @@agi=val;    end
-  def Stats.dis;          @@dis;        end
-  def Stats.dis=(val);    @@dis=val;    end
-  def Stats.aur;          @@aur;        end
-  def Stats.aur=(val);    @@aur=val;    end
-  def Stats.log;          @@log;        end
-  def Stats.log=(val);    @@log=val;    end
-  def Stats.int;          @@int;        end
-  def Stats.int=(val);    @@int=val;    end
-  def Stats.wis;          @@wis;        end
-  def Stats.wis=(val);    @@wis=val;    end
-  def Stats.inf;          @@inf;        end
-  def Stats.inf=(val);    @@inf=val;    end
-  def Stats.enhanced_str;          @@enhanced_str;        end
-  def Stats.enhanced_str=(val);    @@enhanced_str=val;    end
-  def Stats.enhanced_con;          @@enhanced_con;        end
-  def Stats.enhanced_con=(val);    @@enhanced_con=val;    end
-  def Stats.enhanced_dex;          @@enhanced_dex;        end
-  def Stats.enhanced_dex=(val);    @@enhanced_dex=val;    end
-  def Stats.enhanced_agi;          @@enhanced_agi;        end
-  def Stats.enhanced_agi=(val);    @@enhanced_agi=val;    end
-  def Stats.enhanced_dis;          @@enhanced_dis;        end
-  def Stats.enhanced_dis=(val);    @@enhanced_dis=val;    end
-  def Stats.enhanced_aur;          @@enhanced_aur;        end
-  def Stats.enhanced_aur=(val);    @@enhanced_aur=val;    end
-  def Stats.enhanced_log;          @@enhanced_log;        end
-  def Stats.enhanced_log=(val);    @@enhanced_log=val;    end
-  def Stats.enhanced_int;          @@enhanced_int;        end
-  def Stats.enhanced_int=(val);    @@enhanced_int=val;    end
-  def Stats.enhanced_wis;          @@enhanced_wis;        end
-  def Stats.enhanced_wis=(val);    @@enhanced_wis=val;    end
-  def Stats.enhanced_inf;          @@enhanced_inf;        end
-  def Stats.enhanced_inf=(val);    @@enhanced_inf=val;    end
-  def Stats.exp
-    if XMLData.next_level_text =~ /until next level/
-      exp_threshold = [ 2500, 5000, 10000, 17500, 27500, 40000, 55000, 72500, 92500, 115000, 140000, 167000, 197500, 230000, 265000, 302000, 341000, 382000, 425000, 470000, 517000, 566000, 617000, 670000, 725000, 781500, 839500, 899000, 960000, 1022500, 1086500, 1152000, 1219000, 1287500, 1357500, 1429000, 1502000, 1576500, 1652500, 1730000, 1808500, 1888000, 1968500, 2050000, 2132500, 2216000, 2300500, 2386000, 2472500, 2560000, 2648000, 2736500, 2825500, 2915000, 3005000, 3095500, 3186500, 3278000, 3370000, 3462500, 3555500, 3649000, 3743000, 3837500, 3932500, 4028000, 4124000, 4220500, 4317500, 4415000, 4513000, 4611500, 4710500, 4810000, 4910000, 5010500, 5111500, 5213000, 5315000, 5417500, 5520500, 5624000, 5728000, 5832500, 5937500, 6043000, 6149000, 6255500, 6362500, 6470000, 6578000, 6686500, 6795500, 6905000, 7015000, 7125500, 7236500, 7348000, 7460000, 7572500 ]
-      exp_threshold[XMLData.level] - XMLData.next_level_text.slice(/[0-9]+/).to_i
-    else
-      XMLData.next_level_text.slice(/[0-9]+/).to_i
-    end
-  end
-  def Stats.exp=(val);    nil;    end
-  def Stats.serialize
-    [@@race,@@prof,@@gender,@@age,Stats.exp,@@level,@@str,@@con,@@dex,@@agi,@@dis,@@aur,@@log,@@int,@@wis,@@inf,@@enhanced_str,@@enhanced_con,@@enhanced_dex,@@enhanced_agi,@@enhanced_dis,@@enhanced_aur,@@enhanced_log,@@enhanced_int,@@enhanced_wis,@@enhanced_inf]
-  end
-  def Stats.load_serialized=(array)
-    for i in 16..25
-      array[i] ||= [0, 0]
-    end
-    @@race,@@prof,@@gender,@@age = array[0..3]
-    @@level,@@str,@@con,@@dex,@@agi,@@dis,@@aur,@@log,@@int,@@wis,@@inf,@@enhanced_str,@@enhanced_con,@@enhanced_dex,@@enhanced_agi,@@enhanced_dis,@@enhanced_aur,@@enhanced_log,@@enhanced_int,@@enhanced_wis,@@enhanced_inf = array[5..25]
-  end
-end
-
-class Gift
-  @@gift_start ||= Time.now
-  @@pulse_count ||= 0
-  def Gift.started
-    @@gift_start = Time.now
-    @@pulse_count = 0
-  end
-  def Gift.pulse
-    @@pulse_count += 1
-  end
-  def Gift.remaining
-    ([360 - @@pulse_count, 0].max * 60).to_f
-  end
-  def Gift.restarts_on
-    @@gift_start + 594000
-  end
-  def Gift.serialize
-    [@@gift_start, @@pulse_count]
-  end
-  def Gift.load_serialized=(array)
-    @@gift_start = array[0]
-    @@pulse_count = array[1].to_i
-  end
-  def Gift.ended
-    @@pulse_count = 360
-  end
-  def Gift.stopwatch
-    nil
-  end
-end
-
-class Wounds
-  def Wounds.leftEye;   fix_injury_mode; XMLData.injuries['leftEye']['wound'];   end
-  def Wounds.leye;      fix_injury_mode; XMLData.injuries['leftEye']['wound'];   end
-  def Wounds.rightEye;  fix_injury_mode; XMLData.injuries['rightEye']['wound'];  end
-  def Wounds.reye;      fix_injury_mode; XMLData.injuries['rightEye']['wound'];  end
-  def Wounds.head;      fix_injury_mode; XMLData.injuries['head']['wound'];      end
-  def Wounds.neck;      fix_injury_mode; XMLData.injuries['neck']['wound'];      end
-  def Wounds.back;      fix_injury_mode; XMLData.injuries['back']['wound'];      end
-  def Wounds.chest;     fix_injury_mode; XMLData.injuries['chest']['wound'];     end
-  def Wounds.abdomen;   fix_injury_mode; XMLData.injuries['abdomen']['wound'];   end
-  def Wounds.abs;       fix_injury_mode; XMLData.injuries['abdomen']['wound'];   end
-  def Wounds.leftArm;   fix_injury_mode; XMLData.injuries['leftArm']['wound'];   end
-  def Wounds.larm;      fix_injury_mode; XMLData.injuries['leftArm']['wound'];   end
-  def Wounds.rightArm;  fix_injury_mode; XMLData.injuries['rightArm']['wound'];  end
-  def Wounds.rarm;      fix_injury_mode; XMLData.injuries['rightArm']['wound'];  end
-  def Wounds.rightHand; fix_injury_mode; XMLData.injuries['rightHand']['wound']; end
-  def Wounds.rhand;     fix_injury_mode; XMLData.injuries['rightHand']['wound']; end
-  def Wounds.leftHand;  fix_injury_mode; XMLData.injuries['leftHand']['wound'];  end
-  def Wounds.lhand;     fix_injury_mode; XMLData.injuries['leftHand']['wound'];  end
-  def Wounds.leftLeg;   fix_injury_mode; XMLData.injuries['leftLeg']['wound'];   end
-  def Wounds.lleg;      fix_injury_mode; XMLData.injuries['leftLeg']['wound'];   end
-  def Wounds.rightLeg;  fix_injury_mode; XMLData.injuries['rightLeg']['wound'];  end
-  def Wounds.rleg;      fix_injury_mode; XMLData.injuries['rightLeg']['wound'];  end
-  def Wounds.leftFoot;  fix_injury_mode; XMLData.injuries['leftFoot']['wound'];  end
-  def Wounds.rightFoot; fix_injury_mode; XMLData.injuries['rightFoot']['wound']; end
-  def Wounds.nsys;      fix_injury_mode; XMLData.injuries['nsys']['wound'];      end
-  def Wounds.nerves;    fix_injury_mode; XMLData.injuries['nsys']['wound'];      end
-  def Wounds.arms
-    fix_injury_mode
-    [XMLData.injuries['leftArm']['wound'],XMLData.injuries['rightArm']['wound'],XMLData.injuries['leftHand']['wound'],XMLData.injuries['rightHand']['wound']].max
-  end
-  def Wounds.limbs
-    fix_injury_mode
-    [XMLData.injuries['leftArm']['wound'],XMLData.injuries['rightArm']['wound'],XMLData.injuries['leftHand']['wound'],XMLData.injuries['rightHand']['wound'],XMLData.injuries['leftLeg']['wound'],XMLData.injuries['rightLeg']['wound']].max
-  end
-  def Wounds.torso
-    fix_injury_mode
-    [XMLData.injuries['rightEye']['wound'],XMLData.injuries['leftEye']['wound'],XMLData.injuries['chest']['wound'],XMLData.injuries['abdomen']['wound'],XMLData.injuries['back']['wound']].max
-  end
-  def Wounds.method_missing(arg=nil)
-    echo "Wounds: Invalid area, try one of these: arms, limbs, torso, #{XMLData.injuries.keys.join(', ')}"
-    nil
-  end
-end
-
-class Scars
-  def Scars.leftEye;   fix_injury_mode; XMLData.injuries['leftEye']['scar'];   end
-  def Scars.leye;      fix_injury_mode; XMLData.injuries['leftEye']['scar'];   end
-  def Scars.rightEye;  fix_injury_mode; XMLData.injuries['rightEye']['scar'];  end
-  def Scars.reye;      fix_injury_mode; XMLData.injuries['rightEye']['scar'];  end
-  def Scars.head;      fix_injury_mode; XMLData.injuries['head']['scar'];      end
-  def Scars.neck;      fix_injury_mode; XMLData.injuries['neck']['scar'];      end
-  def Scars.back;      fix_injury_mode; XMLData.injuries['back']['scar'];      end
-  def Scars.chest;     fix_injury_mode; XMLData.injuries['chest']['scar'];     end
-  def Scars.abdomen;   fix_injury_mode; XMLData.injuries['abdomen']['scar'];   end
-  def Scars.abs;       fix_injury_mode; XMLData.injuries['abdomen']['scar'];   end
-  def Scars.leftArm;   fix_injury_mode; XMLData.injuries['leftArm']['scar'];   end
-  def Scars.larm;      fix_injury_mode; XMLData.injuries['leftArm']['scar'];   end
-  def Scars.rightArm;  fix_injury_mode; XMLData.injuries['rightArm']['scar'];  end
-  def Scars.rarm;      fix_injury_mode; XMLData.injuries['rightArm']['scar'];  end
-  def Scars.rightHand; fix_injury_mode; XMLData.injuries['rightHand']['scar']; end
-  def Scars.rhand;     fix_injury_mode; XMLData.injuries['rightHand']['scar']; end
-  def Scars.leftHand;  fix_injury_mode; XMLData.injuries['leftHand']['scar'];  end
-  def Scars.lhand;     fix_injury_mode; XMLData.injuries['leftHand']['scar'];  end
-  def Scars.leftLeg;   fix_injury_mode; XMLData.injuries['leftLeg']['scar'];   end
-  def Scars.lleg;      fix_injury_mode; XMLData.injuries['leftLeg']['scar'];   end
-  def Scars.rightLeg;  fix_injury_mode; XMLData.injuries['rightLeg']['scar'];  end
-  def Scars.rleg;      fix_injury_mode; XMLData.injuries['rightLeg']['scar'];  end
-  def Scars.leftFoot;  fix_injury_mode; XMLData.injuries['leftFoot']['scar'];  end
-  def Scars.rightFoot; fix_injury_mode; XMLData.injuries['rightFoot']['scar']; end
-  def Scars.nsys;      fix_injury_mode; XMLData.injuries['nsys']['scar'];      end
-  def Scars.nerves;    fix_injury_mode; XMLData.injuries['nsys']['scar'];      end
-  def Scars.arms
-    fix_injury_mode
-    [XMLData.injuries['leftArm']['scar'],XMLData.injuries['rightArm']['scar'],XMLData.injuries['leftHand']['scar'],XMLData.injuries['rightHand']['scar']].max
-  end
-  def Scars.limbs
-    fix_injury_mode
-    [XMLData.injuries['leftArm']['scar'],XMLData.injuries['rightArm']['scar'],XMLData.injuries['leftHand']['scar'],XMLData.injuries['rightHand']['scar'],XMLData.injuries['leftLeg']['scar'],XMLData.injuries['rightLeg']['scar']].max
-  end
-  def Scars.torso
-    fix_injury_mode
-    [XMLData.injuries['rightEye']['scar'],XMLData.injuries['leftEye']['scar'],XMLData.injuries['chest']['scar'],XMLData.injuries['abdomen']['scar'],XMLData.injuries['back']['scar']].max
-  end
-  def Scars.method_missing(arg=nil)
-    echo "Scars: Invalid area, try one of these: arms, limbs, torso, #{XMLData.injuries.keys.join(', ')}"
-    nil
-  end
-end
-class GameObj
-  @@loot          = Array.new
-  @@npcs          = Array.new
-  @@npc_status    = Hash.new
-  @@pcs           = Array.new
-  @@pc_status     = Hash.new
-  @@inv           = Array.new
-  @@contents      = Hash.new
-  @@right_hand    = nil
-  @@left_hand     = nil
-  @@room_desc     = Array.new
-  @@fam_loot      = Array.new
-  @@fam_npcs      = Array.new
-  @@fam_pcs       = Array.new
-  @@fam_room_desc = Array.new
-  @@type_data     = Hash.new
-  @@sellable_data = Hash.new
-  @@elevated_load = proc { GameObj.load_data }
-
-  attr_reader :id
-  attr_accessor :noun, :name, :before_name, :after_name
-  def initialize(id, noun, name, before=nil, after=nil)
-    @id = id
-    @noun = noun
-    @noun = 'lapis' if @noun == 'lapis lazuli'
-    @noun = 'hammer' if @noun == "Hammer of Kai"
-    @noun = 'mother-of-pearl' if (@noun == 'pearl') and (@name =~ /mother\-of\-pearl/)
-    @name = name
-    @before_name = before
-    @after_name = after
-  end
-  def type
-    GameObj.load_data if @@type_data.empty?
-    list = @@type_data.keys.find_all { |t| (@name =~ @@type_data[t][:name] or @noun =~ @@type_data[t][:noun]) and (@@type_data[t][:exclude].nil? or @name !~ @@type_data[t][:exclude]) }
-    if list.empty?
-      nil
-    else
-      list.join(',')
-    end
-  end
-  def sellable
-    GameObj.load_data if @@sellable_data.empty?
-    list = @@sellable_data.keys.find_all { |t| (@name =~ @@sellable_data[t][:name] or @noun =~ @@sellable_data[t][:noun]) and (@@sellable_data[t][:exclude].nil? or @name !~ @@sellable_data[t][:exclude]) }
-    if list.empty?
-      nil
-    else
-      list.join(',')
-    end
-  end
-  def status
-    if @@npc_status.keys.include?(@id)
-      @@npc_status[@id]
-    elsif @@pc_status.keys.include?(@id)
-      @@pc_status[@id]
-    elsif @@loot.find { |obj| obj.id == @id } or @@inv.find { |obj| obj.id == @id } or @@room_desc.find { |obj| obj.id == @id } or @@fam_loot.find { |obj| obj.id == @id } or @@fam_npcs.find { |obj| obj.id == @id } or @@fam_pcs.find { |obj| obj.id == @id } or @@fam_room_desc.find { |obj| obj.id == @id } or (@@right_hand.id == @id) or (@@left_hand.id == @id) or @@contents.values.find { |list| list.find { |obj| obj.id == @id  } }
-      nil
-    else
-      'gone'
-    end
-  end
-  def status=(val)
-    if @@npcs.any? { |npc| npc.id == @id }
-      @@npc_status[@id] = val
-    elsif @@pcs.any? { |pc| pc.id == @id }
-      @@pc_status[@id] = val
-    else
-      nil
-    end
-  end
-  def to_s
-    @noun
-  end
-  def empty?
-    false
-  end
-  def contents
-    @@contents[@id].dup
-  end
-  def GameObj.[](val)
-    if val.class == String
-      if val =~ /^\-?[0-9]+$/
-        obj = @@inv.find { |o| o.id == val } || @@loot.find { |o| o.id == val } || @@npcs.find { |o| o.id == val } || @@pcs.find { |o| o.id == val } || [ @@right_hand, @@left_hand ].find { |o| o.id == val } || @@room_desc.find { |o| o.id == val }
-      elsif val.split(' ').length == 1
-        obj = @@inv.find { |o| o.noun == val } || @@loot.find { |o| o.noun == val } || @@npcs.find { |o| o.noun == val } || @@pcs.find { |o| o.noun == val } || [ @@right_hand, @@left_hand ].find { |o| o.noun == val } || @@room_desc.find { |o| o.noun == val }
-      else
-        obj = @@inv.find { |o| o.name == val } || @@loot.find { |o| o.name == val } || @@npcs.find { |o| o.name == val } || @@pcs.find { |o| o.name == val } || [ @@right_hand, @@left_hand ].find { |o| o.name == val } || @@room_desc.find { |o| o.name == val } || @@inv.find { |o| o.name =~ /\b#{Regexp.escape(val.strip)}$/i } || @@loot.find { |o| o.name =~ /\b#{Regexp.escape(val.strip)}$/i } || @@npcs.find { |o| o.name =~ /\b#{Regexp.escape(val.strip)}$/i } || @@pcs.find { |o| o.name =~ /\b#{Regexp.escape(val.strip)}$/i } || [ @@right_hand, @@left_hand ].find { |o| o.name =~ /\b#{Regexp.escape(val.strip)}$/i } || @@room_desc.find { |o| o.name =~ /\b#{Regexp.escape(val.strip)}$/i } || @@inv.find { |o| o.name =~ /\b#{Regexp.escape(val).sub(' ', ' .*')}$/i } || @@loot.find { |o| o.name =~ /\b#{Regexp.escape(val).sub(' ', ' .*')}$/i } || @@npcs.find { |o| o.name =~ /\b#{Regexp.escape(val).sub(' ', ' .*')}$/i } || @@pcs.find { |o| o.name =~ /\b#{Regexp.escape(val).sub(' ', ' .*')}$/i } || [ @@right_hand, @@left_hand ].find { |o| o.name =~ /\b#{Regexp.escape(val).sub(' ', ' .*')}$/i } || @@room_desc.find { |o| o.name =~ /\b#{Regexp.escape(val).sub(' ', ' .*')}$/i }
-      end
-    elsif val.class == Regexp
-      obj = @@inv.find { |o| o.name =~ val } || @@loot.find { |o| o.name =~ val } || @@npcs.find { |o| o.name =~ val } || @@pcs.find { |o| o.name =~ val } || [ @@right_hand, @@left_hand ].find { |o| o.name =~ val } || @@room_desc.find { |o| o.name =~ val }
-    end
-  end
-  def GameObj
-    @noun
-  end
-  def full_name
-    "#{@before_name}#{' ' unless @before_name.nil? or @before_name.empty?}#{name}#{' ' unless @after_name.nil? or @after_name.empty?}#{@after_name}"
-  end
-  def GameObj.new_npc(id, noun, name, status=nil)
-    obj = GameObj.new(id, noun, name)
-    @@npcs.push(obj)
-    @@npc_status[id] = status
-    obj
-  end
-  def GameObj.new_loot(id, noun, name)
-    obj = GameObj.new(id, noun, name)
-    @@loot.push(obj)
-    obj
-  end
-  def GameObj.new_pc(id, noun, name, status=nil)
-    obj = GameObj.new(id, noun, name)
-    @@pcs.push(obj)
-    @@pc_status[id] = status
-    obj
-  end
-  def GameObj.new_inv(id, noun, name, container=nil, before=nil, after=nil)
-    obj = GameObj.new(id, noun, name, before, after)
-    if container
-      @@contents[container].push(obj)
-    else
-      @@inv.push(obj)
-    end
-    obj
-  end
-  def GameObj.new_room_desc(id, noun, name)
-    obj = GameObj.new(id, noun, name)
-    @@room_desc.push(obj)
-    obj
-  end
-  def GameObj.new_fam_room_desc(id, noun, name)
-    obj = GameObj.new(id, noun, name)
-    @@fam_room_desc.push(obj)
-    obj
-  end
-  def GameObj.new_fam_loot(id, noun, name)
-    obj = GameObj.new(id, noun, name)
-    @@fam_loot.push(obj)
-    obj
-  end
-  def GameObj.new_fam_npc(id, noun, name)
-    obj = GameObj.new(id, noun, name)
-    @@fam_npcs.push(obj)
-    obj
-  end
-  def GameObj.new_fam_pc(id, noun, name)
-    obj = GameObj.new(id, noun, name)
-    @@fam_pcs.push(obj)
-    obj
-  end
-  def GameObj.new_right_hand(id, noun, name)
-    @@right_hand = GameObj.new(id, noun, name)
-  end
-  def GameObj.right_hand
-    @@right_hand.dup
-  end
-  def GameObj.new_left_hand(id, noun, name)
-    @@left_hand = GameObj.new(id, noun, name)
-  end
-  def GameObj.left_hand
-    @@left_hand.dup
-  end
-  def GameObj.clear_loot
-    @@loot.clear
-  end
-  def GameObj.clear_npcs
-    @@npcs.clear
-    @@npc_status.clear
-  end
-  def GameObj.clear_pcs
-    @@pcs.clear
-    @@pc_status.clear
-  end
-  def GameObj.clear_inv
-    @@inv.clear
-  end
-  def GameObj.clear_room_desc
-    @@room_desc.clear
-  end
-  def GameObj.clear_fam_room_desc
-    @@fam_room_desc.clear
-  end
-  def GameObj.clear_fam_loot
-    @@fam_loot.clear
-  end
-  def GameObj.clear_fam_npcs
-    @@fam_npcs.clear
-  end
-  def GameObj.clear_fam_pcs
-    @@fam_pcs.clear
-  end
-  def GameObj.npcs
-    if @@npcs.empty?
-      nil
-    else
-      @@npcs.dup
-    end
-  end
-  def GameObj.loot
-    if @@loot.empty?
-      nil
-    else
-      @@loot.dup
-    end
-  end
-  def GameObj.pcs
-    if @@pcs.empty?
-      nil
-    else
-      @@pcs.dup
-    end
-  end
-  def GameObj.inv
-    if @@inv.empty?
-      nil
-    else
-      @@inv.dup
-    end
-  end
-  def GameObj.room_desc
-    if @@room_desc.empty?
-      nil
-    else
-      @@room_desc.dup
-    end
-  end
-  def GameObj.fam_room_desc
-    if @@fam_room_desc.empty?
-      nil
-    else
-      @@fam_room_desc.dup
-    end
-  end
-  def GameObj.fam_loot
-    if @@fam_loot.empty?
-      nil
-    else
-      @@fam_loot.dup
-    end
-  end
-  def GameObj.fam_npcs
-    if @@fam_npcs.empty?
-      nil
-    else
-      @@fam_npcs.dup
-    end
-  end
-  def GameObj.fam_pcs
-    if @@fam_pcs.empty?
-      nil
-    else
-      @@fam_pcs.dup
-    end
-  end
-  def GameObj.clear_container(container_id)
-    @@contents[container_id] = Array.new
-  end
-  def GameObj.delete_container(container_id)
-    @@contents.delete(container_id)
-  end
-  def GameObj.targets
-    a = Array.new
-    XMLData.current_target_ids.each { |id|
-      if (npc = @@npcs.find { |n| n.id == id }) and (npc.status !~ /dead|gone/)
-        a.push(npc)
-      end
-    }
-    a
-  end
-  def GameObj.dead
-    dead_list = Array.new
-    for obj in @@npcs
-      dead_list.push(obj) if obj.status == "dead"
-    end
-    return nil if dead_list.empty?
-    return dead_list
-  end
-  def GameObj.containers
-    @@contents.dup
-  end
-  def GameObj.load_data(filename=nil)
-    if $SAFE == 0
-      if filename.nil?
-        if File.exists?("#{DATA_DIR}/gameobj-data.xml")
-          filename = "#{DATA_DIR}/gameobj-data.xml"
-        elsif File.exists?("#{SCRIPT_DIR}/gameobj-data.xml") # deprecated
-          filename = "#{SCRIPT_DIR}/gameobj-data.xml"
+      def method_missing(*args)
+        if @@bonus_list.include?(args[0].to_s.gsub('_', '-'))
+          if @bonus[args[0].to_s.gsub('_', '-')]
+            proc { begin; $SAFE = 3; rescue; nil; end; eval(@bonus[args[0].to_s.gsub('_', '-')]) }.call.to_i
+          else
+            0
+          end
+        elsif @@bonus_list.include?(args[0].to_s.sub(/_formula$/, '').gsub('_', '-'))
+          @bonus[args[0].to_s.sub(/_formula$/, '').gsub('_', '-')].dup
+        elsif (args[0].to_s =~ /_cost(?:_formula)?$/) and @@cost_list.include?(args[0].to_s.sub(/_formula$/, '').sub(/_cost$/, ''))
+          options = args[1].to_hash
+          if options[:caster] and (options[:caster] !~ /^(?:self|#{XMLData.name})$/i)
+            if options[:target] and (options[:target].downcase == options[:caster].downcase)
+              formula = @cost[args[0].to_s.sub(/_formula$/, '').sub(/_cost$/, '')]['self'].dup
+            else
+              formula = @cost[args[0].to_s.sub(/_formula$/, '').sub(/_cost$/, '')]['target'].dup || @cost[args[0].to_s.gsub('_', '-')]['self'].dup
+            end
+            skills = { 'Spells.minorelemental' => "SpellRanks['#{options[:caster]}'].minorelemental.to_i", 'Spells.majorelemental' => "SpellRanks['#{options[:caster]}'].majorelemental.to_i", 'Spells.minorspiritual' => "SpellRanks['#{options[:caster]}'].minorspiritual.to_i", 'Spells.majorspiritual' => "SpellRanks['#{options[:caster]}'].majorspiritual.to_i", 'Spells.wizard' => "SpellRanks['#{options[:caster]}'].wizard.to_i", 'Spells.sorcerer' => "SpellRanks['#{options[:caster]}'].sorcerer.to_i", 'Spells.ranger' => "SpellRanks['#{options[:caster]}'].ranger.to_i", 'Spells.paladin' => "SpellRanks['#{options[:caster]}'].paladin.to_i", 'Spells.empath' => "SpellRanks['#{options[:caster]}'].empath.to_i", 'Spells.cleric' => "SpellRanks['#{options[:caster]}'].cleric.to_i", 'Spells.bard' => "SpellRanks['#{options[:caster]}'].bard.to_i", 'Stats.level' => '100' }
+            skills.each_pair { |a, b| formula.gsub!(a, b) }
+          else
+            if options[:target] and (options[:target] !~ /^(?:self|#{XMLData.name})$/i)
+              formula = @cost[args[0].to_s.sub(/_formula$/, '').sub(/_cost$/, '')]['target'].dup || @cost[args[0].to_s.gsub('_', '-')]['self'].dup
+            else
+              formula = @cost[args[0].to_s.sub(/_formula$/, '').sub(/_cost$/, '')]['self'].dup
+            end
+          end
+          if args[0].to_s =~ /mana/ and Spell[597].active? # Rapid Fire Penalty
+            formula = "#{formula}+5"
+          end
+          if options[:multicast].to_i > 1
+            formula = "(#{formula})*#{options[:multicast].to_i}"
+          end
+          if args[0].to_s =~ /_formula$/
+            formula.dup
+          else
+            if formula
+              formula.untaint if formula.tainted?
+              proc { begin; $SAFE = 3; rescue; nil; end; eval(formula) }.call.to_i
+            else
+              0
+            end
+          end
         else
-          filename = "#{DATA_DIR}/gameobj-data.xml"
+          respond 'missing method: ' + args.inspect.to_s
+          raise NoMethodError
         end
       end
-      if File.exists?(filename)
-        begin
-          @@type_data = Hash.new
-          @@sellable_data = Hash.new
-          File.open(filename) { |file|
-            doc = REXML::Document.new(file.read)
-            doc.elements.each('data/type') { |e|
-              if type = e.attributes['name']
-                @@type_data[type] = Hash.new
-                @@type_data[type][:name]    = Regexp.new(e.elements['name'].text) unless e.elements['name'].text.nil? or e.elements['name'].text.empty?
-                @@type_data[type][:noun]    = Regexp.new(e.elements['noun'].text) unless e.elements['noun'].text.nil? or e.elements['noun'].text.empty?
-                @@type_data[type][:exclude] = Regexp.new(e.elements['exclude'].text) unless e.elements['exclude'].text.nil? or e.elements['exclude'].text.empty?
-              end
-            }
-            doc.elements.each('data/sellable') { |e|
-              if sellable = e.attributes['name']
-                @@sellable_data[sellable] = Hash.new
-                @@sellable_data[sellable][:name]    = Regexp.new(e.elements['name'].text) unless e.elements['name'].text.nil? or e.elements['name'].text.empty?
-                @@sellable_data[sellable][:noun]    = Regexp.new(e.elements['noun'].text) unless e.elements['noun'].text.nil? or e.elements['noun'].text.empty?
-                @@sellable_data[sellable][:exclude] = Regexp.new(e.elements['exclude'].text) unless e.elements['exclude'].text.nil? or e.elements['exclude'].text.empty?
-              end
-            }
-          }
-          true
-        rescue
-          @@type_data = nil
-          @@sellable_data = nil
-          echo "error: GameObj.load_data: #{$!}"
-          respond $!.backtrace[0..1]
-          false
+
+      def circle_name
+        Spells.get_circle_name(@circle)
+      end
+
+      def clear_on_death
+        !@persist_on_death
+      end
+
+      # for backwards compatiblity
+      def duration;      self.time_per_formula;            end
+
+      def cost;          self.mana_cost_formula    || '0'; end
+
+      def manaCost;      self.mana_cost_formula    || '0'; end
+
+      def spiritCost;    self.spirit_cost_formula  || '0'; end
+
+      def staminaCost;   self.stamina_cost_formula || '0'; end
+
+      def boltAS;        self.bolt_as_formula;             end
+
+      def physicalAS;    self.physical_as_formula;         end
+
+      def boltDS;        self.bolt_ds_formula;             end
+
+      def physicalDS;    self.physical_ds_formula;         end
+
+      def elementalCS;   self.elemental_cs_formula;        end
+
+      def mentalCS;      self.mental_cs_formula;           end
+
+      def spiritCS;      self.spirit_cs_formula;           end
+
+      def sorcererCS;    self.sorcerer_cs_formula;         end
+
+      def elementalTD;   self.elemental_td_formula;        end
+
+      def mentalTD;      self.mental_td_formula;           end
+
+      def spiritTD;      self.spirit_td_formula;           end
+
+      def sorcererTD;    self.sorcerer_td_formula;         end
+
+      def castProc;      @cast_proc;                       end
+
+      def stacks;        self.stackable?                   end
+
+      def command;       nil;                              end
+
+      def circlename;    self.circle_name;                 end
+
+      def selfonly;      @availability != 'all';           end
+    end
+
+    class CMan
+      @@acrobats_leap          ||= 0	## added by Doug for Cman update
+      @@armor_spike_focus      ||= 0
+      @@bearhug                ||= 0
+      @@berserk                ||= 0
+      @@block_mastery          ||= 0
+      @@bull_rush              ||= 0
+      @@burst_of_swiftness     ||= 0
+      @@charge                 ||= 0
+      @@cheapshots             ||= 0
+      @@combat_focus           ||= 0
+      @@combat_mastery         ||= 0
+      @@combat_mobility        ||= 0
+      @@combat_movement        ||= 0
+      @@combat_toughness       ||= 0
+      @@coup_de_grace          ||= 0
+      @@crowd_press            ||= 0
+      @@cunning_defense        ||= 0
+      @@cutthroat              ||= 0
+      @@dirtkick               ||= 0
+      @@disarm_weapon          ||= 0
+      @@dislodge               ||= 0	## added by Doug for Cman update
+      @@divert                 ||= 0
+      @@duck_and_weave         ||= 0
+      @@dust_shroud            ||= 0
+      @@evade_mastery          ||= 0
+      @@executioners_stance    ||= 0
+      @@feint                  ||= 0
+      @@flurry_of_blows        ||= 0
+      @@garrote                ||= 0
+      @@grapple_mastery        ||= 0
+      @@griffins_voice         ||= 0
+      @@groin_kick             ||= 0
+      @@hamstring              ||= 0
+      @@haymaker               ||= 0
+      @@headbutt               ||= 0
+      @@inner_harmony          ||= 0
+      @@internal_power         ||= 0
+      @@ki_focus               ||= 0
+      @@kick_mastery           ||= 0
+      @@mighty_blow            ||= 0
+      @@mystic_strike          ||= 0
+      @@parry_mastery          ||= 0
+      @@perfect_self           ||= 0
+      @@precision              ||= 0
+      @@predators_eye          ||= 0
+      @@punch_mastery          ||= 0
+      @@quickstrike            ||= 0
+      @@rolling_krynch_stance  ||= 0
+      @@shadow_dance           ||= 0	## added by Doug for Cman update
+      @@shadow_mastery         ||= 0
+      @@shield_bash            ||= 0
+      @@shield_charge          ||= 0
+      @@side_by_side           ||= 0
+      @@silent_strike          ||= 0
+      @@slippery_mind          ||= 0
+      @@specialization_i       ||= 0
+      @@specialization_ii      ||= 0
+      @@specialization_iii     ||= 0
+      @@spell_cleaving         ||= 0
+      @@spell_parry            ||= 0
+      @@spell_thieve           ||= 0
+      @@spin_attack            ||= 0
+      @@staggering_blow        ||= 0
+      @@stance_of_the_mongoose ||= 0
+      @@striking_asp           ||= 0
+      @@stun_maneuvers         ||= 0
+      @@subdual_strike         ||= 0
+      @@subdue                 ||= 0
+      @@sucker_punch           ||= 0
+      @@sunder_shield          ||= 0
+      @@surge_of_strength      ||= 0
+      @@sweep                  ||= 0
+      @@tackle                 ||= 0
+      @@tainted_bond           ||= 0
+      @@trip                   ||= 0
+      @@true_strike            ||= 0	## added by Doug for Cman update
+      @@twin_hammerfists       ||= 0
+      @@unarmed_specialist     ||= 0
+      @@weapon_bonding         ||= 0
+      @@vanish                 ||= 0
+      @@whirling_dervish       ||= 0
+
+      def CMan.acrobats_leap;	                 @@acrobats_leap;                end ## Cman update add by Doug
+
+      def CMan.armor_spike_focus;              @@armor_spike_focus;            end
+
+      def CMan.bearhug;                        @@bearhug;                      end
+
+      def CMan.berserk;                        @@berserk;                      end
+
+      def CMan.block_mastery;                  @@block_mastery;                end
+
+      def CMan.bull_rush;                      @@bull_rush;                    end
+
+      def CMan.burst_of_swiftness;             @@burst_of_swiftness;           end
+
+      def CMan.charge;                         @@charge;                       end
+
+      def CMan.cheapshots;                     @@cheapshots;                   end
+
+      def CMan.combat_focus;                   @@combat_focus;                 end
+
+      def CMan.combat_mastery;                 @@combat_mastery;               end
+
+      def CMan.combat_mobility;                @@combat_mobility;              end
+
+      def CMan.combat_movement;                @@combat_movement;              end
+
+      def CMan.combat_toughness;               @@combat_toughness;             end
+
+      def CMan.coup_de_grace;                  @@coup_de_grace;                end
+
+      def CMan.crowd_press;                    @@crowd_press;                  end
+
+      def CMan.cunning_defense;                @@cunning_defense;              end
+
+      def CMan.cutthroat;                      @@cutthroat;                    end
+
+      def CMan.dirtkick;                       @@dirtkick;                     end
+
+      def CMan.disarm_weapon;                  @@disarm_weapon;                end
+
+      def CMan.dislodge; @@dislodge; end	## Cman update add by Doug
+
+      def CMan.divert;                         @@divert;                       end
+
+      def CMan.duck_and_weave;                 @@duck_and_weave;               end
+
+      def CMan.dust_shroud;                    @@dust_shroud;                  end
+
+      def CMan.evade_mastery;                  @@evade_mastery;                end
+
+      def CMan.executioners_stance;            @@executioners_stance;          end
+
+      def CMan.feint;                          @@feint;                        end
+
+      def CMan.flurry_of_blows;                @@flurry_of_blows;              end
+
+      def CMan.garrote;                        @@garrote;                      end
+
+      def CMan.grapple_mastery;                @@grapple_mastery;              end
+
+      def CMan.griffins_voice;                 @@griffins_voice;               end
+
+      def CMan.groin_kick;                     @@groin_kick;                   end
+
+      def CMan.hamstring;                      @@hamstring;                    end
+
+      def CMan.haymaker;                       @@haymaker;                     end
+
+      def CMan.headbutt;                       @@headbutt;                     end
+
+      def CMan.inner_harmony;                  @@inner_harmony;                end
+
+      def CMan.internal_power;                 @@internal_power;               end
+
+      def CMan.ki_focus;                       @@ki_focus;                     end
+
+      def CMan.kick_mastery;                   @@kick_mastery;                 end
+
+      def CMan.mighty_blow;                    @@mighty_blow;                  end
+
+      def CMan.mystic_strike;                  @@mystic_strike;                end
+
+      def CMan.parry_mastery;                  @@parry_mastery;                end
+
+      def CMan.perfect_self;                   @@perfect_self;                 end
+
+      def CMan.precision;                      @@precision;                    end
+
+      def CMan.predators_eye;                  @@predators_eye;                end
+
+      def CMan.punch_mastery;                  @@punch_mastery;                end
+
+      def CMan.quickstrike;                    @@quickstrike;                  end
+
+      def CMan.rolling_krynch_stance;          @@rolling_krynch_stance;        end
+
+      def CMan.shadow_dance; @@shadow_dance; end	## Cman update add by Doug
+
+      def CMan.shadow_mastery;                 @@shadow_mastery;               end
+
+      def CMan.shield_bash;                    @@shield_bash;                  end
+
+      def CMan.shield_charge;                  @@shield_charge;                end
+
+      def CMan.side_by_side;                   @@side_by_side;                 end
+
+      def CMan.silent_strike;                  @@silent_strike;                end
+
+      def CMan.slippery_mind;                  @@slippery_mind;                end
+
+      def CMan.specialization_i;               @@specialization_i;             end
+
+      def CMan.specialization_ii;              @@specialization_ii;            end
+
+      def CMan.specialization_iii;             @@specialization_iii;           end
+
+      def CMan.spell_cleaving;                 @@spell_cleaving;               end
+
+      def CMan.spell_parry;                    @@spell_parry;                  end
+
+      def CMan.spell_thieve;                   @@spell_thieve;                 end
+
+      def CMan.spin_attack;                    @@spin_attack;                  end
+
+      def CMan.staggering_blow;                @@staggering_blow;              end
+
+      def CMan.stance_of_the_mongoose;         @@stance_of_the_mongoose;       end
+
+      def CMan.striking_asp;                   @@striking_asp;                 end
+
+      def CMan.stun_maneuvers;                 @@stun_maneuvers;               end
+
+      def CMan.subdual_strike;                 @@subdual_strike;               end
+
+      def CMan.subdue;                         @@subdue;                       end
+
+      def CMan.sucker_punch;                   @@sucker_punch;                 end
+
+      def CMan.sunder_shield;                  @@sunder_shield;                end
+
+      def CMan.surge_of_strength;              @@surge_of_strength;            end
+
+      def CMan.sweep;                          @@sweep;                        end
+
+      def CMan.tackle;                         @@tackle;                       end
+
+      def CMan.tainted_bond;                   @@tainted_bond;                 end
+
+      def CMan.trip;                           @@trip;                         end
+
+      def CMan.true_strike;	                   @@true_strike;                  end	## Cman update add by Doug
+
+      def CMan.twin_hammerfists;               @@twin_hammerfists;             end
+
+      def CMan.unarmed_specialist;             @@unarmed_specialist;           end
+
+      def CMan.vanish;                         @@vanish;                       end
+
+      def CMan.weapon_bonding;                 @@weapon_bonding;               end
+
+      def CMan.whirling_dervish;               @@whirling_dervish;             end
+
+      def CMan.acrobats_leap=(val);            @@acrobats_leap = val;	         end	## add by Doug
+
+      def CMan.armor_spike_focus=(val);        @@armor_spike_focus = val;      end
+
+      def CMan.bearhug=(val);                  @@bearhug = val;                end
+
+      def CMan.berserk=(val);                  @@berserk = val;                end
+
+      def CMan.block_mastery=(val);            @@block_mastery = val;          end
+
+      def CMan.bull_rush=(val);                @@bull_rush = val;              end
+
+      def CMan.burst_of_swiftness=(val);       @@burst_of_swiftness = val;     end
+
+      def CMan.charge=(val);                   @@charge = val;                 end
+
+      def CMan.cheapshots=(val);               @@cheapshots = val;             end
+
+      def CMan.combat_focus=(val);             @@combat_focus = val;           end
+
+      def CMan.combat_mastery=(val);           @@combat_mastery = val;         end
+
+      def CMan.combat_mobility=(val);          @@combat_mobility = val;        end
+
+      def CMan.combat_movement=(val);          @@combat_movement = val;        end
+
+      def CMan.combat_toughness=(val);         @@combat_toughness = val;       end
+
+      def CMan.coup_de_grace=(val);            @@coup_de_grace = val;          end
+
+      def CMan.crowd_press=(val);              @@crowd_press = val;            end
+
+      def CMan.cunning_defense=(val);          @@cunning_defense = val;        end
+
+      def CMan.cutthroat=(val);                @@cutthroat = val;              end
+
+      def CMan.dirtkick=(val);                 @@dirtkick = val;               end
+
+      def CMan.disarm_weapon=(val);            @@disarm_weapon = val;          end
+
+      def CMan.dislodge=(val);                 @@dislodge = val; end	## add by Doug
+
+      def CMan.divert=(val);                   @@divert = val;                 end
+
+      def CMan.duck_and_weave=(val);           @@duck_and_weave = val;         end
+
+      def CMan.dust_shroud=(val);              @@dust_shroud = val;            end
+
+      def CMan.evade_mastery=(val);            @@evade_mastery = val;          end
+
+      def CMan.executioners_stance=(val);      @@executioners_stance = val;    end
+
+      def CMan.feint=(val);                    @@feint = val;                  end
+
+      def CMan.flurry_of_blows=(val);          @@flurry_of_blows = val;        end
+
+      def CMan.garrote=(val);                  @@garrote = val;                end
+
+      def CMan.grapple_mastery=(val);          @@grapple_mastery = val;        end
+
+      def CMan.griffins_voice=(val);           @@griffins_voice = val;         end
+
+      def CMan.groin_kick=(val);               @@groin_kick = val;             end
+
+      def CMan.hamstring=(val);                @@hamstring = val;              end
+
+      def CMan.haymaker=(val);                 @@haymaker = val;               end
+
+      def CMan.headbutt=(val);                 @@headbutt = val;               end
+
+      def CMan.inner_harmony=(val);            @@inner_harmony = val;          end
+
+      def CMan.internal_power=(val);           @@internal_power = val;         end
+
+      def CMan.ki_focus=(val);                 @@ki_focus = val;               end
+
+      def CMan.kick_mastery=(val);             @@kick_mastery = val;           end
+
+      def CMan.mighty_blow=(val);              @@mighty_blow = val;            end
+
+      def CMan.mystic_strike=(val);            @@mystic_strike = val;          end
+
+      def CMan.parry_mastery=(val);            @@parry_mastery = val;          end
+
+      def CMan.perfect_self=(val);             @@perfect_self = val;           end
+
+      def CMan.precision=(val);                @@precision = val;              end
+
+      def CMan.predators_eye=(val);            @@predators_eye = val;          end
+
+      def CMan.punch_mastery=(val);            @@punch_mastery = val;          end
+
+      def CMan.quickstrike=(val);              @@quickstrike = val;            end
+
+      def CMan.rolling_krynch_stance=(val);    @@rolling_krynch_stance = val;  end
+
+      def CMan.shadow_dance=(val); @@shadow_dance = val;	end	## add by Doug
+
+      def CMan.shadow_mastery=(val);           @@shadow_mastery = val;         end
+
+      def CMan.shield_bash=(val);              @@shield_bash = val;            end
+
+      def CMan.shield_charge=(val);            @@shield_charge = val;          end
+
+      def CMan.side_by_side=(val);             @@side_by_side = val;           end
+
+      def CMan.silent_strike=(val);            @@silent_strike = val;          end
+
+      def CMan.slippery_mind=(val);            @@slippery_mind = val;          end
+
+      def CMan.specialization_i=(val);         @@specialization_i = val;       end
+
+      def CMan.specialization_ii=(val);        @@specialization_ii = val;      end
+
+      def CMan.specialization_iii=(val);       @@specialization_iii = val;     end
+
+      def CMan.spell_cleaving=(val);           @@spell_cleaving = val;         end
+
+      def CMan.spell_parry=(val);              @@spell_parry = val;            end
+
+      def CMan.spell_thieve=(val);             @@spell_thieve = val;           end
+
+      def CMan.spin_attack=(val);              @@spin_attack = val;            end
+
+      def CMan.staggering_blow=(val);          @@staggering_blow = val;        end
+
+      def CMan.stance_of_the_mongoose=(val);   @@stance_of_the_mongoose = val; end
+
+      def CMan.striking_asp=(val);             @@striking_asp = val;           end
+
+      def CMan.stun_maneuvers=(val);           @@stun_maneuvers = val;         end
+
+      def CMan.subdual_strike=(val);           @@subdual_strike = val;         end
+
+      def CMan.subdue=(val);                   @@subdue = val;                 end
+
+      def CMan.sucker_punch=(val);             @@sucker_punch = val;           end
+
+      def CMan.sunder_shield=(val);            @@sunder_shield = val;          end
+
+      def CMan.surge_of_strength=(val);        @@surge_of_strength = val;      end
+
+      def CMan.sweep=(val);                    @@sweep = val;                  end
+
+      def CMan.tackle=(val);                   @@tackle = val;                 end
+
+      def CMan.tainted_bond=(val);             @@tainted_bond = val;           end
+
+      def CMan.trip=(val);                     @@trip = val;                   end
+
+      def CMan.true_strike=(val); @@true_strike = val;	end	## add by Doug
+
+      def CMan.twin_hammerfists=(val);         @@twin_hammerfists = val;       end
+
+      def CMan.unarmed_specialist=(val);       @@unarmed_specialist = val;     end
+
+      def CMan.vanish=(val);                   @@vanish = val;                 end
+
+      def CMan.weapon_bonding=(val);           @@weapon_bonding = val;         end
+
+      def CMan.whirling_dervish=(val);         @@whirling_dervish = val;       end
+
+      def CMan.method_missing(arg1, arg2 = nil)
+        nil
+      end
+
+      def CMan.[](name)
+        CMan.send(name.gsub(/[\s\-]/, '_').gsub("'", "").downcase)
+      end
+
+      def CMan.[]=(name, val)
+        CMan.send("#{name.gsub(/[\s\-]/, '_').gsub("'", "").downcase}=", val.to_i)
+      end
+    end
+
+    class Stats
+      @@race ||= 'unknown'
+      @@prof ||= 'unknown'
+      @@gender ||= 'unknown'
+      @@age ||= 0
+      @@level ||= 0
+      @@str ||= [0, 0]
+      @@con ||= [0, 0]
+      @@dex ||= [0, 0]
+      @@agi ||= [0, 0]
+      @@dis ||= [0, 0]
+      @@aur ||= [0, 0]
+      @@log ||= [0, 0]
+      @@int ||= [0, 0]
+      @@wis ||= [0, 0]
+      @@inf ||= [0, 0]
+      @@enhanced_str ||= [0, 0]
+      @@enhanced_con ||= [0, 0]
+      @@enhanced_dex ||= [0, 0]
+      @@enhanced_agi ||= [0, 0]
+      @@enhanced_dis ||= [0, 0]
+      @@enhanced_aur ||= [0, 0]
+      @@enhanced_log ||= [0, 0]
+      @@enhanced_int ||= [0, 0]
+      @@enhanced_wis ||= [0, 0]
+      @@enhanced_inf ||= [0, 0]
+      def Stats.race;         @@race; end
+
+      def Stats.race=(val);   @@race = val; end
+
+      def Stats.prof;         @@prof; end
+
+      def Stats.prof=(val);   @@prof = val; end
+
+      def Stats.gender;       @@gender; end
+
+      def Stats.gender=(val); @@gender = val; end
+
+      def Stats.age;          @@age; end
+
+      def Stats.age=(val);    @@age = val; end
+
+      def Stats.level;        @@level; end
+
+      def Stats.level=(val);  @@level = val; end
+
+      def Stats.str;          @@str; end
+
+      def Stats.str=(val);    @@str = val; end
+
+      def Stats.con;          @@con; end
+
+      def Stats.con=(val);    @@con = val; end
+
+      def Stats.dex;          @@dex; end
+
+      def Stats.dex=(val);    @@dex = val; end
+
+      def Stats.agi;          @@agi; end
+
+      def Stats.agi=(val);    @@agi = val; end
+
+      def Stats.dis;          @@dis; end
+
+      def Stats.dis=(val);    @@dis = val; end
+
+      def Stats.aur;          @@aur; end
+
+      def Stats.aur=(val);    @@aur = val; end
+
+      def Stats.log;          @@log; end
+
+      def Stats.log=(val);    @@log = val; end
+
+      def Stats.int;          @@int; end
+
+      def Stats.int=(val);    @@int = val; end
+
+      def Stats.wis;          @@wis; end
+
+      def Stats.wis=(val);    @@wis = val; end
+
+      def Stats.inf;          @@inf; end
+
+      def Stats.inf=(val);    @@inf = val; end
+
+      def Stats.enhanced_str;          @@enhanced_str; end
+
+      def Stats.enhanced_str=(val);    @@enhanced_str = val; end
+
+      def Stats.enhanced_con;          @@enhanced_con; end
+
+      def Stats.enhanced_con=(val);    @@enhanced_con = val; end
+
+      def Stats.enhanced_dex;          @@enhanced_dex; end
+
+      def Stats.enhanced_dex=(val);    @@enhanced_dex = val; end
+
+      def Stats.enhanced_agi;          @@enhanced_agi; end
+
+      def Stats.enhanced_agi=(val);    @@enhanced_agi = val; end
+
+      def Stats.enhanced_dis;          @@enhanced_dis; end
+
+      def Stats.enhanced_dis=(val);    @@enhanced_dis = val; end
+
+      def Stats.enhanced_aur;          @@enhanced_aur; end
+
+      def Stats.enhanced_aur=(val);    @@enhanced_aur = val; end
+
+      def Stats.enhanced_log;          @@enhanced_log; end
+
+      def Stats.enhanced_log=(val);    @@enhanced_log = val; end
+
+      def Stats.enhanced_int;          @@enhanced_int; end
+
+      def Stats.enhanced_int=(val);    @@enhanced_int = val; end
+
+      def Stats.enhanced_wis;          @@enhanced_wis; end
+
+      def Stats.enhanced_wis=(val);    @@enhanced_wis = val; end
+
+      def Stats.enhanced_inf;          @@enhanced_inf; end
+
+      def Stats.enhanced_inf=(val);    @@enhanced_inf = val; end
+
+      def Stats.exp
+        if XMLData.next_level_text =~ /until next level/
+          exp_threshold = [2500, 5000, 10000, 17500, 27500, 40000, 55000, 72500, 92500, 115000, 140000, 167000, 197500, 230000, 265000, 302000, 341000, 382000, 425000, 470000, 517000, 566000, 617000, 670000, 725000, 781500, 839500, 899000, 960000, 1022500, 1086500, 1152000, 1219000, 1287500, 1357500, 1429000, 1502000, 1576500, 1652500, 1730000, 1808500, 1888000, 1968500, 2050000, 2132500, 2216000, 2300500, 2386000, 2472500, 2560000, 2648000, 2736500, 2825500, 2915000, 3005000, 3095500, 3186500, 3278000, 3370000, 3462500, 3555500, 3649000, 3743000, 3837500, 3932500, 4028000, 4124000, 4220500, 4317500, 4415000, 4513000, 4611500, 4710500, 4810000, 4910000, 5010500, 5111500, 5213000, 5315000, 5417500, 5520500, 5624000, 5728000, 5832500, 5937500, 6043000, 6149000, 6255500, 6362500, 6470000, 6578000, 6686500, 6795500, 6905000, 7015000, 7125500, 7236500, 7348000, 7460000, 7572500]
+          exp_threshold[XMLData.level] - XMLData.next_level_text.slice(/[0-9]+/).to_i
+        else
+          XMLData.next_level_text.slice(/[0-9]+/).to_i
         end
-      else
-        @@type_data = nil
-        @@sellable_data = nil
-        echo "error: GameObj.load_data: file does not exist: #{filename}"
+      end
+
+      def Stats.exp=(val); nil; end
+
+      def Stats.serialize
+        [@@race, @@prof, @@gender, @@age, Stats.exp, @@level, @@str, @@con, @@dex, @@agi, @@dis, @@aur, @@log, @@int, @@wis, @@inf, @@enhanced_str, @@enhanced_con, @@enhanced_dex, @@enhanced_agi, @@enhanced_dis, @@enhanced_aur, @@enhanced_log, @@enhanced_int, @@enhanced_wis, @@enhanced_inf]
+      end
+
+      def Stats.load_serialized=(array)
+        for i in 16..25
+          array[i] ||= [0, 0]
+        end
+        @@race, @@prof, @@gender, @@age = array[0..3]
+        @@level, @@str, @@con, @@dex, @@agi, @@dis, @@aur, @@log, @@int, @@wis, @@inf, @@enhanced_str, @@enhanced_con, @@enhanced_dex, @@enhanced_agi, @@enhanced_dis, @@enhanced_aur, @@enhanced_log, @@enhanced_int, @@enhanced_wis, @@enhanced_inf = array[5..25]
+      end
+    end
+
+    class Gift
+      @@gift_start ||= Time.now
+      @@pulse_count ||= 0
+      def Gift.started
+        @@gift_start = Time.now
+        @@pulse_count = 0
+      end
+
+      def Gift.pulse
+        @@pulse_count += 1
+      end
+
+      def Gift.remaining
+        ([360 - @@pulse_count, 0].max * 60).to_f
+      end
+
+      def Gift.restarts_on
+        @@gift_start + 594000
+      end
+
+      def Gift.serialize
+        [@@gift_start, @@pulse_count]
+      end
+
+      def Gift.load_serialized=(array)
+        @@gift_start = array[0]
+        @@pulse_count = array[1].to_i
+      end
+
+      def Gift.ended
+        @@pulse_count = 360
+      end
+
+      def Gift.stopwatch
+        nil
+      end
+    end
+
+    class Wounds
+      def Wounds.leftEye;   fix_injury_mode; XMLData.injuries['leftEye']['wound'];   end
+
+      def Wounds.leye;      fix_injury_mode; XMLData.injuries['leftEye']['wound'];   end
+
+      def Wounds.rightEye;  fix_injury_mode; XMLData.injuries['rightEye']['wound'];  end
+
+      def Wounds.reye;      fix_injury_mode; XMLData.injuries['rightEye']['wound'];  end
+
+      def Wounds.head;      fix_injury_mode; XMLData.injuries['head']['wound'];      end
+
+      def Wounds.neck;      fix_injury_mode; XMLData.injuries['neck']['wound'];      end
+
+      def Wounds.back;      fix_injury_mode; XMLData.injuries['back']['wound'];      end
+
+      def Wounds.chest;     fix_injury_mode; XMLData.injuries['chest']['wound'];     end
+
+      def Wounds.abdomen;   fix_injury_mode; XMLData.injuries['abdomen']['wound'];   end
+
+      def Wounds.abs;       fix_injury_mode; XMLData.injuries['abdomen']['wound'];   end
+
+      def Wounds.leftArm;   fix_injury_mode; XMLData.injuries['leftArm']['wound'];   end
+
+      def Wounds.larm;      fix_injury_mode; XMLData.injuries['leftArm']['wound'];   end
+
+      def Wounds.rightArm;  fix_injury_mode; XMLData.injuries['rightArm']['wound'];  end
+
+      def Wounds.rarm;      fix_injury_mode; XMLData.injuries['rightArm']['wound'];  end
+
+      def Wounds.rightHand; fix_injury_mode; XMLData.injuries['rightHand']['wound']; end
+
+      def Wounds.rhand;     fix_injury_mode; XMLData.injuries['rightHand']['wound']; end
+
+      def Wounds.leftHand;  fix_injury_mode; XMLData.injuries['leftHand']['wound'];  end
+
+      def Wounds.lhand;     fix_injury_mode; XMLData.injuries['leftHand']['wound'];  end
+
+      def Wounds.leftLeg;   fix_injury_mode; XMLData.injuries['leftLeg']['wound'];   end
+
+      def Wounds.lleg;      fix_injury_mode; XMLData.injuries['leftLeg']['wound'];   end
+
+      def Wounds.rightLeg;  fix_injury_mode; XMLData.injuries['rightLeg']['wound'];  end
+
+      def Wounds.rleg;      fix_injury_mode; XMLData.injuries['rightLeg']['wound'];  end
+
+      def Wounds.leftFoot;  fix_injury_mode; XMLData.injuries['leftFoot']['wound'];  end
+
+      def Wounds.rightFoot; fix_injury_mode; XMLData.injuries['rightFoot']['wound']; end
+
+      def Wounds.nsys;      fix_injury_mode; XMLData.injuries['nsys']['wound'];      end
+
+      def Wounds.nerves;    fix_injury_mode; XMLData.injuries['nsys']['wound'];      end
+
+      def Wounds.arms
+        fix_injury_mode
+        [XMLData.injuries['leftArm']['wound'], XMLData.injuries['rightArm']['wound'], XMLData.injuries['leftHand']['wound'], XMLData.injuries['rightHand']['wound']].max
+      end
+
+      def Wounds.limbs
+        fix_injury_mode
+        [XMLData.injuries['leftArm']['wound'], XMLData.injuries['rightArm']['wound'], XMLData.injuries['leftHand']['wound'], XMLData.injuries['rightHand']['wound'], XMLData.injuries['leftLeg']['wound'], XMLData.injuries['rightLeg']['wound']].max
+      end
+
+      def Wounds.torso
+        fix_injury_mode
+        [XMLData.injuries['rightEye']['wound'], XMLData.injuries['leftEye']['wound'], XMLData.injuries['chest']['wound'], XMLData.injuries['abdomen']['wound'], XMLData.injuries['back']['wound']].max
+      end
+
+      def Wounds.method_missing(arg = nil)
+        echo "Wounds: Invalid area, try one of these: arms, limbs, torso, #{XMLData.injuries.keys.join(', ')}"
+        nil
+      end
+    end
+
+    class Scars
+      def Scars.leftEye;   fix_injury_mode; XMLData.injuries['leftEye']['scar'];   end
+
+      def Scars.leye;      fix_injury_mode; XMLData.injuries['leftEye']['scar'];   end
+
+      def Scars.rightEye;  fix_injury_mode; XMLData.injuries['rightEye']['scar'];  end
+
+      def Scars.reye;      fix_injury_mode; XMLData.injuries['rightEye']['scar'];  end
+
+      def Scars.head;      fix_injury_mode; XMLData.injuries['head']['scar'];      end
+
+      def Scars.neck;      fix_injury_mode; XMLData.injuries['neck']['scar'];      end
+
+      def Scars.back;      fix_injury_mode; XMLData.injuries['back']['scar'];      end
+
+      def Scars.chest;     fix_injury_mode; XMLData.injuries['chest']['scar'];     end
+
+      def Scars.abdomen;   fix_injury_mode; XMLData.injuries['abdomen']['scar'];   end
+
+      def Scars.abs;       fix_injury_mode; XMLData.injuries['abdomen']['scar'];   end
+
+      def Scars.leftArm;   fix_injury_mode; XMLData.injuries['leftArm']['scar'];   end
+
+      def Scars.larm;      fix_injury_mode; XMLData.injuries['leftArm']['scar'];   end
+
+      def Scars.rightArm;  fix_injury_mode; XMLData.injuries['rightArm']['scar'];  end
+
+      def Scars.rarm;      fix_injury_mode; XMLData.injuries['rightArm']['scar'];  end
+
+      def Scars.rightHand; fix_injury_mode; XMLData.injuries['rightHand']['scar']; end
+
+      def Scars.rhand;     fix_injury_mode; XMLData.injuries['rightHand']['scar']; end
+
+      def Scars.leftHand;  fix_injury_mode; XMLData.injuries['leftHand']['scar'];  end
+
+      def Scars.lhand;     fix_injury_mode; XMLData.injuries['leftHand']['scar'];  end
+
+      def Scars.leftLeg;   fix_injury_mode; XMLData.injuries['leftLeg']['scar'];   end
+
+      def Scars.lleg;      fix_injury_mode; XMLData.injuries['leftLeg']['scar'];   end
+
+      def Scars.rightLeg;  fix_injury_mode; XMLData.injuries['rightLeg']['scar'];  end
+
+      def Scars.rleg;      fix_injury_mode; XMLData.injuries['rightLeg']['scar'];  end
+
+      def Scars.leftFoot;  fix_injury_mode; XMLData.injuries['leftFoot']['scar'];  end
+
+      def Scars.rightFoot; fix_injury_mode; XMLData.injuries['rightFoot']['scar']; end
+
+      def Scars.nsys;      fix_injury_mode; XMLData.injuries['nsys']['scar'];      end
+
+      def Scars.nerves;    fix_injury_mode; XMLData.injuries['nsys']['scar'];      end
+
+      def Scars.arms
+        fix_injury_mode
+        [XMLData.injuries['leftArm']['scar'], XMLData.injuries['rightArm']['scar'], XMLData.injuries['leftHand']['scar'], XMLData.injuries['rightHand']['scar']].max
+      end
+
+      def Scars.limbs
+        fix_injury_mode
+        [XMLData.injuries['leftArm']['scar'], XMLData.injuries['rightArm']['scar'], XMLData.injuries['leftHand']['scar'], XMLData.injuries['rightHand']['scar'], XMLData.injuries['leftLeg']['scar'], XMLData.injuries['rightLeg']['scar']].max
+      end
+
+      def Scars.torso
+        fix_injury_mode
+        [XMLData.injuries['rightEye']['scar'], XMLData.injuries['leftEye']['scar'], XMLData.injuries['chest']['scar'], XMLData.injuries['abdomen']['scar'], XMLData.injuries['back']['scar']].max
+      end
+
+      def Scars.method_missing(arg = nil)
+        echo "Scars: Invalid area, try one of these: arms, limbs, torso, #{XMLData.injuries.keys.join(', ')}"
+        nil
+      end
+    end
+    class GameObj
+      @@loot          = Array.new
+      @@npcs          = Array.new
+      @@npc_status    = Hash.new
+      @@pcs           = Array.new
+      @@pc_status     = Hash.new
+      @@inv           = Array.new
+      @@contents      = Hash.new
+      @@right_hand    = nil
+      @@left_hand     = nil
+      @@room_desc     = Array.new
+      @@fam_loot      = Array.new
+      @@fam_npcs      = Array.new
+      @@fam_pcs       = Array.new
+      @@fam_room_desc = Array.new
+      @@type_data     = Hash.new
+      @@sellable_data = Hash.new
+      @@elevated_load = proc { GameObj.load_data }
+
+      attr_reader :id
+      attr_accessor :noun, :name, :before_name, :after_name
+
+      def initialize(id, noun, name, before = nil, after = nil)
+        @id = id
+        @noun = noun
+        @noun = 'lapis' if @noun == 'lapis lazuli'
+        @noun = 'hammer' if @noun == "Hammer of Kai"
+        @noun = 'mother-of-pearl' if (@noun == 'pearl') and (@name =~ /mother\-of\-pearl/)
+        @name = name
+        @before_name = before
+        @after_name = after
+      end
+
+      def type
+        GameObj.load_data if @@type_data.empty?
+        list = @@type_data.keys.find_all { |t| (@name =~ @@type_data[t][:name] or @noun =~ @@type_data[t][:noun]) and (@@type_data[t][:exclude].nil? or @name !~ @@type_data[t][:exclude]) }
+        if list.empty?
+          nil
+        else
+          list.join(',')
+        end
+      end
+
+      def sellable
+        GameObj.load_data if @@sellable_data.empty?
+        list = @@sellable_data.keys.find_all { |t| (@name =~ @@sellable_data[t][:name] or @noun =~ @@sellable_data[t][:noun]) and (@@sellable_data[t][:exclude].nil? or @name !~ @@sellable_data[t][:exclude]) }
+        if list.empty?
+          nil
+        else
+          list.join(',')
+        end
+      end
+
+      def status
+        if @@npc_status.keys.include?(@id)
+          @@npc_status[@id]
+        elsif @@pc_status.keys.include?(@id)
+          @@pc_status[@id]
+        elsif @@loot.find { |obj| obj.id == @id } or @@inv.find { |obj| obj.id == @id } or @@room_desc.find { |obj| obj.id == @id } or @@fam_loot.find { |obj| obj.id == @id } or @@fam_npcs.find { |obj| obj.id == @id } or @@fam_pcs.find { |obj| obj.id == @id } or @@fam_room_desc.find { |obj| obj.id == @id } or (@@right_hand.id == @id) or (@@left_hand.id == @id) or @@contents.values.find { |list| list.find { |obj| obj.id == @id } }
+          nil
+        else
+          'gone'
+        end
+      end
+
+      def status=(val)
+        if @@npcs.any? { |npc| npc.id == @id }
+          @@npc_status[@id] = val
+        elsif @@pcs.any? { |pc| pc.id == @id }
+          @@pc_status[@id] = val
+        else
+          nil
+        end
+      end
+
+      def to_s
+        @noun
+      end
+
+      def empty?
         false
       end
-    else
-      @@elevated_load.call
+
+      def contents
+        @@contents[@id].dup
+      end
+
+      def GameObj.[](val)
+        if val.class == String
+          if val =~ /^\-?[0-9]+$/
+            obj = @@inv.find { |o| o.id == val } || @@loot.find { |o| o.id == val } || @@npcs.find { |o| o.id == val } || @@pcs.find { |o| o.id == val } || [@@right_hand, @@left_hand].find { |o| o.id == val } || @@room_desc.find { |o| o.id == val }
+          elsif val.split(' ').length == 1
+            obj = @@inv.find { |o| o.noun == val } || @@loot.find { |o| o.noun == val } || @@npcs.find { |o| o.noun == val } || @@pcs.find { |o| o.noun == val } || [@@right_hand, @@left_hand].find { |o| o.noun == val } || @@room_desc.find { |o| o.noun == val }
+          else
+            obj = @@inv.find { |o| o.name == val } || @@loot.find { |o| o.name == val } || @@npcs.find { |o| o.name == val } || @@pcs.find { |o| o.name == val } || [@@right_hand, @@left_hand].find { |o| o.name == val } || @@room_desc.find { |o| o.name == val } || @@inv.find { |o| o.name =~ /\b#{Regexp.escape(val.strip)}$/i } || @@loot.find { |o| o.name =~ /\b#{Regexp.escape(val.strip)}$/i } || @@npcs.find { |o| o.name =~ /\b#{Regexp.escape(val.strip)}$/i } || @@pcs.find { |o| o.name =~ /\b#{Regexp.escape(val.strip)}$/i } || [@@right_hand, @@left_hand].find { |o| o.name =~ /\b#{Regexp.escape(val.strip)}$/i } || @@room_desc.find { |o| o.name =~ /\b#{Regexp.escape(val.strip)}$/i } || @@inv.find { |o| o.name =~ /\b#{Regexp.escape(val).sub(' ', ' .*')}$/i } || @@loot.find { |o| o.name =~ /\b#{Regexp.escape(val).sub(' ', ' .*')}$/i } || @@npcs.find { |o| o.name =~ /\b#{Regexp.escape(val).sub(' ', ' .*')}$/i } || @@pcs.find { |o| o.name =~ /\b#{Regexp.escape(val).sub(' ', ' .*')}$/i } || [@@right_hand, @@left_hand].find { |o| o.name =~ /\b#{Regexp.escape(val).sub(' ', ' .*')}$/i } || @@room_desc.find { |o| o.name =~ /\b#{Regexp.escape(val).sub(' ', ' .*')}$/i }
+          end
+        elsif val.class == Regexp
+          obj = @@inv.find { |o| o.name =~ val } || @@loot.find { |o| o.name =~ val } || @@npcs.find { |o| o.name =~ val } || @@pcs.find { |o| o.name =~ val } || [@@right_hand, @@left_hand].find { |o| o.name =~ val } || @@room_desc.find { |o| o.name =~ val }
+        end
+      end
+
+      def GameObj
+        @noun
+      end
+
+      def full_name
+        "#{@before_name}#{' ' unless @before_name.nil? or @before_name.empty?}#{name}#{' ' unless @after_name.nil? or @after_name.empty?}#{@after_name}"
+      end
+
+      def GameObj.new_npc(id, noun, name, status = nil)
+        obj = GameObj.new(id, noun, name)
+        @@npcs.push(obj)
+        @@npc_status[id] = status
+        obj
+      end
+
+      def GameObj.new_loot(id, noun, name)
+        obj = GameObj.new(id, noun, name)
+        @@loot.push(obj)
+        obj
+      end
+
+      def GameObj.new_pc(id, noun, name, status = nil)
+        obj = GameObj.new(id, noun, name)
+        @@pcs.push(obj)
+        @@pc_status[id] = status
+        obj
+      end
+
+      def GameObj.new_inv(id, noun, name, container = nil, before = nil, after = nil)
+        obj = GameObj.new(id, noun, name, before, after)
+        if container
+          @@contents[container].push(obj)
+        else
+          @@inv.push(obj)
+        end
+        obj
+      end
+
+      def GameObj.new_room_desc(id, noun, name)
+        obj = GameObj.new(id, noun, name)
+        @@room_desc.push(obj)
+        obj
+      end
+
+      def GameObj.new_fam_room_desc(id, noun, name)
+        obj = GameObj.new(id, noun, name)
+        @@fam_room_desc.push(obj)
+        obj
+      end
+
+      def GameObj.new_fam_loot(id, noun, name)
+        obj = GameObj.new(id, noun, name)
+        @@fam_loot.push(obj)
+        obj
+      end
+
+      def GameObj.new_fam_npc(id, noun, name)
+        obj = GameObj.new(id, noun, name)
+        @@fam_npcs.push(obj)
+        obj
+      end
+
+      def GameObj.new_fam_pc(id, noun, name)
+        obj = GameObj.new(id, noun, name)
+        @@fam_pcs.push(obj)
+        obj
+      end
+
+      def GameObj.new_right_hand(id, noun, name)
+        @@right_hand = GameObj.new(id, noun, name)
+      end
+
+      def GameObj.right_hand
+        @@right_hand.dup
+      end
+
+      def GameObj.new_left_hand(id, noun, name)
+        @@left_hand = GameObj.new(id, noun, name)
+      end
+
+      def GameObj.left_hand
+        @@left_hand.dup
+      end
+
+      def GameObj.clear_loot
+        @@loot.clear
+      end
+
+      def GameObj.clear_npcs
+        @@npcs.clear
+        @@npc_status.clear
+      end
+
+      def GameObj.clear_pcs
+        @@pcs.clear
+        @@pc_status.clear
+      end
+
+      def GameObj.clear_inv
+        @@inv.clear
+      end
+
+      def GameObj.clear_room_desc
+        @@room_desc.clear
+      end
+
+      def GameObj.clear_fam_room_desc
+        @@fam_room_desc.clear
+      end
+
+      def GameObj.clear_fam_loot
+        @@fam_loot.clear
+      end
+
+      def GameObj.clear_fam_npcs
+        @@fam_npcs.clear
+      end
+
+      def GameObj.clear_fam_pcs
+        @@fam_pcs.clear
+      end
+
+      def GameObj.npcs
+        if @@npcs.empty?
+          nil
+        else
+          @@npcs.dup
+        end
+      end
+
+      def GameObj.loot
+        if @@loot.empty?
+          nil
+        else
+          @@loot.dup
+        end
+      end
+
+      def GameObj.pcs
+        if @@pcs.empty?
+          nil
+        else
+          @@pcs.dup
+        end
+      end
+
+      def GameObj.inv
+        if @@inv.empty?
+          nil
+        else
+          @@inv.dup
+        end
+      end
+
+      def GameObj.room_desc
+        if @@room_desc.empty?
+          nil
+        else
+          @@room_desc.dup
+        end
+      end
+
+      def GameObj.fam_room_desc
+        if @@fam_room_desc.empty?
+          nil
+        else
+          @@fam_room_desc.dup
+        end
+      end
+
+      def GameObj.fam_loot
+        if @@fam_loot.empty?
+          nil
+        else
+          @@fam_loot.dup
+        end
+      end
+
+      def GameObj.fam_npcs
+        if @@fam_npcs.empty?
+          nil
+        else
+          @@fam_npcs.dup
+        end
+      end
+
+      def GameObj.fam_pcs
+        if @@fam_pcs.empty?
+          nil
+        else
+          @@fam_pcs.dup
+        end
+      end
+
+      def GameObj.clear_container(container_id)
+        @@contents[container_id] = Array.new
+      end
+
+      def GameObj.delete_container(container_id)
+        @@contents.delete(container_id)
+      end
+
+      def GameObj.targets
+        a = Array.new
+        XMLData.current_target_ids.each { |id|
+          if (npc = @@npcs.find { |n| n.id == id }) and (npc.status !~ /dead|gone/)
+            a.push(npc)
+          end
+        }
+        a
+      end
+
+      def GameObj.dead
+        dead_list = Array.new
+        for obj in @@npcs
+          dead_list.push(obj) if obj.status == "dead"
+        end
+        return nil if dead_list.empty?
+
+        return dead_list
+      end
+
+      def GameObj.containers
+        @@contents.dup
+      end
+
+      def GameObj.load_data(filename = nil)
+        if $SAFE == 0
+          if filename.nil?
+            if File.exists?("#{DATA_DIR}/gameobj-data.xml")
+              filename = "#{DATA_DIR}/gameobj-data.xml"
+            elsif File.exists?("#{SCRIPT_DIR}/gameobj-data.xml") # deprecated
+              filename = "#{SCRIPT_DIR}/gameobj-data.xml"
+            else
+              filename = "#{DATA_DIR}/gameobj-data.xml"
+            end
+          end
+          if File.exists?(filename)
+            begin
+              @@type_data = Hash.new
+              @@sellable_data = Hash.new
+              File.open(filename) { |file|
+                doc = REXML::Document.new(file.read)
+                doc.elements.each('data/type') { |e|
+                  if type = e.attributes['name']
+                    @@type_data[type] = Hash.new
+                    @@type_data[type][:name]    = Regexp.new(e.elements['name'].text) unless e.elements['name'].text.nil? or e.elements['name'].text.empty?
+                    @@type_data[type][:noun]    = Regexp.new(e.elements['noun'].text) unless e.elements['noun'].text.nil? or e.elements['noun'].text.empty?
+                    @@type_data[type][:exclude] = Regexp.new(e.elements['exclude'].text) unless e.elements['exclude'].text.nil? or e.elements['exclude'].text.empty?
+                  end
+                }
+                doc.elements.each('data/sellable') { |e|
+                  if sellable = e.attributes['name']
+                    @@sellable_data[sellable] = Hash.new
+                    @@sellable_data[sellable][:name]    = Regexp.new(e.elements['name'].text) unless e.elements['name'].text.nil? or e.elements['name'].text.empty?
+                    @@sellable_data[sellable][:noun]    = Regexp.new(e.elements['noun'].text) unless e.elements['noun'].text.nil? or e.elements['noun'].text.empty?
+                    @@sellable_data[sellable][:exclude] = Regexp.new(e.elements['exclude'].text) unless e.elements['exclude'].text.nil? or e.elements['exclude'].text.empty?
+                  end
+                }
+              }
+              true
+            rescue
+              @@type_data = nil
+              @@sellable_data = nil
+              echo "error: GameObj.load_data: #{$!}"
+              respond $!.backtrace[0..1]
+              false
+            end
+          else
+            @@type_data = nil
+            @@sellable_data = nil
+            echo "error: GameObj.load_data: file does not exist: #{filename}"
+            false
+          end
+        else
+          @@elevated_load.call
+        end
+      end
+
+      def GameObj.type_data
+        @@type_data
+      end
+
+      def GameObj.sellable_data
+        @@sellable_data
+      end
     end
+    #
+    # start deprecated stuff
+    #
+    class RoomObj < GameObj
+    end
+    #
+    # end deprecated stuff
+    #
   end
-  def GameObj.type_data
-    @@type_data
+  module DragonRealms
+    # fixme
   end
-  def GameObj.sellable_data
-    @@sellable_data
-  end
-end
-#
-# start deprecated stuff
-#
-class RoomObj < GameObj
-end
-#
-# end deprecated stuff
-#
-end
-module DragonRealms
-  # fixme
-end
 end
 
 include Games::Gemstone
@@ -9653,16 +10970,16 @@ reconnect_if_wanted = proc {
       if $frontend == 'stormfront'
         system 'taskkill /FI "WINDOWTITLE eq [GSIV: ' + Char.name + '*"' # fixme: window title changing to Gemstone IV: Char.name # name optional
       end
-      args = [ 'start rubyw.exe' ]
+      args = ['start rubyw.exe']
     else
-      args = [ 'ruby' ]
+      args = ['ruby']
     end
     args.push $PROGRAM_NAME.slice(/[^\\\/]+$/)
     args.concat ARGV
     args.push '--reconnected' unless args.include?('--reconnected')
     if reconnect_step > 0
       args.delete(reconnect_arg)
-      args.concat ["--reconnect-delay=#{reconnect_delay+reconnect_step}+#{reconnect_step}"]
+      args.concat ["--reconnect-delay=#{reconnect_delay + reconnect_step}+#{reconnect_step}"]
     end
     Lich.log "exec args.join(' '): exec #{args.join(' ')}"
     exec args.join(' ')
@@ -9680,7 +10997,7 @@ $stormfront = true
 
 module Lich
   @@last_warn_deprecated = 0
-  def Lich.method_missing(arg1, arg2='')
+  def Lich.method_missing(arg1, arg2 = '')
     if (Time.now.to_i - @@last_warn_deprecated) > 300
       respond "--- warning: Lich.* variables will stop working in a future version of Lich.  Use Vars.* (offending script: #{Script.current.name || 'unknown'})"
       @@last_warn_deprecated = Time.now.to_i
@@ -9693,6 +11010,7 @@ class Script
   def Script.self
     Script.current
   end
+
   def Script.running
     list = Array.new
     for script in @@running
@@ -9700,9 +11018,11 @@ class Script
     end
     return list
   end
+
   def Script.index
     Script.running
   end
+
   def Script.hidden
     list = Array.new
     for script in @@running
@@ -9710,6 +11030,7 @@ class Script
     end
     return list
   end
+
   def Script.namescript_incoming(line)
     Script.new_downstream(line)
   end
@@ -9719,59 +11040,76 @@ class Spellsong
   def Spellsong.cost
     Spellsong.renew_cost
   end
+
   def Spellsong.tonisdodgebonus
-    thresholds = [1,2,3,5,8,10,14,17,21,26,31,36,42,49,55,63,70,78,87,96]
+    thresholds = [1, 2, 3, 5, 8, 10, 14, 17, 21, 26, 31, 36, 42, 49, 55, 63, 70, 78, 87, 96]
     bonus = 20
     thresholds.each { |val| if Skills.elair >= val then bonus += 1 end }
     bonus
   end
+
   def Spellsong.mirrorsdodgebonus
     20 + ((Spells.bard - 19) / 2).round
   end
+
   def Spellsong.mirrorscost
     [19 + ((Spells.bard - 19) / 5).truncate, 8 + ((Spells.bard - 19) / 10).truncate]
   end
+
   def Spellsong.sonicbonus
     (Spells.bard / 2).round
   end
+
   def Spellsong.sonicarmorbonus
     Spellsong.sonicbonus + 15
   end
+
   def Spellsong.sonicbladebonus
     Spellsong.sonicbonus + 10
   end
+
   def Spellsong.sonicweaponbonus
     Spellsong.sonicbladebonus
   end
+
   def Spellsong.sonicshieldbonus
     Spellsong.sonicbonus + 10
   end
+
   def Spellsong.valorbonus
     10 + (([Spells.bard, Stats.level].min - 10) / 2).round
   end
+
   def Spellsong.valorcost
     [10 + (Spellsong.valorbonus / 2), 3 + (Spellsong.valorbonus / 5)]
   end
+
   def Spellsong.luckcost
-    [6 + ((Spells.bard - 6) / 4),(6 + ((Spells.bard - 6) / 4) / 2).round]
+    [6 + ((Spells.bard - 6) / 4), (6 + ((Spells.bard - 6) / 4) / 2).round]
   end
+
   def Spellsong.manacost
-    [18,15]
+    [18, 15]
   end
+
   def Spellsong.fortcost
-    [3,1]
+    [3, 1]
   end
+
   def Spellsong.shieldcost
-    [9,4]
+    [9, 4]
   end
+
   def Spellsong.weaponcost
-    [12,4]
+    [12, 4]
   end
+
   def Spellsong.armorcost
-    [14,5]
+    [14, 5]
   end
+
   def Spellsong.swordcost
-    [25,15]
+    [25, 15]
   end
 end
 
@@ -9779,23 +11117,27 @@ class Map
   def desc
     @description
   end
+
   def map_name
     @image
   end
+
   def map_x
     if @image_coords.nil?
       nil
     else
-      ((image_coords[0] + image_coords[2])/2.0).round
+      ((image_coords[0] + image_coords[2]) / 2.0).round
     end
   end
+
   def map_y
     if @image_coords.nil?
       nil
     else
-      ((image_coords[1] + image_coords[3])/2.0).round
+      ((image_coords[1] + image_coords[3]) / 2.0).round
     end
   end
+
   def map_roomsize
     if @image_coords.nil?
       nil
@@ -9803,12 +11145,13 @@ class Map
       image_coords[2] - image_coords[0]
     end
   end
+
   def geo
     nil
   end
 end
 
-def start_script(script_name, cli_vars=[], flags=Hash.new)
+def start_script(script_name, cli_vars = [], flags = Hash.new)
   if flags == true
     flags = { :quiet => true }
   end
@@ -9822,10 +11165,10 @@ def start_scripts(*script_names)
   }
 end
 
-def force_start_script(script_name,cli_vars=[], flags={})
+def force_start_script(script_name, cli_vars = [], flags = {})
   flags = Hash.new unless flags.class == Hash
   flags[:force] = true
-  start_script(script_name,cli_vars,flags)
+  start_script(script_name, cli_vars, flags)
 end
 
 def survivepoison?
@@ -9850,10 +11193,11 @@ def abort!
   Script.exit!
 end
 
-def fetchloot(userbagchoice=UserVars.lootsack)
+def fetchloot(userbagchoice = UserVars.lootsack)
   if GameObj.loot.empty?
     return false
   end
+
   if UserVars.excludeloot.empty?
     regexpstr = nil
   else
@@ -9921,30 +11265,47 @@ end
 
 module Settings
   def Settings.load; end
+
   def Settings.save_all; end
+
   def Settings.clear; end
+
   def Settings.auto=(val); end
+
   def Settings.auto; end
+
   def Settings.autoload; end
 end
 
 module GameSettings
   def GameSettings.load; end
+
   def GameSettings.save; end
+
   def GameSettings.save_all; end
+
   def GameSettings.clear; end
+
   def GameSettings.auto=(val); end
+
   def GameSettings.auto; end
+
   def GameSettings.autoload; end
 end
 
 module CharSettings
   def CharSettings.load; end
+
   def CharSettings.save; end
+
   def CharSettings.save_all; end
+
   def CharSettings.clear; end
+
   def CharSettings.auto=(val); end
+
   def CharSettings.auto; end
+
   def CharSettings.autoload; end
 end
 
@@ -9952,27 +11313,33 @@ module UserVars
   def UserVars.list
     Vars.list
   end
-  def UserVars.method_missing(arg1, arg2='')
+
+  def UserVars.method_missing(arg1, arg2 = '')
     Vars.method_missing(arg1, arg2)
   end
-  def UserVars.change(var_name, value, t=nil)
+
+  def UserVars.change(var_name, value, t = nil)
     Vars[var_name] = value
   end
-  def UserVars.add(var_name, value, t=nil)
+
+  def UserVars.add(var_name, value, t = nil)
     Vars[var_name] = Vars[var_name].split(', ').push(value).join(', ')
   end
-  def UserVars.delete(var_name, t=nil)
+
+  def UserVars.delete(var_name, t = nil)
     Vars[var_name] = nil
   end
+
   def UserVars.list_global
     Array.new
   end
+
   def UserVars.list_char
     Vars.list
   end
 end
 
-def start_exec_script(cmd_data, options=Hash.new)
+def start_exec_script(cmd_data, options = Hash.new)
   ExecScript.start(cmd_data, options)
 end
 
@@ -9980,10 +11347,12 @@ module Setting
   def Setting.[](name)
     Settings[name]
   end
+
   def Setting.[]=(name, value)
     Settings[name] = value
   end
-  def Setting.to_hash(scope=':')
+
+  def Setting.to_hash(scope = ':')
     Settings.to_hash
   end
 end
@@ -9991,10 +11360,12 @@ module GameSetting
   def GameSetting.[](name)
     GameSettings[name]
   end
+
   def GameSetting.[]=(name, value)
     GameSettings[name] = value
   end
-  def GameSetting.to_hash(scope=':')
+
+  def GameSetting.to_hash(scope = ':')
     GameSettings.to_hash
   end
 end
@@ -10002,10 +11373,12 @@ module CharSetting
   def CharSetting.[](name)
     CharSettings[name]
   end
+
   def CharSetting.[]=(name, value)
     CharSettings[name] = value
   end
-  def CharSetting.to_hash(scope=':')
+
+  def CharSetting.to_hash(scope = ':')
     CharSettings.to_hash
   end
 end
@@ -10018,13 +11391,15 @@ class String
   def to_a # for compatibility with Ruby 1.8
     [self]
   end
+
   def silent
     false
   end
+
   def split_as_list
     string = self
     string.sub!(/^You (?:also see|notice) |^In the .+ you see /, ',')
-    string.sub('.','').sub(/ and (an?|some|the)/, ', \1').split(',').reject { |str| str.strip.empty? }.collect { |str| str.lstrip }
+    string.sub('.', '').sub(/ and (an?|some|the)/, ', \1').split(',').reject { |str| str.strip.empty? }.collect { |str| str.lstrip }
   end
 end
 #
@@ -10085,8 +11460,6 @@ alias :toggle_status :status_tags
 alias :encumbrance? :checkencumbrance
 alias :bounty? :checkbounty
 
-
-
 #
 # Program start
 #
@@ -10112,7 +11485,7 @@ for arg in ARGV
 
    --start-scripts=<script1,script2,etc>   Start the specified scripts after login
 
-    "
+"
     exit
   elsif (arg == '-v') or (arg == '--version')
     puts "The Lich, version #{LICH_VERSION}"
@@ -10373,12 +11746,6 @@ Dir.entries(TEMP_DIR).find_all { |fn| fn =~ /^debug-\d+-\d+-\d+-\d+-\d+-\d+\.log
   end
 }
 
-
-
-
-
-
-
 if (RUBY_VERSION =~ /^2\.[012]\./)
   begin
     did_trusted_defaults = Lich.db.get_first_value("SELECT value FROM lich_settings WHERE name='did_trusted_defaults';")
@@ -10437,8 +11804,6 @@ if ARGV.any? { |arg| (arg == '-h') or (arg == '--help') }
   exit
 end
 
-
-
 if arg = ARGV.find { |a| a == '--hosts-dir' }
   i = ARGV.index(arg)
   ARGV.delete_at(i)
@@ -10459,8 +11824,6 @@ detachable_client_port = nil
 if arg = ARGV.find { |a| a =~ /^\-\-detachable\-client=[0-9]+$/ }
   detachable_client_port = /^\-\-detachable\-client=([0-9]+)$/.match(arg).captures.first
 end
-
-
 
 #
 # import Lich 4.4 settings to Lich 4.6
@@ -10488,6 +11851,7 @@ if did_import.nil?
   Dir.mkdir(backup_dir) unless File.exists?(backup_dir)
   Dir.entries(DATA_DIR).find_all { |fn| fn =~ /\.sav$/i }.each { |fn|
     next if fn == 'lich.sav'
+
     s = fn.match(/^(.+)\.sav$/i).captures.first
     data = File.open("#{DATA_DIR}/#{fn}", 'rb') { |f| f.read }
     blob = SQLite3::Blob.new(data)
@@ -10500,7 +11864,7 @@ if did_import.nil?
     File.rename("#{DATA_DIR}/#{fn}", "#{backup_dir}#{fn}")
     File.rename("#{DATA_DIR}/#{fn}~", "#{backup_dir}#{fn}~") if File.exists?("#{DATA_DIR}/#{fn}~")
   }
-  Dir.entries(DATA_DIR).find_all { |fn| File.directory?("#{DATA_DIR}/#{fn}") and fn !~ /^\.\.?$/}.each { |game|
+  Dir.entries(DATA_DIR).find_all { |fn| File.directory?("#{DATA_DIR}/#{fn}") and fn !~ /^\.\.?$/ }.each { |game|
     Dir.mkdir("#{backup_dir}#{game}") unless File.exists?("#{backup_dir}#{game}")
     Dir.entries("#{DATA_DIR}/#{game}").find_all { |fn| fn =~ /\.sav$/i }.each { |fn|
       s = fn.match(/^(.+)\.sav$/i).captures.first
@@ -10569,9 +11933,9 @@ if did_import.nil?
         sleep 0.1
         retry
       end
-      favs.each { |scope,script_list|
+      favs.each { |scope, script_list|
         hash = { 'scripts' => Array.new }
-        script_list.each { |name,args| hash['scripts'].push(:name => name, :args => args) }
+        script_list.each { |name, args| hash['scripts'].push(:name => name, :args => args) }
         blob = SQLite3::Blob.new(Marshal.dump(hash))
         if scope == 'global'
           begin
@@ -10614,7 +11978,7 @@ if did_import.nil?
       retry
     end
     if aliases.class == Hash
-      aliases.each { |scope,alias_hash|
+      aliases.each { |scope, alias_hash|
         if scope == 'global'
           tables = ['global']
         else
@@ -10628,7 +11992,7 @@ if did_import.nil?
             retry
           end
         }
-        alias_hash.each { |trigger,target|
+        alias_hash.each { |trigger, target|
           tables.each { |t|
             begin
               db.execute("INSERT OR REPLACE INTO #{t} (trigger,target) VALUES(?,?);", trigger.gsub(/\\(.)/) { $1 }.encode('UTF-8'), target.encode('UTF-8'))
@@ -10712,7 +12076,7 @@ if argv_options[:sal]
 end
 
 if arg = ARGV.find { |a| (a == '-g') or (a == '--game') }
-  game_host, game_port = ARGV[ARGV.index(arg)+1].split(':')
+  game_host, game_port = ARGV[ARGV.index(arg) + 1].split(':')
   game_port = game_port.to_i
   if ARGV.any? { |arg| (arg == '-s') or (arg == '--stormfront') }
     $frontend = 'stormfront'
@@ -10808,7 +12172,8 @@ end
 
 if defined?(Gtk)
   unless File.exists?('fly64.png')
-    File.open('fly64.png', 'wb') { |f| f.write '
+    File.open('fly64.png', 'wb') { |f|
+      f.write '
          iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAChVBMVEUAAAAA
          AAABAQECAgIDAwMEBAQFBQUGBgYHBwcICAgKCgoLCwsMDAwNDQ0ODg4QEBAR
          ERESEhITExMUFBQWFhYXFxcYGBgZGRkaGhobGxscHBwdHR0eHh4fHx8hISEi
@@ -10849,18 +12214,18 @@ if defined?(Gtk)
          WRa9odD+ml2hFkXLoLhRZ8dUuvGdVfPbhbaEC8AT4qAFxUWS2KhWXLGZ6+SI
          rQtNImPG3yYeIKcTCb3N9pXqtI1fjBeIqX4aX8Cz/9sTfbijxxy1uqUef7XU
          bvAIqG/yCNjuEaB0rvMIGHnBm73CfK8/4E+5A/4FccSsAIr2lfUAAAAASUVO
-         RK5CYII='.unpack('m')[0] }
+         RK5CYII='.unpack('m')[0]
+    }
   end
   begin
     Gtk.queue {
       @default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
-      #    dialog.set_icon(default_icon)
+      #		 dialog.set_icon(default_icon)
 
       # Add a function to call for when GTK is idle
       GLib::Idle.add do
         gtk_sleep_while_idle
       end
-
     }
   rescue
     nil # fixme
@@ -10888,7 +12253,7 @@ main_thread = Thread.new {
     else
       entry_data = Array.new
     end
-    char_name = ARGV[ARGV.index('--login')+1].capitalize
+    char_name = ARGV[ARGV.index('--login') + 1].capitalize
     if ARGV.include?('--gemstone')
       if ARGV.include?('--platinum')
         data = entry_data.find { |d| (d[:char_name] == char_name) and (d[:game_code] == 'GSX') }
@@ -10951,7 +12316,7 @@ main_thread = Thread.new {
           password = data[:password].split('').collect { |c| c[0] }
           hashkey = hashkey.split('').collect { |c| c[0] }
         end
-        password.each_index { |i| password[i] = ((password[i]-32)^hashkey[i])+32 }
+        password.each_index { |i| password[i] = ((password[i] - 32) ^ hashkey[i]) + 32 }
         password = password.collect { |c| c.chr }.join
         login_server.puts "A\t#{data[:user_id]}\t#{password}\n"
         password = nil
@@ -11024,7 +12389,7 @@ main_thread = Thread.new {
       entry_data = File.open("#{DATA_DIR}/entry.dat", 'r') { |file|
         begin
           # Sort in list by instance name, account name, and then character name
-          Marshal.load(file.read.unpack('m').first).sort do |a,b|
+          Marshal.load(file.read.unpack('m').first).sort do |a, b|
             [a[:game_name], a[:user_id], a[:char_name]] <=> [b[:game_name], b[:user_id], b[:char_name]]
           end
         rescue
@@ -11037,14 +12402,13 @@ main_thread = Thread.new {
     save_entry_data = false
     done = false
     Gtk.queue {
-      #    default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
       login_server = nil
       window = nil
       install_tab_loaded = false
 
       msgbox = proc { |msg|
         dialog = Gtk::MessageDialog.new(window, Gtk::Dialog::DESTROY_WITH_PARENT, Gtk::MessageDialog::QUESTION, Gtk::MessageDialog::BUTTONS_CLOSE, msg)
-        #     dialog.set_icon(default_icon)
+        #			dialog.set_icon(default_icon)
         dialog.run
         dialog.destroy
       }
@@ -11065,37 +12429,28 @@ main_thread = Thread.new {
         entry_data.each { |login_info|
           if login_info[:game_name] != last_game_name
             horizontal_separator = Gtk::Separator.new(:horizontal)
-            quick_box.pack_start(horizontal_separator, false, false, 6)
+            quick_box.pack_start(horizontal_separator, :expand => false, :fill => false, :padding => 3)
             instance_label = Gtk::Label.new('<span foreground="cadetblue" size="large"><b>' + login_info[:game_name] + '</b></span>')
             instance_label.use_markup = true
-            quick_box.pack_start(instance_label, false, false, 6)
-            horizontal_separator = Gtk::HSeparator.new()
-            quick_box.pack_start(horizontal_separator, false, false, 6)
+            quick_box.pack_start(instance_label, :expand => false, :fill => false, :padding => 3)
+            horizontal_separator = Gtk::Separator.new(:horizontal)
+            quick_box.pack_start(horizontal_separator, :expand => false, :fill => false, :padding => 3)
           end
           if login_info[:user_id].downcase != last_user_id
             horizontal_separator = Gtk::Separator.new(:horizontal)
-            quick_box.pack_start(horizontal_separator, false, false, 5)
+            quick_box.pack_start(horizontal_separator, :expand => false, :fill => false, :padding => 3)
           end
-          #               if login_info[:user_id].downcase != last_user_id || login_info[:game_name] != last_game_name
-          #               if login_info[:game_name] != last_game_name
           last_user_id = login_info[:user_id].downcase
-          #                  account_label = Gtk::Label.new('<span foreground="black" size="large">' + last_user_id.upcase + '</span>')
           account_label = Gtk::Label.new(last_user_id.upcase)
           account_label.set_size_request(75, 0)
           account_label.set_alignment(0, 0.5)
-          #                account_label.use_markup = true
-          #                quick_box.pack_start(account_label, false, false, 6)
-          #             end
           last_game_name = login_info[:game_name]
-          #               game_client_tag = '<span foreground="black">' + "(#{login_info[:frontend].capitalize})" + '</span>'
-          #               char_label = Gtk::Label.new("#{login_info[:char_name]}" + "     #{game_client_tag}")
 
           button_provider = Gtk::CssProvider.new
           button_provider.load(data: "button { font-size: 14px; color: navy; padding-top: 0px; padding-bottom: 0px; margin-top: 0px; margin-bottom: 0px; background-image: none; }\
                                            button:hover { background-color: darkgrey; } ")
 
           play_button = Gtk::Button.new()
-          #               char_label = Gtk::Label.new("#{login_info[:char_name]}" + "    (#{login_info[:frontend].capitalize})")
           char_label = Gtk::Label.new("#{login_info[:char_name]}")
           fe_label = Gtk::Label.new("(#{login_info[:frontend].capitalize})")
           char_label.set_alignment(0, 0.5)
@@ -11123,50 +12478,7 @@ main_thread = Thread.new {
           char_box.pack_end(remove_button, :expand => false, :fill => false, :padding => 0)
           char_box.pack_start(char_row, :expand => true, :fill => true, :padding => 0)
           quick_box.pack_start(char_box, :expand => false, :fill => false, :padding => 0)
-=begin
-             button_provider = Gtk::CssProvider.new
-             button_provider.load(data: "button { font-size: 12px; color: black; padding-top: 0px; padding-bottom: 0px; margin-top: 0px; margin-bottom: 0px; background-image: none; }\
-                                         button:hover { background-color: darkgrey; color: white; } ")
 
-             label1 = Gtk::Label.new
-             label2 = Gtk::Label.new
-             game = "#{login_info[:game_name]}"
-             if game =~ /Platinum/
-               login_to = "Platinum"
-             elsif game =~ /Shattered/
-               login_to = "Shattered"
-             elsif game == "GemStone IV"
-               login_to = "Prime"
-             elsif game =~ /Test/
-               login_to = "Test"
-             end
-             char_row = Gtk::Paned.new(:horizontal)
-             label1.set_markup("<b><big>     #{login_info[:char_name]}</big></b>")
-             label1.set_alignment(0,0.5)
-             label2.set_markup("#{login_to} using #{login_info[:frontend].capitalize}")
-             label2.set_alignment(0,0.5)
-             char_row.set_position(110)
-             label1.set_size_request(100, 0)
-             label2.set_size_request(150, 0)
-             char_row.add1(label1)
-             char_row.add2(label2)
-#             label_provider = Gtk::CssProvider.new
-#             label_provider.load(data: "label { font-size: 14px; }")
-#             label.style_context.add_provider(label_provider, Gtk::StyleProvider::PRIORITY_USER)
-             play_button = Gtk::Button.new(:label => 'Play')
-             remove_button = Gtk::Button.new(:label => 'X')
-
-             remove_button.style_context.add_provider(button_provider, Gtk::StyleProvider::PRIORITY_USER)
-             play_button.style_context.add_provider(button_provider, Gtk::StyleProvider::PRIORITY_USER)
-             spacer = Gtk::Label.new("     ")
-             char_box = Gtk::Box.new(:horizontal)
-             char_box.pack_start(spacer, :expand => false, :fill => false, :padding => 0)
-             char_box.pack_start(play_button, :expand => false, :fill => false, :padding => 0)
-             char_box.pack_start(char_row, :expand => false, :fill => false, :padding => 0)
-             char_box.pack_end(remove_button, :expand => false, :fill => false, :padding => 0)
-
-             quick_box.pack_start(char_box, :expand => false, :fill => false, :padding => 0)
-=end
           play_button.signal_connect('clicked') {
             play_button.sensitive = false
             begin
@@ -11196,7 +12508,7 @@ main_thread = Thread.new {
                 password = login_info[:password].split('').collect { |c| c[0] }
                 hashkey = hashkey.split('').collect { |c| c[0] }
               end
-              password.each_index { |i| password[i] = ((password[i]-32)^hashkey[i])+32 }
+              password.each_index { |i| password[i] = ((password[i] - 32) ^ hashkey[i]) + 32 }
               password = password.collect { |c| c.chr }.join
               login_server.puts "A\t#{login_info[:user_id]}\t#{password}\n"
               password = nil
@@ -11258,14 +12570,14 @@ main_thread = Thread.new {
               play_button.sensitive = true
             end
           }
-          remove_button.signal_connect('button-release-event') {|owner, ev|
+          remove_button.signal_connect('button-release-event') { |owner, ev|
             if (ev.event_type == Gdk::EventType::BUTTON_RELEASE) and (ev.button == 1)
-              if (ev.state.inspect =~/shift-mask/)
+              if (ev.state.inspect =~ /shift-mask/)
                 entry_data.delete(login_info)
                 save_entry_data = true
                 char_box.visible = false
               else
-                dialog = Gtk::MessageDialog.new(:parent=> nil, :flags => :modal, :type => :question, :buttons => :yes_no, :message => "Delete record?")
+                dialog = Gtk::MessageDialog.new(:parent => nil, :flags => :modal, :type => :question, :buttons => :yes_no, :message => "Delete record?")
                 dialog.title = "Confirm"
                 dialog.set_icon(@default_icon)
                 response = nil
@@ -11294,367 +12606,8 @@ main_thread = Thread.new {
         quick_game_entry_tab.pack_start(quick_sw, :expand => true, :fill => true, :padding => 5)
       end
 
-=begin
-         #
-         # game entry tab
-         #
-
-         checked_frontends = false
-         wizard_dir        = nil
-         stormfront_dir    = nil
-         found_profanity   = false
-
-         account_name_label        = Gtk::Label.new('Account Name:')
-         account_name_entry        = Gtk::Entry.new
-         password_label            = Gtk::Label.new('Password:')
-         password_entry            = Gtk::Entry.new
-         password_entry.visibility = false
-
-         account_name_label_box = Gtk::HBox.new
-         account_name_label_box.pack_end(account_name_label, false, false, 0)
-
-         password_label_box = Gtk::HBox.new
-         password_label_box.pack_end(password_label, false, false, 0)
-
-         login_table = Gtk::Table.new(2, 2, false)
-         login_table.attach(account_name_label_box, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL, 5, 5)
-         login_table.attach(account_name_entry, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         login_table.attach(password_label_box, 0, 1, 1, 2, Gtk::FILL, Gtk::FILL, 5, 5)
-         login_table.attach(password_entry, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-
-         disconnect_button = Gtk::Button.new(' Disconnect ')
-         disconnect_button.sensitive = false
-
-         connect_button = Gtk::Button.new(' Connect ')
-
-         login_button_box = Gtk::HBox.new
-         login_button_box.pack_end(connect_button, false, false, 5)
-         login_button_box.pack_end(disconnect_button, false, false, 5)
-
-         liststore = Gtk::ListStore.new(String, String, String, String)
-         liststore.set_sort_column_id(1, Gtk::SORT_ASCENDING)
-
-         renderer = Gtk::CellRendererText.new
-
-         treeview = Gtk::TreeView.new(liststore)
-         treeview.height_request = 160
-
-         col = Gtk::TreeViewColumn.new("Game", renderer, :text => 1)
-         col.resizable = true
-         treeview.append_column(col)
-
-         col = Gtk::TreeViewColumn.new("Character", renderer, :text => 3)
-         col.resizable = true
-         treeview.append_column(col)
-
-         sw = Gtk::ScrolledWindow.new
-         sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS)
-         sw.add(treeview)
-
-         wizard_option = Gtk::RadioButton.new('WizardFE')
-         stormfront_option = Gtk::RadioButton.new(wizard_option, 'Stormfront')
-         profanity_option = Gtk::RadioButton.new(wizard_option, 'ProfanityFE')
-         other_fe_option = Gtk::RadioButton.new(wizard_option, '(other)')
-
-         frontend_label = Gtk::Label.new('Frontend: ')
-
-         frontend_option = Gtk::ComboBox.new(is_text_only = true)
-         frontend_option.append_text('WizardFE')
-         frontend_option.append_text('Stormfront')
-         frontend_option.append_text('ProfanityFE')
-         frontend_option.append_text('(other)')
-
-         frontend_box2 = Gtk::HBox.new(false, 10)
-         frontend_box2.pack_start(frontend_label, false, false, 0)
-         frontend_box2.pack_start(frontend_option, false, false, 0)
-
-         launch_label = Gtk::Label.new('Launch method: ')
-
-         launch_option = Gtk::ComboBox.new(is_text_only = true)
-         launch_option.append_text('ShellExecute')
-         launch_option.append_text('spawn')
-         launch_option.append_text('system')
-         launch_option.active = 0
-
-         launch_box = Gtk::HBox.new(false, 10)
-         launch_box.pack_start(launch_label, false, false, 0)
-         launch_box.pack_start(launch_option, false, false, 0)
-
-         frontend_box = Gtk::HBox.new(false, 10)
-         frontend_box.pack_start(wizard_option, false, false, 0)
-         frontend_box.pack_start(stormfront_option, false, false, 0)
-         frontend_box.pack_start(profanity_option, false, false, 0)
-         frontend_box.pack_start(other_fe_option, false, false, 0)
-
-         use_simu_launcher_option = Gtk::CheckButton.new('Use the Simutronics Launcher')
-         use_simu_launcher_option.active = true
-
-         custom_launch_option = Gtk::CheckButton.new('Use a custom launch command')
-         custom_launch_entry = Gtk::ComboBoxEntry.new()
-         custom_launch_entry.child.text = "(enter custom launch command)"
-         custom_launch_entry.append_text("Wizard.Exe /GGS /H127.0.0.1 /P%port% /K%key%")
-         custom_launch_entry.append_text("Stormfront.exe /GGS /H127.0.0.1 /P%port% /K%key%")
-         custom_launch_dir = Gtk::ComboBoxEntry.new()
-         custom_launch_dir.child.text = "(enter working directory for command)"
-         custom_launch_dir.append_text("../wizard")
-         custom_launch_dir.append_text("../StormFront")
-
-         remember_use_simu_launcher_active = nil
-         revert_custom_launch_active = nil
-         frontend_option.signal_connect('changed') {
-            if ((frontend_option.active == 0) and not wizard_dir) or ((frontend_option.active == 1) and not stormfront_dir) or (frontend_option.active == 2) or (frontend_option.active == 3)
-#            if (frontend_option.active != 0) and (frontend_option.active != 1) # Wizard or Stormfront
-               if use_simu_launcher_option.sensitive?
-                  remember_use_simu_launcher_active = use_simu_launcher_option.active?
-                  use_simu_launcher_option.active = true
-                  use_simu_launcher_option.sensitive = false
-               end
-            elsif not use_simu_launcher_option.sensitive? and not custom_launch_option.active?
-               use_simu_launcher_option.sensitive = true
-               use_simu_launcher_option.active = remember_use_simu_launcher_active
-            end
-            if (frontend_option.active == 3) or ((frontend_option.active == 2) and not found_profanity)
-               if custom_launch_option.sensitive?
-                  if not custom_launch_option.active?
-                     revert_custom_launch_active = true
-                  else
-                     revert_custom_launch_active = false
-                  end
-                  custom_launch_option.active = true
-                  custom_launch_option.sensitive = false
-               end
-            elsif not custom_launch_option.sensitive?
-               custom_launch_option.sensitive = true
-               if revert_custom_launch_active
-                  revert_custom_launch_active = false
-                  custom_launch_option.active = false
-               end
-            end
-         }
-         frontend_option.active = 0
-
-         make_quick_option = Gtk::CheckButton.new('Save this info for quick game entry')
-
-         play_button = Gtk::Button.new(' Play ')
-         play_button.sensitive = false
-
-         play_button_box = Gtk::HBox.new
-         play_button_box.pack_end(play_button, false, false, 5)
-
-         game_entry_tab = Gtk::VBox.new
-         game_entry_tab.border_width = 5
-         game_entry_tab.pack_start(login_table, false, false, 0)
-         game_entry_tab.pack_start(login_button_box, false, false, 0)
-         game_entry_tab.pack_start(sw, true, true, 3)
-#         game_entry_tab.pack_start(frontend_box, false, false, 3)
-         game_entry_tab.pack_start(frontend_box2, false, false, 3)
-         game_entry_tab.pack_start(launch_box, false, false, 3)
-         game_entry_tab.pack_start(use_simu_launcher_option, false, false, 3)
-         game_entry_tab.pack_start(custom_launch_option, false, false, 3)
-         game_entry_tab.pack_start(custom_launch_entry, false, false, 3)
-         game_entry_tab.pack_start(custom_launch_dir, false, false, 3)
-         game_entry_tab.pack_start(make_quick_option, false, false, 3)
-         game_entry_tab.pack_start(play_button_box, false, false, 3)
-
-         custom_launch_option.signal_connect('toggled') {
-            custom_launch_entry.visible = custom_launch_option.active?
-            custom_launch_dir.visible = custom_launch_option.active?
-            if custom_launch_option.active?
-               if use_simu_launcher_option.sensitive?
-                  remember_use_simu_launcher_active = use_simu_launcher_option.active?
-                  use_simu_launcher_option.active = false
-                  use_simu_launcher_option.sensitive = false
-               end
-            elsif not use_simu_launcher_option.sensitive? and ((frontend_option.active == 0) or (frontend_option.active == 1) or ((frontend_option.active == 2) and not found_profanity))
-               use_simu_launcher_option.sensitive = true
-               use_simu_launcher_option.active = remember_use_simu_launcher_active
-            end
-         }
-
-         connect_button.signal_connect('clicked') {
-            connect_button.sensitive = false
-            account_name_entry.sensitive = false
-            password_entry.sensitive = false
-            iter = liststore.append
-            iter[1] = 'working...'
-            Gtk.queue {
-               begin
-                  login_server = nil
-                  connect_thread = Thread.new {
-                     login_server = TCPSocket.new('eaccess.play.net', 7900)
-                  }
-                  300.times {
-                     sleep 0.1
-                     break unless connect_thread.status
-                  }
-                  if connect_thread.status
-                     connect_thread.kill rescue nil
-                     msgbox.call "error: timed out connecting to eaccess.play.net:7900"
-                  end
-               rescue
-                  msgbox.call "error connecting to server: #{$!}"
-                  connect_button.sensitive = true
-                  account_name_entry.sensitive = true
-                  password_entry.sensitive = true
-               end
-               disconnect_button.sensitive = true
-               if login_server
-                  login_server.puts "K\n"
-                  hashkey = login_server.gets
-                  if 'test'[0].class == String
-                     password = password_entry.text.split('').collect { |c| c.getbyte(0) }
-                     hashkey = hashkey.split('').collect { |c| c.getbyte(0) }
-                  else
-                     password = password_entry.text.split('').collect { |c| c[0] }
-                     hashkey = hashkey.split('').collect { |c| c[0] }
-                  end
-                  # password_entry.text = String.new
-                  password.each_index { |i| password[i] = ((password[i]-32)^hashkey[i])+32 }
-                  password = password.collect { |c| c.chr }.join
-                  login_server.puts "A\t#{account_name_entry.text}\t#{password}\n"
-                  password = nil
-                  response = login_server.gets
-                  login_key = /KEY\t([^\t]+)\t/.match(response).captures.first
-                  if login_key
-                     login_server.puts "M\n"
-                     response = login_server.gets
-                     if response =~ /^M\t/
-                        liststore.clear
-                        for game in response.sub(/^M\t/, '').scan(/[^\t]+\t[^\t^\n]+/)
-                           game_code, game_name = game.split("\t")
-                           login_server.puts "N\t#{game_code}\n"
-                           if login_server.gets =~ /STORM/
-                              login_server.puts "F\t#{game_code}\n"
-                              if login_server.gets =~ /NORMAL|PREMIUM|TRIAL|INTERNAL|FREE/
-                                 login_server.puts "G\t#{game_code}\n"
-                                 login_server.gets
-                                 login_server.puts "P\t#{game_code}\n"
-                                 login_server.gets
-                                 login_server.puts "C\n"
-                                 for code_name in login_server.gets.sub(/^C\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+[\t\n]/, '').scan(/[^\t]+\t[^\t^\n]+/)
-                                    char_code, char_name = code_name.split("\t")
-                                    iter = liststore.append
-                                    iter[0] = game_code
-                                    iter[1] = game_name
-                                    iter[2] = char_code
-                                    iter[3] = char_name
-                                 end
-                              end
-                           end
-                        end
-                        disconnect_button.sensitive = true
-                     else
-                        login_server.close unless login_server.closed?
-                        msgbox.call "Unrecognized response from server (#{response})"
-                     end
-                  else
-                     login_server.close unless login_server.closed?
-                     disconnect_button.sensitive = false
-                     connect_button.sensitive = true
-                     account_name_entry.sensitive = true
-                     password_entry.sensitive = true
-                     msgbox.call "Something went wrong... probably invalid user id and/or password.\nserver response: #{response}"
-                  end
-               end
-            }
-         }
-         treeview.signal_connect('cursor-changed') {
-            if login_server
-               play_button.sensitive = true
-            end
-         }
-         disconnect_button.signal_connect('clicked') {
-            disconnect_button.sensitive = false
-            play_button.sensitive = false
-            liststore.clear
-            login_server.close unless login_server.closed?
-            connect_button.sensitive = true
-            account_name_entry.sensitive = true
-            password_entry.sensitive = true
-         }
-         play_button.signal_connect('clicked') {
-            play_button.sensitive = false
-            game_code = treeview.selection.selected[0]
-            char_code = treeview.selection.selected[2]
-            if login_server and not login_server.closed?
-               login_server.puts "F\t#{game_code}\n"
-               login_server.gets
-               login_server.puts "G\t#{game_code}\n"
-               login_server.gets
-               login_server.puts "P\t#{game_code}\n"
-               login_server.gets
-               login_server.puts "C\n"
-               login_server.gets
-               login_server.puts "L\t#{char_code}\tSTORM\n"
-               response = login_server.gets
-               if response =~ /^L\t/
-                  login_server.close unless login_server.closed?
-                  port = /GAMEPORT=([0-9]+)/.match(response).captures.first
-                  host = /GAMEHOST=([^\t\n]+)/.match(response).captures.first
-                  key = /KEY=([^\t\n]+)/.match(response).captures.first
-                  launch_data = response.sub(/^L\tOK\t/, '').split("\t")
-                  login_server.close unless login_server.closed?
-                  if wizard_option.active?
-                     launch_data.collect! { |line| line.sub(/GAMEFILE=.+/, "GAMEFILE=WIZARD.EXE").sub(/GAME=.+/, "GAME=WIZ") }
-                  elsif suks_option.active?
-                     launch_data.collect! { |line| line.sub(/GAMEFILE=.+/, "GAMEFILE=WIZARD.EXE").sub(/GAME=.+/, "GAME=SUKS") }
-                  end
-                  if custom_launch_option.active?
-                     launch_data.push "CUSTOMLAUNCH=#{custom_launch_entry.child.text}"
-                     unless custom_launch_dir.child.text.empty? or custom_launch_dir.child.text == "(enter working directory for command)"
-                        launch_data.push "CUSTOMLAUNCHDIR=#{custom_launch_dir.child.text}"
-                     end
-                  end
-                  if make_quick_option.active?
-                     if wizard_option.active?
-                        frontend = 'wizard'
-                     else
-                        frontend = 'stormfront'
-                     end
-                     if custom_launch_option.active?
-                        custom_launch = custom_launch_entry.child.text
-                        if custom_launch_dir.child.text.empty? or custom_launch_dir.child.text == "(enter working directory for command)"
-                           custom_launch_dir = nil
-                        else
-                           custom_launch_dir = custom_launch_dir.child.text
-                        end
-                     else
-                        custom_launch = nil
-                        custom_launch_dir = nil
-                     end
-                     entry_data.push h={ :char_name => treeview.selection.selected[3], :game_code => treeview.selection.selected[0], :game_name => treeview.selection.selected[1], :user_id => account_name_entry.text, :password => password_entry.text, :frontend => frontend, :custom_launch => custom_launch, :custom_launch_dir => custom_launch_dir }
-                     save_entry_data = true
-                  end
-                  account_name_entry.text = String.new
-                  password_entry.text = String.new
-                  window.destroy
-                  done = true
-               else
-                  login_server.close unless login_server.closed?
-                  disconnect_button.sensitive = false
-                  play_button.sensitive = false
-                  connect_button.sensitive = true
-                  account_name_entry.sensitive = true
-                  password_entry.sensitive = true
-               end
-            else
-               disconnect_button.sensitive = false
-               play_button.sensitive = false
-               connect_button.sensitive = true
-               account_name_entry.sensitive = true
-               password_entry.sensitive = true
-            end
-         }
-         account_name_entry.signal_connect('activate') {
-            password_entry.grab_focus
-         }
-         password_entry.signal_connect('activate') {
-            connect_button.clicked
-         }
-=end
-
       #
-      # old game entry tab
+      # game entry tab
       #
 
       user_id_entry = Gtk::Entry.new
@@ -11709,7 +12662,7 @@ main_thread = Thread.new {
       if RUBY_PLATFORM =~ /darwin/i
         frontend_box.pack_start(avalon_option, :expand => false, :fill => false, :padding => 0)
       end
-      #frontend_box.pack_start(suks_option, false, false, 0)
+      # frontend_box.pack_start(suks_option, false, false, 0)
 
       custom_launch_option = Gtk::CheckButton.new('Custom launch command')
       custom_launch_entry = Gtk::ComboBoxEntry.new()
@@ -11793,7 +12746,7 @@ main_thread = Thread.new {
               hashkey = hashkey.split('').collect { |c| c[0] }
             end
             # pass_entry.text = String.new
-            password.each_index { |i| password[i] = ((password[i]-32)^hashkey[i])+32 }
+            password.each_index { |i| password[i] = ((password[i] - 32) ^ hashkey[i]) + 32 }
             password = password.collect { |c| c.chr }.join
             login_server.puts "A\t#{user_id_entry.text}\t#{password}\n"
             password = nil
@@ -11912,7 +12865,7 @@ main_thread = Thread.new {
                 custom_launch = nil
                 custom_launch_dir = nil
               end
-              entry_data.push h={ :char_name => treeview.selection.selected[3], :game_code => treeview.selection.selected[0], :game_name => treeview.selection.selected[1], :user_id => user_id_entry.text, :password => pass_entry.text, :frontend => frontend, :custom_launch => custom_launch, :custom_launch_dir => custom_launch_dir }
+              entry_data.push h = { :char_name => treeview.selection.selected[3], :game_code => treeview.selection.selected[0], :game_name => treeview.selection.selected[1], :user_id => user_id_entry.text, :password => pass_entry.text, :frontend => frontend, :custom_launch => custom_launch, :custom_launch_dir => custom_launch_dir }
               save_entry_data = true
             end
             user_id_entry.text = String.new
@@ -11978,7 +12931,6 @@ main_thread = Thread.new {
       sge_frame = Gtk::Frame.new('SGE Launch Chain')
       sge_frame.add(sge_box)
 
-
       refresh_button = Gtk::Button.new(:label => ' Refresh ')
 
       refresh_box = Gtk::Box.new(:horizontal)
@@ -11994,7 +12946,7 @@ main_thread = Thread.new {
         install_tab_loaded = true
         if defined?(Win32)
           begin
-            key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Classes\\Simutronics.Autolaunch\\Shell\\Open\\command', :samDesired => (Win32::KEY_ALL_ACCESS|Win32::KEY_WOW64_32KEY))[:phkResult]
+            key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Classes\\Simutronics.Autolaunch\\Shell\\Open\\command', :samDesired => (Win32::KEY_ALL_ACCESS | Win32::KEY_WOW64_32KEY))[:phkResult]
             web_launch_cmd = Win32.RegQueryValueEx(:hKey => key)[:lpData]
             real_web_launch_cmd = Win32.RegQueryValueEx(:hKey => key, :lpValueName => 'RealCommand')[:lpData]
           rescue
@@ -12004,7 +12956,7 @@ main_thread = Thread.new {
             Win32.RegCloseKey(:hKey => key) rescue nil
           end
           begin
-            key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Simutronics\\Launcher', :samDesired => (Win32::KEY_ALL_ACCESS|Win32::KEY_WOW64_32KEY))[:phkResult]
+            key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Simutronics\\Launcher', :samDesired => (Win32::KEY_ALL_ACCESS | Win32::KEY_WOW64_32KEY))[:phkResult]
             sge_launch_cmd = Win32.RegQueryValueEx(:hKey => key, :lpValueName => 'Directory')[:lpData]
             real_sge_launch_cmd = Win32.RegQueryValueEx(:hKey => key, :lpValueName => 'RealDirectory')[:lpData]
           rescue
@@ -12094,200 +13046,30 @@ main_thread = Thread.new {
         end
       }
 
-=begin
-         #
-         # options tab
-         #
-
-         lich_char_label = Gtk::Label.new('Lich char:')
-         lich_char_label.xalign = 1
-         lich_char_entry = Gtk::Entry.new
-         lich_char_entry.text = ';' # fixme LichSettings['lich_char'].to_s
-         lich_box = Gtk::HBox.new
-         lich_box.pack_end(lich_char_entry, true, true, 5)
-         lich_box.pack_end(lich_char_label, true, true, 5)
-
-         cache_serverbuffer_button = Gtk::CheckButton.new('Cache to disk')
-         cache_serverbuffer_button.active = LichSettings['cache_serverbuffer']
-
-         serverbuffer_max_label = Gtk::Label.new('Maximum lines in memory:')
-         serverbuffer_max_entry = Gtk::Entry.new
-         serverbuffer_max_entry.text = LichSettings['serverbuffer_max_size'].to_s
-         serverbuffer_min_label = Gtk::Label.new('Minumum lines in memory:')
-         serverbuffer_min_entry = Gtk::Entry.new
-         serverbuffer_min_entry.text = LichSettings['serverbuffer_min_size'].to_s
-         serverbuffer_min_entry.sensitive = cache_serverbuffer_button.active?
-
-         serverbuffer_table = Gtk::Table.new(2, 2, false)
-         serverbuffer_table.attach(serverbuffer_max_label, 0, 1, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         serverbuffer_table.attach(serverbuffer_max_entry, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         serverbuffer_table.attach(serverbuffer_min_label, 0, 1, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         serverbuffer_table.attach(serverbuffer_min_entry, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-
-         serverbuffer_box = Gtk::VBox.new
-         serverbuffer_box.pack_start(cache_serverbuffer_button, false, false, 5)
-         serverbuffer_box.pack_start(serverbuffer_table, false, false, 5)
-
-         serverbuffer_frame = Gtk::Frame.new('Server Buffer')
-         serverbuffer_frame.add(serverbuffer_box)
-
-         cache_clientbuffer_button = Gtk::CheckButton.new('Cache to disk')
-         cache_clientbuffer_button.active = LichSettings['cache_clientbuffer']
-
-         clientbuffer_max_label = Gtk::Label.new('Maximum lines in memory:')
-         clientbuffer_max_entry = Gtk::Entry.new
-         clientbuffer_max_entry.text = LichSettings['clientbuffer_max_size'].to_s
-         clientbuffer_min_label = Gtk::Label.new('Minumum lines in memory:')
-         clientbuffer_min_entry = Gtk::Entry.new
-         clientbuffer_min_entry.text = LichSettings['clientbuffer_min_size'].to_s
-         clientbuffer_min_entry.sensitive = cache_clientbuffer_button.active?
-
-         clientbuffer_table = Gtk::Table.new(2, 2, false)
-         clientbuffer_table.attach(clientbuffer_max_label, 0, 1, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         clientbuffer_table.attach(clientbuffer_max_entry, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         clientbuffer_table.attach(clientbuffer_min_label, 0, 1, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         clientbuffer_table.attach(clientbuffer_min_entry, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-
-         clientbuffer_box = Gtk::VBox.new
-         clientbuffer_box.pack_start(cache_clientbuffer_button, false, false, 5)
-         clientbuffer_box.pack_start(clientbuffer_table, false, false, 5)
-
-         clientbuffer_frame = Gtk::Frame.new('Client Buffer')
-         clientbuffer_frame.add(clientbuffer_box)
-
-         save_button = Gtk::Button.new(' Save ')
-         save_button.sensitive = false
-
-         save_button_box = Gtk::HBox.new
-         save_button_box.pack_end(save_button, false, false, 5)
-
-         options_tab = Gtk::VBox.new
-         options_tab.border_width = 5
-         options_tab.pack_start(lich_box, false, false, 5)
-         options_tab.pack_start(serverbuffer_frame, false, false, 5)
-         options_tab.pack_start(clientbuffer_frame, false, false, 5)
-         options_tab.pack_start(save_button_box, false, false, 5)
-
-         check_changed = proc {
-            Gtk.queue {
-               if (LichSettings['lich_char'] == lich_char_entry.text) and (LichSettings['cache_serverbuffer'] == cache_serverbuffer_button.active?) and (LichSettings['serverbuffer_max_size'] == serverbuffer_max_entry.text.to_i) and (LichSettings['serverbuffer_min_size'] == serverbuffer_min_entry.text.to_i) and (LichSettings['cache_clientbuffer'] == cache_clientbuffer_button.active?) and (LichSettings['clientbuffer_max_size'] == clientbuffer_max_entry.text.to_i) and (LichSettings['clientbuffer_min_size'] == clientbuffer_min_entry.text.to_i)
-                  save_button.sensitive = false
-               else
-                  save_button.sensitive = true
-               end
-            }
-         }
-
-         lich_char_entry.signal_connect('key-press-event') {
-            check_changed.call
-            false
-         }
-         serverbuffer_max_entry.signal_connect('key-press-event') {
-            check_changed.call
-            false
-         }
-         serverbuffer_min_entry.signal_connect('key-press-event') {
-            check_changed.call
-            false
-         }
-         clientbuffer_max_entry.signal_connect('key-press-event') {
-            check_changed.call
-            false
-         }
-         clientbuffer_min_entry.signal_connect('key-press-event') {
-            check_changed.call
-            false
-         }
-         cache_serverbuffer_button.signal_connect('clicked') {
-            serverbuffer_min_entry.sensitive = cache_serverbuffer_button.active?
-            check_changed.call
-         }
-         cache_clientbuffer_button.signal_connect('clicked') {
-            clientbuffer_min_entry.sensitive = cache_clientbuffer_button.active?
-            check_changed.call
-         }
-         save_button.signal_connect('clicked') {
-            LichSettings['lich_char']             = lich_char_entry.text
-            LichSettings['cache_serverbuffer']    = cache_serverbuffer_button.active?
-            LichSettings['serverbuffer_max_size'] = serverbuffer_max_entry.text.to_i
-            LichSettings['serverbuffer_min_size'] = serverbuffer_min_entry.text.to_i
-            LichSettings['cache_clientbuffer']    = cache_clientbuffer_button.active?
-            LichSettings['clientbuffer_max_size'] = clientbuffer_max_entry.text.to_i
-            LichSettings['clientbuffer_min_size'] = clientbuffer_min_entry.text.to_i
-            LichSettings.save
-            save_button.sensitive = false
-         }
-=end
-
       #
       # put it together and show the window
       #
       silver = Gdk::RGBA::parse("#d3d3d3")
       notebook = Gtk::Notebook.new
-      #    default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
-      #    notebook.set_icon(default_icon)
       notebook.override_background_color(:normal, silver)
       notebook.append_page(quick_game_entry_tab, Gtk::Label.new('Quick Game Entry'))
       notebook.append_page(game_entry_tab, Gtk::Label.new('Game Entry'))
       notebook.append_page(install_tab, Gtk::Label.new('Link'))
-      #         notebook.append_page(options_tab, Gtk::Label.new('Options'))
-      notebook.signal_connect('switch-page') { |who,page,page_num|
+      notebook.signal_connect('switch-page') { |who, page, page_num|
         if (page_num == 2) and not install_tab_loaded
           refresh_button.clicked
-=begin
-            elsif (page_num == 1) and not checked_frontends
-               checked_frontends = true
-               found_profanity = File.exists?("#{LICH_DIR}/profanity.rb")
-               if defined?(Win32)
-                  begin
-                     key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Simutronics\\STORM32', :samDesired => (Win32::KEY_ALL_ACCESS|Win32::KEY_WOW64_32KEY))[:phkResult]
-                     stormfront_dir = Win32.RegQueryValueEx(:hKey => key, :lpValueName => 'Directory')[:lpData]
-                  rescue
-                     stormfront_dir = nil
-                  ensure
-                     Win32.RegCloseKey(:hKey => key) rescue nil
-                  end
-                  begin
-                     key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Simutronics\\WIZ32', :samDesired => (Win32::KEY_ALL_ACCESS|Win32::KEY_WOW64_32KEY))[:phkResult]
-                     wizard_dir = Win32.RegQueryValueEx(:hKey => key, :lpValueName => 'Directory')[:lpData]
-                  rescue
-                     wizard_dir = nil
-                  ensure
-                     Win32.RegCloseKey(:hKey => key) rescue nil
-                  end
-               elsif defined?(Wine)
-                  stormfront_dir = Wine.registry_gets('HKEY_LOCAL_MACHINE\\Software\\Simutronics\\STORM32\\Directory').gsub("\\", "/")
-                  wizard_dir = Wine.registry_gets('HKEY_LOCAL_MACHINE\\Software\\Simutronics\\WIZ32\\Directory').gsub("\\", "/")
-               else
-                  stormfront_dir = nil
-                  wizard_dir = nil
-               end
-               Lich.log "wizard_dir: #{wizard_dir}"
-               Lich.log "stormfront_dir: #{stormfront_dir}"
-               unless File.exists?("#{stormfront_dir}\\Stormfront.exe")
-                  Lich.log "stormfront doesn't exist"
-                  stormfront_dir = nil
-               end
-               unless File.exists?("#{wizard_dir}\\Wizard.Exe")
-                  Lich.log "wizard doesn't exist"
-                  wizard_dir = nil
-               end
-=end
         end
       }
       grey = Gdk::RGBA::parse("#d3d3d3")
       window = Gtk::Window.new
-      #    default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
       window.set_icon(@default_icon)
       window.title = "Lich v#{LICH_VERSION}"
       window.border_width = 5
       window.add(notebook)
       window.signal_connect('delete_event') { window.destroy; done = true }
       window.default_width = 400
-      # Adjusted to be a little longer due to formatting changes
       window.default_height = 700
-      # Always start window in center of screen
-      window.window_position=Gtk::Window::POS_CENTER
+      window.window_position = Gtk::WindowPosition::NONE
       window.show_all
 
       custom_launch_entry.visible = false
@@ -12307,7 +13089,8 @@ main_thread = Thread.new {
 
     unless launch_data
       Gtk.queue { Gtk.main_quit }
-      Thread.kill
+      Lich.log "Terminating main thread."
+      main_thread.kill
     end
   end
   $_SERVERBUFFER_ = LimitedArray.new
@@ -12466,7 +13249,7 @@ main_thread = Thread.new {
           end
           if method_num == 5
             begin
-              key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Classes\\Simutronics.Autolaunch\\Shell\\Open\\command', :samDesired => (Win32::KEY_ALL_ACCESS|Win32::KEY_WOW64_32KEY))[:phkResult]
+              key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Classes\\Simutronics.Autolaunch\\Shell\\Open\\command', :samDesired => (Win32::KEY_ALL_ACCESS | Win32::KEY_WOW64_32KEY))[:phkResult]
               if Win32.RegQueryValueEx(:hKey => key)[:lpData] =~ /Launcher\.exe/i
                 associated = true
               else
@@ -12526,9 +13309,10 @@ main_thread = Thread.new {
         else
           Lich.msgbox(:message => "error: timeout waiting for client to connect", :icon => :error)
         end
-        if sal_filename
-          File.delete(sal_filename) rescue()
-        end
+        sleep 2
+#        if sal_filename
+#          File.delete(sal_filename) rescue()
+#        end
         listener.close rescue()
         $_CLIENT_.close rescue()
         reconnect_if_wanted.call
@@ -12541,9 +13325,10 @@ main_thread = Thread.new {
       end
       Lich.log 'info: connected'
       listener.close rescue nil
-      if sal_filename
-        File.delete(sal_filename) rescue nil
-      end
+      sleep 2
+#      if sal_filename
+#        File.delete(sal_filename) rescue nil
+#      end
     end
     gamehost, gameport = Lich.fix_game_host_port(gamehost, gameport)
     Lich.log "info: connecting to game server (#{gamehost}:#{gameport})"
@@ -12596,7 +13381,7 @@ main_thread = Thread.new {
     begin
       listener = TCPServer.new('127.0.0.1', game_port)
       begin
-        listener.setsockopt(Socket::SOL_SOCKET,Socket::SO_REUSEADDR,1)
+        listener.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1)
       rescue
         Lich.log "warning: setsockopt with SO_REUSEADDR failed: #{$!}"
       end
@@ -12658,7 +13443,7 @@ main_thread = Thread.new {
         Lich.log 'info: connection with the game host is open'
       end
     end
-  else
+  else # looking to close this
     # offline mode removed
     Lich.log "error: don't know what to do"
     exit
@@ -12770,7 +13555,7 @@ main_thread = Thread.new {
         #
         # set up some stuff
         #
-        for client_string in [ "#{$cmd_prefix}_injury 2", "#{$cmd_prefix}_flag Display Inventory Boxes 1", "#{$cmd_prefix}_flag Display Dialog Boxes 0" ]
+        for client_string in ["#{$cmd_prefix}_injury 2", "#{$cmd_prefix}_flag Display Inventory Boxes 1", "#{$cmd_prefix}_flag Display Dialog Boxes 0"]
           $_CLIENTBUFFER_.push(client_string)
           Game._puts(client_string)
         end
@@ -12887,10 +13672,10 @@ main_thread = Thread.new {
               init_str.concat "<spell>#{XMLData.prepared_spell}</spell>"
               init_str.concat "<right>#{GameObj.right_hand.name}</right>"
               init_str.concat "<left>#{GameObj.left_hand.name}</left>"
-              for indicator in [ 'IconBLEEDING', 'IconPOISONED', 'IconDISEASED', 'IconSTANDING', 'IconKNEELING', 'IconSITTING', 'IconPRONE' ]
+              for indicator in ['IconBLEEDING', 'IconPOISONED', 'IconDISEASED', 'IconSTANDING', 'IconKNEELING', 'IconSITTING', 'IconPRONE']
                 init_str.concat "<indicator id='#{indicator}' visible='#{XMLData.indicator[indicator]}'/>"
               end
-              for area in [ 'back', 'leftHand', 'rightHand', 'head', 'rightArm', 'abdomen', 'leftEye', 'leftArm', 'chest', 'rightLeg', 'neck', 'leftLeg', 'nsys', 'rightEye' ]
+              for area in ['back', 'leftHand', 'rightHand', 'head', 'rightArm', 'abdomen', 'leftEye', 'leftArm', 'chest', 'rightLeg', 'neck', 'leftLeg', 'nsys', 'rightEye']
                 if Wounds.send(area) > 0
                   init_str.concat "<image id=\"#{area}\" name=\"Injury#{Wounds.send(area)}\"/>"
                 elsif Scars.send(area) > 0
