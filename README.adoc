@@ -1,21 +1,13 @@
-
 = GTK3 Lich
 Elanthia Online
 :toc:
 
 == About
 
-This is the beta GTK3 Lich repository.
+This is the GTK3 version of lich.  It starts at version 5.0.0 based on efforts from multiple community members.  Issues and Pull Requests are welcome to support the usage of a centralized GTK3 version of Lich.
 
-== Revisions
+== Usage
 
-This will contain multiple awkward revisions at first.  These awkward edits are an attempt to capture all of the versions shared across multiple git repositories.
+To enable this repository you must use jinx.  This is a netlify enabled repository for jinx download:
+* gtk3.elanthia.online
 
-The rough order of revisions will be:
-
-* Current GTK2 - https://github.com/matt-lowe/Lich
-* Dragonrealms GTK2 - https://github.com/dragon-realms/dr-lich
-* Beta GTK3
-* MacOS working Lich
-
-After this, attempts to merge all existing code and create a semi-final product.
