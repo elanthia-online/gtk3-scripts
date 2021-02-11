@@ -32,13 +32,11 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #####
 
-#
 # Lich is maintained by Matt Lowe (tillmen@lichproject.org)
-# Lich version 5.0.1 is modified by Doug / Xhy and maintained by Elanthia Online
-# Lich version 5.0 and higher is intended for use only with GTK3-bindings in Ruby
+# Lich version 5 and higher maintained by Elanthia Online and only supports GTK3 Ruby
 #
 
-LICH_VERSION = '5.0.1'
+LICH_VERSION = '5.0.2'
 TESTING = false
 
 if RUBY_VERSION !~ /^2|^3/
@@ -4732,14 +4730,14 @@ def checkreallybleeding
 end
 
 def muckled?
-  muckled = checkwebbed or checkdead or checkstunned
-  if defined?(checksleeping)
-    muckled = muckled or checksleeping
-  end
-  if defined?(checkbound)
-    muckled = muckled or checkbound
-  end
-  return muckled
+   muckled = checkwebbed || checkdead || checkstunned
+   if defined?(checksleeping)
+      muckled = muckled || checksleeping
+   end
+   if defined?(checkbound)
+      muckled = muckled || checkbound
+   end
+   return muckled
 end
 
 def checkhidden
