@@ -32,10 +32,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #####
 
-#
 # Lich is maintained by Matt Lowe (tillmen@lichproject.org)
-# Lich version 5 and higher by Doug / Xhy and maintained by Elanthia Online
-# Lich version 5 and higher is intended for use only with GTK3-bindings in Ruby
+# Lich version 5 and higher maintained by Elanthia Online and only supports GTK3 Ruby
 #
 
 LICH_VERSION = '5.0.2'
