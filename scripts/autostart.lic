@@ -13,11 +13,11 @@
       required: Lich >= 4.6.58
 
   changelog:
-	0.51 (2020-09-09):
-	  Added LostRanger gtk_version method to detect GTK version
-	  Forcing unset-lich-updatable to prevent overwriting GTK3-enabled Lich only if GTK3 detected
-	  Exclude narost / alias from update list if GTK3 detected
-	  The above are only intended to be used in the GTK3 distro.
+    0.51 (2020-09-09):
+      Added LostRanger gtk_version method to detect GTK version
+      Forcing unset-lich-updatable to prevent overwriting GTK3-enabled Lich only if GTK3 detected
+      Exclude narost / alias from update list if GTK3 detected
+      The above are only intended to be used in the GTK3 distro.
     0.5 (2020-07-05):
       Forced infomon and repository update to run at start
       Prevented duplicate runs of infomon
@@ -34,13 +34,13 @@
 =end
 
 def gtk_version
-    begin
-        return 'not installed' unless Object.const_defined?(:Gtk)
-        return 'unknown' unless Gtk.const_defined?(:Version)
-        return Gtk::Version::STRING
-    rescue
-        return 'error'
-    end
+  begin
+    return 'not installed' unless Object.const_defined?(:Gtk)
+    return 'unknown' unless Gtk.const_defined?(:Version)
+    return Gtk::Version::STRING
+  rescue
+    return 'error'
+  end
 end
 
 if Settings['scripts'].nil?
