@@ -764,10 +764,9 @@ if defined?(Gtk)
     end
   end
 
-  # Define a sleep function for GTK to call while idle that lets GTK give up control of the processing for main_thread
-  def gtk_sleep_while_idle()
-    sleep 0.01
-  end
+   def gtk_sleep_while_idle()
+      sleep 0.01
+   end
 end
 
 module Lich
