@@ -157,7 +157,7 @@ if (RUBY_PLATFORM =~ /mingw|win/i) and (RUBY_PLATFORM !~ /darwin/i)
       if args[:lpEnvironment].class == Array
         # fixme
       end
-      lpStartupInfo = [ 68, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0 ]
+      lpStartupInfo = [ 68, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0 ]
       lpStartupInfo_index = { :lpDesktop => 2, :lpTitle => 3, :dwX => 4, :dwY => 5, :dwXSize => 6, :dwYSize => 7, :dwXCountChars => 8, :dwYCountChars => 9, :dwFillAttribute => 10, :dwFlags => 11, :wShowWindow => 12, :hStdInput => 15, :hStdOutput => 16, :hStdError => 17 }
       for sym in [ :lpDesktop, :lpTitle ]
         if args[sym]
@@ -4986,7 +4986,7 @@ def move(dir='none', giveup_seconds=30, giveup_lines=30)
         dir.sub!(/\b(#{which.join('|')})\b/) { "#{which[which.index($1)+1]}" }
       else
         dir.sub!('door', 'second door')
-        end
+      end
       put_dir.call
     elsif line =~ /^You can't go there|^You can't (?:go|swim) in that direction\.|^Where are you trying to go\?|^What were you referring to\?|^I could not find what you were referring to\.|^How do you plan to do that here\?|^You take a few steps towards|^You cannot do that\.|^You settle yourself on|^You shouldn't annoy|^You can't go to|^That's probably not a very good idea|^You can't do that|^Maybe you should look|^You are already|^You walk over to|^You step over to|The [\w\s]+ is too far away|You may not pass\.|become impassable\.|prevents you from entering\.|Please leave promptly\.|is too far above you to attempt that\.$|^Uh, yeah\.  Right\.$|^Definitely NOT a good idea\.$|^Your attempt fails|^There doesn't seem to be any way to do that at the moment\.$/
       echo 'move: failed'
@@ -9638,16 +9638,16 @@ reconnect_if_wanted = proc {
       if $frontend == 'stormfront'
         system 'taskkill /FI "WINDOWTITLE eq [GSIV: ' + Char.name + '*"' # fixme: window title changing to Gemstone IV: Char.name # name optional
       end
-      args = [ 'start rubyw.exe' ]
+      args = ['start rubyw.exe']
     else
-      args = [ 'ruby' ]
+      args = ['ruby']
     end
     args.push $PROGRAM_NAME.slice(/[^\\\/]+$/)
     args.concat ARGV
     args.push '--reconnected' unless args.include?('--reconnected')
     if reconnect_step > 0
       args.delete(reconnect_arg)
-      args.concat ["--reconnect-delay=#{reconnect_delay+reconnect_step}+#{reconnect_step}"]
+      args.concat ["--reconnect-delay=#{reconnect_delay + reconnect_step}+#{reconnect_step}"]
     end
     Lich.log "exec args.join(' '): exec #{args.join(' ')}"
     exec args.join(' ')
@@ -9665,7 +9665,7 @@ $stormfront = true
 
 module Lich
   @@last_warn_deprecated = 0
-  def Lich.method_missing(arg1, arg2='')
+  def Lich.method_missing(arg1, arg2 = '')
     if (Time.now.to_i - @@last_warn_deprecated) > 300
       respond "--- warning: Lich.* variables will stop working in a future version of Lich.  Use Vars.* (offending script: #{Script.current.name || 'unknown'})"
       @@last_warn_deprecated = Time.now.to_i
@@ -9678,6 +9678,7 @@ class Script
   def Script.self
     Script.current
   end
+
   def Script.running
     list = Array.new
     for script in @@running
@@ -9685,9 +9686,11 @@ class Script
     end
     return list
   end
+
   def Script.index
     Script.running
   end
+
   def Script.hidden
     list = Array.new
     for script in @@running
@@ -9695,6 +9698,7 @@ class Script
     end
     return list
   end
+
   def Script.namescript_incoming(line)
     Script.new_downstream(line)
   end
@@ -9704,59 +9708,76 @@ class Spellsong
   def Spellsong.cost
     Spellsong.renew_cost
   end
+
   def Spellsong.tonisdodgebonus
-    thresholds = [1,2,3,5,8,10,14,17,21,26,31,36,42,49,55,63,70,78,87,96]
+    thresholds = [1, 2, 3, 5, 8, 10, 14, 17, 21, 26, 31, 36, 42, 49, 55, 63, 70, 78, 87, 96]
     bonus = 20
     thresholds.each { |val| if Skills.elair >= val then bonus += 1 end }
     bonus
   end
+
   def Spellsong.mirrorsdodgebonus
     20 + ((Spells.bard - 19) / 2).round
   end
+
   def Spellsong.mirrorscost
     [19 + ((Spells.bard - 19) / 5).truncate, 8 + ((Spells.bard - 19) / 10).truncate]
   end
+
   def Spellsong.sonicbonus
     (Spells.bard / 2).round
   end
+
   def Spellsong.sonicarmorbonus
     Spellsong.sonicbonus + 15
   end
+
   def Spellsong.sonicbladebonus
     Spellsong.sonicbonus + 10
   end
+
   def Spellsong.sonicweaponbonus
     Spellsong.sonicbladebonus
   end
+
   def Spellsong.sonicshieldbonus
     Spellsong.sonicbonus + 10
   end
+
   def Spellsong.valorbonus
     10 + (([Spells.bard, Stats.level].min - 10) / 2).round
   end
+
   def Spellsong.valorcost
     [10 + (Spellsong.valorbonus / 2), 3 + (Spellsong.valorbonus / 5)]
   end
+
   def Spellsong.luckcost
-    [6 + ((Spells.bard - 6) / 4),(6 + ((Spells.bard - 6) / 4) / 2).round]
+    [6 + ((Spells.bard - 6) / 4), (6 + ((Spells.bard - 6) / 4) / 2).round]
   end
+
   def Spellsong.manacost
-    [18,15]
+    [18, 15]
   end
+
   def Spellsong.fortcost
-    [3,1]
+    [3, 1]
   end
+
   def Spellsong.shieldcost
-    [9,4]
+    [9, 4]
   end
+
   def Spellsong.weaponcost
-    [12,4]
+    [12, 4]
   end
+
   def Spellsong.armorcost
-    [14,5]
+    [14, 5]
   end
+
   def Spellsong.swordcost
-    [25,15]
+    [25, 15]
   end
 end
 
@@ -9764,23 +9785,27 @@ class Map
   def desc
     @description
   end
+
   def map_name
     @image
   end
+
   def map_x
     if @image_coords.nil?
       nil
     else
-      ((image_coords[0] + image_coords[2])/2.0).round
+      ((image_coords[0] + image_coords[2]) / 2.0).round
     end
   end
+
   def map_y
     if @image_coords.nil?
       nil
     else
-      ((image_coords[1] + image_coords[3])/2.0).round
+      ((image_coords[1] + image_coords[3]) / 2.0).round
     end
   end
+
   def map_roomsize
     if @image_coords.nil?
       nil
@@ -9788,12 +9813,13 @@ class Map
       image_coords[2] - image_coords[0]
     end
   end
+
   def geo
     nil
   end
 end
 
-def start_script(script_name, cli_vars=[], flags=Hash.new)
+def start_script(script_name, cli_vars = [], flags = Hash.new)
   if flags == true
     flags = { :quiet => true }
   end
@@ -9807,10 +9833,10 @@ def start_scripts(*script_names)
   }
 end
 
-def force_start_script(script_name,cli_vars=[], flags={})
+def force_start_script(script_name, cli_vars = [], flags = {})
   flags = Hash.new unless flags.class == Hash
   flags[:force] = true
-  start_script(script_name,cli_vars,flags)
+  start_script(script_name, cli_vars, flags)
 end
 
 def survivepoison?
@@ -9835,10 +9861,11 @@ def abort!
   Script.exit!
 end
 
-def fetchloot(userbagchoice=UserVars.lootsack)
+def fetchloot(userbagchoice = UserVars.lootsack)
   if GameObj.loot.empty?
     return false
   end
+
   if UserVars.excludeloot.empty?
     regexpstr = nil
   else
@@ -9906,30 +9933,47 @@ end
 
 module Settings
   def Settings.load; end
+
   def Settings.save_all; end
+
   def Settings.clear; end
+
   def Settings.auto=(val); end
+
   def Settings.auto; end
+
   def Settings.autoload; end
 end
 
 module GameSettings
   def GameSettings.load; end
+
   def GameSettings.save; end
+
   def GameSettings.save_all; end
+
   def GameSettings.clear; end
+
   def GameSettings.auto=(val); end
+
   def GameSettings.auto; end
+
   def GameSettings.autoload; end
 end
 
 module CharSettings
   def CharSettings.load; end
+
   def CharSettings.save; end
+
   def CharSettings.save_all; end
+
   def CharSettings.clear; end
+
   def CharSettings.auto=(val); end
+
   def CharSettings.auto; end
+
   def CharSettings.autoload; end
 end
 
@@ -9937,27 +9981,33 @@ module UserVars
   def UserVars.list
     Vars.list
   end
-  def UserVars.method_missing(arg1, arg2='')
+
+  def UserVars.method_missing(arg1, arg2 = '')
     Vars.method_missing(arg1, arg2)
   end
-  def UserVars.change(var_name, value, t=nil)
+
+  def UserVars.change(var_name, value, t = nil)
     Vars[var_name] = value
   end
-  def UserVars.add(var_name, value, t=nil)
+
+  def UserVars.add(var_name, value, t = nil)
     Vars[var_name] = Vars[var_name].split(', ').push(value).join(', ')
   end
-  def UserVars.delete(var_name, t=nil)
+
+  def UserVars.delete(var_name, t = nil)
     Vars[var_name] = nil
   end
+
   def UserVars.list_global
     Array.new
   end
+
   def UserVars.list_char
     Vars.list
   end
 end
 
-def start_exec_script(cmd_data, options=Hash.new)
+def start_exec_script(cmd_data, options = Hash.new)
   ExecScript.start(cmd_data, options)
 end
 
@@ -9965,10 +10015,12 @@ module Setting
   def Setting.[](name)
     Settings[name]
   end
+
   def Setting.[]=(name, value)
     Settings[name] = value
   end
-  def Setting.to_hash(scope=':')
+
+  def Setting.to_hash(scope = ':')
     Settings.to_hash
   end
 end
@@ -9976,10 +10028,12 @@ module GameSetting
   def GameSetting.[](name)
     GameSettings[name]
   end
+
   def GameSetting.[]=(name, value)
     GameSettings[name] = value
   end
-  def GameSetting.to_hash(scope=':')
+
+  def GameSetting.to_hash(scope = ':')
     GameSettings.to_hash
   end
 end
@@ -9987,10 +10041,12 @@ module CharSetting
   def CharSetting.[](name)
     CharSettings[name]
   end
+
   def CharSetting.[]=(name, value)
     CharSettings[name] = value
   end
-  def CharSetting.to_hash(scope=':')
+
+  def CharSetting.to_hash(scope = ':')
     CharSettings.to_hash
   end
 end
@@ -10003,13 +10059,15 @@ class String
   def to_a # for compatibility with Ruby 1.8
     [self]
   end
+
   def silent
     false
   end
+
   def split_as_list
     string = self
     string.sub!(/^You (?:also see|notice) |^In the .+ you see /, ',')
-    string.sub('.','').sub(/ and (an?|some|the)/, ', \1').split(',').reject { |str| str.strip.empty? }.collect { |str| str.lstrip }
+    string.sub('.', '').sub(/ and (an?|some|the)/, ', \1').split(',').reject { |str| str.strip.empty? }.collect { |str| str.lstrip }
   end
 end
 #
@@ -10069,8 +10127,6 @@ alias :checkoutside :outside?
 alias :toggle_status :status_tags
 alias :encumbrance? :checkencumbrance
 alias :bounty? :checkbounty
-
-
 
 #
 # Program start
@@ -11021,14 +11077,13 @@ main_thread = Thread.new {
     save_entry_data = false
     done = false
     Gtk.queue {
-      #    default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
       login_server = nil
       window = nil
       install_tab_loaded = false
 
       msgbox = proc { |msg|
         dialog = Gtk::MessageDialog.new(window, Gtk::Dialog::DESTROY_WITH_PARENT, Gtk::MessageDialog::QUESTION, Gtk::MessageDialog::BUTTONS_CLOSE, msg)
-        #     dialog.set_icon(default_icon)
+        #			dialog.set_icon(default_icon)
         dialog.run
         dialog.destroy
       }
@@ -11058,28 +11113,19 @@ main_thread = Thread.new {
           end
           if login_info[:user_id].downcase != last_user_id
             horizontal_separator = Gtk::Separator.new(:horizontal)
-            quick_box.pack_start(horizontal_separator, false, false, 5)
+            quick_box.pack_start(horizontal_separator, :expand => false, :fill => false, :padding => 3)
           end
-          #               if login_info[:user_id].downcase != last_user_id || login_info[:game_name] != last_game_name
-          #               if login_info[:game_name] != last_game_name
           last_user_id = login_info[:user_id].downcase
-          #                  account_label = Gtk::Label.new('<span foreground="black" size="large">' + last_user_id.upcase + '</span>')
           account_label = Gtk::Label.new(last_user_id.upcase)
           account_label.set_size_request(75, 0)
           account_label.set_alignment(0, 0.5)
-          #                account_label.use_markup = true
-          #                quick_box.pack_start(account_label, false, false, 6)
-          #             end
           last_game_name = login_info[:game_name]
-          #               game_client_tag = '<span foreground="black">' + "(#{login_info[:frontend].capitalize})" + '</span>'
-          #               char_label = Gtk::Label.new("#{login_info[:char_name]}" + "     #{game_client_tag}")
 
           button_provider = Gtk::CssProvider.new
           button_provider.load(data: "button { font-size: 14px; color: navy; padding-top: 0px; padding-bottom: 0px; margin-top: 0px; margin-bottom: 0px; background-image: none; }\
                                            button:hover { background-color: darkgrey; } ")
 
           play_button = Gtk::Button.new()
-          #               char_label = Gtk::Label.new("#{login_info[:char_name]}" + "    (#{login_info[:frontend].capitalize})")
           char_label = Gtk::Label.new("#{login_info[:char_name]}")
           fe_label = Gtk::Label.new("(#{login_info[:frontend].capitalize})")
           char_label.set_alignment(0, 0.5)
@@ -11107,50 +11153,7 @@ main_thread = Thread.new {
           char_box.pack_end(remove_button, :expand => false, :fill => false, :padding => 0)
           char_box.pack_start(char_row, :expand => true, :fill => true, :padding => 0)
           quick_box.pack_start(char_box, :expand => false, :fill => false, :padding => 0)
-=begin
-             button_provider = Gtk::CssProvider.new
-             button_provider.load(data: "button { font-size: 12px; color: black; padding-top: 0px; padding-bottom: 0px; margin-top: 0px; margin-bottom: 0px; background-image: none; }\
-                                         button:hover { background-color: darkgrey; color: white; } ")
 
-             label1 = Gtk::Label.new
-             label2 = Gtk::Label.new
-             game = "#{login_info[:game_name]}"
-             if game =~ /Platinum/
-               login_to = "Platinum"
-             elsif game =~ /Shattered/
-               login_to = "Shattered"
-             elsif game == "GemStone IV"
-               login_to = "Prime"
-             elsif game =~ /Test/
-               login_to = "Test"
-             end
-             char_row = Gtk::Paned.new(:horizontal)
-             label1.set_markup("<b><big>     #{login_info[:char_name]}</big></b>")
-             label1.set_alignment(0,0.5)
-             label2.set_markup("#{login_to} using #{login_info[:frontend].capitalize}")
-             label2.set_alignment(0,0.5)
-             char_row.set_position(110)
-             label1.set_size_request(100, 0)
-             label2.set_size_request(150, 0)
-             char_row.add1(label1)
-             char_row.add2(label2)
-#             label_provider = Gtk::CssProvider.new
-#             label_provider.load(data: "label { font-size: 14px; }")
-#             label.style_context.add_provider(label_provider, Gtk::StyleProvider::PRIORITY_USER)
-             play_button = Gtk::Button.new(:label => 'Play')
-             remove_button = Gtk::Button.new(:label => 'X')
-
-             remove_button.style_context.add_provider(button_provider, Gtk::StyleProvider::PRIORITY_USER)
-             play_button.style_context.add_provider(button_provider, Gtk::StyleProvider::PRIORITY_USER)
-             spacer = Gtk::Label.new("     ")
-             char_box = Gtk::Box.new(:horizontal)
-             char_box.pack_start(spacer, :expand => false, :fill => false, :padding => 0)
-             char_box.pack_start(play_button, :expand => false, :fill => false, :padding => 0)
-             char_box.pack_start(char_row, :expand => false, :fill => false, :padding => 0)
-             char_box.pack_end(remove_button, :expand => false, :fill => false, :padding => 0)
-
-             quick_box.pack_start(char_box, :expand => false, :fill => false, :padding => 0)
-=end
           play_button.signal_connect('clicked') {
             play_button.sensitive = false
             begin
@@ -11278,367 +11281,8 @@ main_thread = Thread.new {
         quick_game_entry_tab.pack_start(quick_sw, :expand => true, :fill => true, :padding => 5)
       end
 
-=begin
-         #
-         # game entry tab
-         #
-
-         checked_frontends = false
-         wizard_dir        = nil
-         stormfront_dir    = nil
-         found_profanity   = false
-
-         account_name_label        = Gtk::Label.new('Account Name:')
-         account_name_entry        = Gtk::Entry.new
-         password_label            = Gtk::Label.new('Password:')
-         password_entry            = Gtk::Entry.new
-         password_entry.visibility = false
-
-         account_name_label_box = Gtk::HBox.new
-         account_name_label_box.pack_end(account_name_label, false, false, 0)
-
-         password_label_box = Gtk::HBox.new
-         password_label_box.pack_end(password_label, false, false, 0)
-
-         login_table = Gtk::Table.new(2, 2, false)
-         login_table.attach(account_name_label_box, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL, 5, 5)
-         login_table.attach(account_name_entry, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         login_table.attach(password_label_box, 0, 1, 1, 2, Gtk::FILL, Gtk::FILL, 5, 5)
-         login_table.attach(password_entry, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-
-         disconnect_button = Gtk::Button.new(' Disconnect ')
-         disconnect_button.sensitive = false
-
-         connect_button = Gtk::Button.new(' Connect ')
-
-         login_button_box = Gtk::HBox.new
-         login_button_box.pack_end(connect_button, false, false, 5)
-         login_button_box.pack_end(disconnect_button, false, false, 5)
-
-         liststore = Gtk::ListStore.new(String, String, String, String)
-         liststore.set_sort_column_id(1, Gtk::SORT_ASCENDING)
-
-         renderer = Gtk::CellRendererText.new
-
-         treeview = Gtk::TreeView.new(liststore)
-         treeview.height_request = 160
-
-         col = Gtk::TreeViewColumn.new("Game", renderer, :text => 1)
-         col.resizable = true
-         treeview.append_column(col)
-
-         col = Gtk::TreeViewColumn.new("Character", renderer, :text => 3)
-         col.resizable = true
-         treeview.append_column(col)
-
-         sw = Gtk::ScrolledWindow.new
-         sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS)
-         sw.add(treeview)
-
-         wizard_option = Gtk::RadioButton.new('WizardFE')
-         stormfront_option = Gtk::RadioButton.new(wizard_option, 'Stormfront')
-         profanity_option = Gtk::RadioButton.new(wizard_option, 'ProfanityFE')
-         other_fe_option = Gtk::RadioButton.new(wizard_option, '(other)')
-
-         frontend_label = Gtk::Label.new('Frontend: ')
-
-         frontend_option = Gtk::ComboBox.new(is_text_only = true)
-         frontend_option.append_text('WizardFE')
-         frontend_option.append_text('Stormfront')
-         frontend_option.append_text('ProfanityFE')
-         frontend_option.append_text('(other)')
-
-         frontend_box2 = Gtk::HBox.new(false, 10)
-         frontend_box2.pack_start(frontend_label, false, false, 0)
-         frontend_box2.pack_start(frontend_option, false, false, 0)
-
-         launch_label = Gtk::Label.new('Launch method: ')
-
-         launch_option = Gtk::ComboBox.new(is_text_only = true)
-         launch_option.append_text('ShellExecute')
-         launch_option.append_text('spawn')
-         launch_option.append_text('system')
-         launch_option.active = 0
-
-         launch_box = Gtk::HBox.new(false, 10)
-         launch_box.pack_start(launch_label, false, false, 0)
-         launch_box.pack_start(launch_option, false, false, 0)
-
-         frontend_box = Gtk::HBox.new(false, 10)
-         frontend_box.pack_start(wizard_option, false, false, 0)
-         frontend_box.pack_start(stormfront_option, false, false, 0)
-         frontend_box.pack_start(profanity_option, false, false, 0)
-         frontend_box.pack_start(other_fe_option, false, false, 0)
-
-         use_simu_launcher_option = Gtk::CheckButton.new('Use the Simutronics Launcher')
-         use_simu_launcher_option.active = true
-
-         custom_launch_option = Gtk::CheckButton.new('Use a custom launch command')
-         custom_launch_entry = Gtk::ComboBoxEntry.new()
-         custom_launch_entry.child.text = "(enter custom launch command)"
-         custom_launch_entry.append_text("Wizard.Exe /GGS /H127.0.0.1 /P%port% /K%key%")
-         custom_launch_entry.append_text("Stormfront.exe /GGS /H127.0.0.1 /P%port% /K%key%")
-         custom_launch_dir = Gtk::ComboBoxEntry.new()
-         custom_launch_dir.child.text = "(enter working directory for command)"
-         custom_launch_dir.append_text("../wizard")
-         custom_launch_dir.append_text("../StormFront")
-
-         remember_use_simu_launcher_active = nil
-         revert_custom_launch_active = nil
-         frontend_option.signal_connect('changed') {
-            if ((frontend_option.active == 0) and not wizard_dir) or ((frontend_option.active == 1) and not stormfront_dir) or (frontend_option.active == 2) or (frontend_option.active == 3)
-#            if (frontend_option.active != 0) and (frontend_option.active != 1) # Wizard or Stormfront
-               if use_simu_launcher_option.sensitive?
-                  remember_use_simu_launcher_active = use_simu_launcher_option.active?
-                  use_simu_launcher_option.active = true
-                  use_simu_launcher_option.sensitive = false
-               end
-            elsif not use_simu_launcher_option.sensitive? and not custom_launch_option.active?
-               use_simu_launcher_option.sensitive = true
-               use_simu_launcher_option.active = remember_use_simu_launcher_active
-            end
-            if (frontend_option.active == 3) or ((frontend_option.active == 2) and not found_profanity)
-               if custom_launch_option.sensitive?
-                  if not custom_launch_option.active?
-                     revert_custom_launch_active = true
-                  else
-                     revert_custom_launch_active = false
-                  end
-                  custom_launch_option.active = true
-                  custom_launch_option.sensitive = false
-               end
-            elsif not custom_launch_option.sensitive?
-               custom_launch_option.sensitive = true
-               if revert_custom_launch_active
-                  revert_custom_launch_active = false
-                  custom_launch_option.active = false
-               end
-            end
-         }
-         frontend_option.active = 0
-
-         make_quick_option = Gtk::CheckButton.new('Save this info for quick game entry')
-
-         play_button = Gtk::Button.new(' Play ')
-         play_button.sensitive = false
-
-         play_button_box = Gtk::HBox.new
-         play_button_box.pack_end(play_button, false, false, 5)
-
-         game_entry_tab = Gtk::VBox.new
-         game_entry_tab.border_width = 5
-         game_entry_tab.pack_start(login_table, false, false, 0)
-         game_entry_tab.pack_start(login_button_box, false, false, 0)
-         game_entry_tab.pack_start(sw, true, true, 3)
-#         game_entry_tab.pack_start(frontend_box, false, false, 3)
-         game_entry_tab.pack_start(frontend_box2, false, false, 3)
-         game_entry_tab.pack_start(launch_box, false, false, 3)
-         game_entry_tab.pack_start(use_simu_launcher_option, false, false, 3)
-         game_entry_tab.pack_start(custom_launch_option, false, false, 3)
-         game_entry_tab.pack_start(custom_launch_entry, false, false, 3)
-         game_entry_tab.pack_start(custom_launch_dir, false, false, 3)
-         game_entry_tab.pack_start(make_quick_option, false, false, 3)
-         game_entry_tab.pack_start(play_button_box, false, false, 3)
-
-         custom_launch_option.signal_connect('toggled') {
-            custom_launch_entry.visible = custom_launch_option.active?
-            custom_launch_dir.visible = custom_launch_option.active?
-            if custom_launch_option.active?
-               if use_simu_launcher_option.sensitive?
-                  remember_use_simu_launcher_active = use_simu_launcher_option.active?
-                  use_simu_launcher_option.active = false
-                  use_simu_launcher_option.sensitive = false
-               end
-            elsif not use_simu_launcher_option.sensitive? and ((frontend_option.active == 0) or (frontend_option.active == 1) or ((frontend_option.active == 2) and not found_profanity))
-               use_simu_launcher_option.sensitive = true
-               use_simu_launcher_option.active = remember_use_simu_launcher_active
-            end
-         }
-
-         connect_button.signal_connect('clicked') {
-            connect_button.sensitive = false
-            account_name_entry.sensitive = false
-            password_entry.sensitive = false
-            iter = liststore.append
-            iter[1] = 'working...'
-            Gtk.queue {
-               begin
-                  login_server = nil
-                  connect_thread = Thread.new {
-                     login_server = TCPSocket.new('eaccess.play.net', 7900)
-                  }
-                  300.times {
-                     sleep 0.1
-                     break unless connect_thread.status
-                  }
-                  if connect_thread.status
-                     connect_thread.kill rescue nil
-                     msgbox.call "error: timed out connecting to eaccess.play.net:7900"
-                  end
-               rescue
-                  msgbox.call "error connecting to server: #{$!}"
-                  connect_button.sensitive = true
-                  account_name_entry.sensitive = true
-                  password_entry.sensitive = true
-               end
-               disconnect_button.sensitive = true
-               if login_server
-                  login_server.puts "K\n"
-                  hashkey = login_server.gets
-                  if 'test'[0].class == String
-                     password = password_entry.text.split('').collect { |c| c.getbyte(0) }
-                     hashkey = hashkey.split('').collect { |c| c.getbyte(0) }
-                  else
-                     password = password_entry.text.split('').collect { |c| c[0] }
-                     hashkey = hashkey.split('').collect { |c| c[0] }
-                  end
-                  # password_entry.text = String.new
-                  password.each_index { |i| password[i] = ((password[i]-32)^hashkey[i])+32 }
-                  password = password.collect { |c| c.chr }.join
-                  login_server.puts "A\t#{account_name_entry.text}\t#{password}\n"
-                  password = nil
-                  response = login_server.gets
-                  login_key = /KEY\t([^\t]+)\t/.match(response).captures.first
-                  if login_key
-                     login_server.puts "M\n"
-                     response = login_server.gets
-                     if response =~ /^M\t/
-                        liststore.clear
-                        for game in response.sub(/^M\t/, '').scan(/[^\t]+\t[^\t^\n]+/)
-                           game_code, game_name = game.split("\t")
-                           login_server.puts "N\t#{game_code}\n"
-                           if login_server.gets =~ /STORM/
-                              login_server.puts "F\t#{game_code}\n"
-                              if login_server.gets =~ /NORMAL|PREMIUM|TRIAL|INTERNAL|FREE/
-                                 login_server.puts "G\t#{game_code}\n"
-                                 login_server.gets
-                                 login_server.puts "P\t#{game_code}\n"
-                                 login_server.gets
-                                 login_server.puts "C\n"
-                                 for code_name in login_server.gets.sub(/^C\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+[\t\n]/, '').scan(/[^\t]+\t[^\t^\n]+/)
-                                    char_code, char_name = code_name.split("\t")
-                                    iter = liststore.append
-                                    iter[0] = game_code
-                                    iter[1] = game_name
-                                    iter[2] = char_code
-                                    iter[3] = char_name
-                                 end
-                              end
-                           end
-                        end
-                        disconnect_button.sensitive = true
-                     else
-                        login_server.close unless login_server.closed?
-                        msgbox.call "Unrecognized response from server (#{response})"
-                     end
-                  else
-                     login_server.close unless login_server.closed?
-                     disconnect_button.sensitive = false
-                     connect_button.sensitive = true
-                     account_name_entry.sensitive = true
-                     password_entry.sensitive = true
-                     msgbox.call "Something went wrong... probably invalid user id and/or password.\nserver response: #{response}"
-                  end
-               end
-            }
-         }
-         treeview.signal_connect('cursor-changed') {
-            if login_server
-               play_button.sensitive = true
-            end
-         }
-         disconnect_button.signal_connect('clicked') {
-            disconnect_button.sensitive = false
-            play_button.sensitive = false
-            liststore.clear
-            login_server.close unless login_server.closed?
-            connect_button.sensitive = true
-            account_name_entry.sensitive = true
-            password_entry.sensitive = true
-         }
-         play_button.signal_connect('clicked') {
-            play_button.sensitive = false
-            game_code = treeview.selection.selected[0]
-            char_code = treeview.selection.selected[2]
-            if login_server and not login_server.closed?
-               login_server.puts "F\t#{game_code}\n"
-               login_server.gets
-               login_server.puts "G\t#{game_code}\n"
-               login_server.gets
-               login_server.puts "P\t#{game_code}\n"
-               login_server.gets
-               login_server.puts "C\n"
-               login_server.gets
-               login_server.puts "L\t#{char_code}\tSTORM\n"
-               response = login_server.gets
-               if response =~ /^L\t/
-                  login_server.close unless login_server.closed?
-                  port = /GAMEPORT=([0-9]+)/.match(response).captures.first
-                  host = /GAMEHOST=([^\t\n]+)/.match(response).captures.first
-                  key = /KEY=([^\t\n]+)/.match(response).captures.first
-                  launch_data = response.sub(/^L\tOK\t/, '').split("\t")
-                  login_server.close unless login_server.closed?
-                  if wizard_option.active?
-                     launch_data.collect! { |line| line.sub(/GAMEFILE=.+/, "GAMEFILE=WIZARD.EXE").sub(/GAME=.+/, "GAME=WIZ") }
-                  elsif suks_option.active?
-                     launch_data.collect! { |line| line.sub(/GAMEFILE=.+/, "GAMEFILE=WIZARD.EXE").sub(/GAME=.+/, "GAME=SUKS") }
-                  end
-                  if custom_launch_option.active?
-                     launch_data.push "CUSTOMLAUNCH=#{custom_launch_entry.child.text}"
-                     unless custom_launch_dir.child.text.empty? or custom_launch_dir.child.text == "(enter working directory for command)"
-                        launch_data.push "CUSTOMLAUNCHDIR=#{custom_launch_dir.child.text}"
-                     end
-                  end
-                  if make_quick_option.active?
-                     if wizard_option.active?
-                        frontend = 'wizard'
-                     else
-                        frontend = 'stormfront'
-                     end
-                     if custom_launch_option.active?
-                        custom_launch = custom_launch_entry.child.text
-                        if custom_launch_dir.child.text.empty? or custom_launch_dir.child.text == "(enter working directory for command)"
-                           custom_launch_dir = nil
-                        else
-                           custom_launch_dir = custom_launch_dir.child.text
-                        end
-                     else
-                        custom_launch = nil
-                        custom_launch_dir = nil
-                     end
-                     entry_data.push h={ :char_name => treeview.selection.selected[3], :game_code => treeview.selection.selected[0], :game_name => treeview.selection.selected[1], :user_id => account_name_entry.text, :password => password_entry.text, :frontend => frontend, :custom_launch => custom_launch, :custom_launch_dir => custom_launch_dir }
-                     save_entry_data = true
-                  end
-                  account_name_entry.text = String.new
-                  password_entry.text = String.new
-                  window.destroy
-                  done = true
-               else
-                  login_server.close unless login_server.closed?
-                  disconnect_button.sensitive = false
-                  play_button.sensitive = false
-                  connect_button.sensitive = true
-                  account_name_entry.sensitive = true
-                  password_entry.sensitive = true
-               end
-            else
-               disconnect_button.sensitive = false
-               play_button.sensitive = false
-               connect_button.sensitive = true
-               account_name_entry.sensitive = true
-               password_entry.sensitive = true
-            end
-         }
-         account_name_entry.signal_connect('activate') {
-            password_entry.grab_focus
-         }
-         password_entry.signal_connect('activate') {
-            connect_button.clicked
-         }
-=end
-
       #
-      # old game entry tab
+      # game entry tab
       #
 
       user_id_entry = Gtk::Entry.new
@@ -12078,200 +11722,30 @@ main_thread = Thread.new {
         end
       }
 
-=begin
-         #
-         # options tab
-         #
-
-         lich_char_label = Gtk::Label.new('Lich char:')
-         lich_char_label.xalign = 1
-         lich_char_entry = Gtk::Entry.new
-         lich_char_entry.text = ';' # fixme LichSettings['lich_char'].to_s
-         lich_box = Gtk::HBox.new
-         lich_box.pack_end(lich_char_entry, true, true, 5)
-         lich_box.pack_end(lich_char_label, true, true, 5)
-
-         cache_serverbuffer_button = Gtk::CheckButton.new('Cache to disk')
-         cache_serverbuffer_button.active = LichSettings['cache_serverbuffer']
-
-         serverbuffer_max_label = Gtk::Label.new('Maximum lines in memory:')
-         serverbuffer_max_entry = Gtk::Entry.new
-         serverbuffer_max_entry.text = LichSettings['serverbuffer_max_size'].to_s
-         serverbuffer_min_label = Gtk::Label.new('Minumum lines in memory:')
-         serverbuffer_min_entry = Gtk::Entry.new
-         serverbuffer_min_entry.text = LichSettings['serverbuffer_min_size'].to_s
-         serverbuffer_min_entry.sensitive = cache_serverbuffer_button.active?
-
-         serverbuffer_table = Gtk::Table.new(2, 2, false)
-         serverbuffer_table.attach(serverbuffer_max_label, 0, 1, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         serverbuffer_table.attach(serverbuffer_max_entry, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         serverbuffer_table.attach(serverbuffer_min_label, 0, 1, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         serverbuffer_table.attach(serverbuffer_min_entry, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-
-         serverbuffer_box = Gtk::VBox.new
-         serverbuffer_box.pack_start(cache_serverbuffer_button, false, false, 5)
-         serverbuffer_box.pack_start(serverbuffer_table, false, false, 5)
-
-         serverbuffer_frame = Gtk::Frame.new('Server Buffer')
-         serverbuffer_frame.add(serverbuffer_box)
-
-         cache_clientbuffer_button = Gtk::CheckButton.new('Cache to disk')
-         cache_clientbuffer_button.active = LichSettings['cache_clientbuffer']
-
-         clientbuffer_max_label = Gtk::Label.new('Maximum lines in memory:')
-         clientbuffer_max_entry = Gtk::Entry.new
-         clientbuffer_max_entry.text = LichSettings['clientbuffer_max_size'].to_s
-         clientbuffer_min_label = Gtk::Label.new('Minumum lines in memory:')
-         clientbuffer_min_entry = Gtk::Entry.new
-         clientbuffer_min_entry.text = LichSettings['clientbuffer_min_size'].to_s
-         clientbuffer_min_entry.sensitive = cache_clientbuffer_button.active?
-
-         clientbuffer_table = Gtk::Table.new(2, 2, false)
-         clientbuffer_table.attach(clientbuffer_max_label, 0, 1, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         clientbuffer_table.attach(clientbuffer_max_entry, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         clientbuffer_table.attach(clientbuffer_min_label, 0, 1, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-         clientbuffer_table.attach(clientbuffer_min_entry, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL, 5, 5)
-
-         clientbuffer_box = Gtk::VBox.new
-         clientbuffer_box.pack_start(cache_clientbuffer_button, false, false, 5)
-         clientbuffer_box.pack_start(clientbuffer_table, false, false, 5)
-
-         clientbuffer_frame = Gtk::Frame.new('Client Buffer')
-         clientbuffer_frame.add(clientbuffer_box)
-
-         save_button = Gtk::Button.new(' Save ')
-         save_button.sensitive = false
-
-         save_button_box = Gtk::HBox.new
-         save_button_box.pack_end(save_button, false, false, 5)
-
-         options_tab = Gtk::VBox.new
-         options_tab.border_width = 5
-         options_tab.pack_start(lich_box, false, false, 5)
-         options_tab.pack_start(serverbuffer_frame, false, false, 5)
-         options_tab.pack_start(clientbuffer_frame, false, false, 5)
-         options_tab.pack_start(save_button_box, false, false, 5)
-
-         check_changed = proc {
-            Gtk.queue {
-               if (LichSettings['lich_char'] == lich_char_entry.text) and (LichSettings['cache_serverbuffer'] == cache_serverbuffer_button.active?) and (LichSettings['serverbuffer_max_size'] == serverbuffer_max_entry.text.to_i) and (LichSettings['serverbuffer_min_size'] == serverbuffer_min_entry.text.to_i) and (LichSettings['cache_clientbuffer'] == cache_clientbuffer_button.active?) and (LichSettings['clientbuffer_max_size'] == clientbuffer_max_entry.text.to_i) and (LichSettings['clientbuffer_min_size'] == clientbuffer_min_entry.text.to_i)
-                  save_button.sensitive = false
-               else
-                  save_button.sensitive = true
-               end
-            }
-         }
-
-         lich_char_entry.signal_connect('key-press-event') {
-            check_changed.call
-            false
-         }
-         serverbuffer_max_entry.signal_connect('key-press-event') {
-            check_changed.call
-            false
-         }
-         serverbuffer_min_entry.signal_connect('key-press-event') {
-            check_changed.call
-            false
-         }
-         clientbuffer_max_entry.signal_connect('key-press-event') {
-            check_changed.call
-            false
-         }
-         clientbuffer_min_entry.signal_connect('key-press-event') {
-            check_changed.call
-            false
-         }
-         cache_serverbuffer_button.signal_connect('clicked') {
-            serverbuffer_min_entry.sensitive = cache_serverbuffer_button.active?
-            check_changed.call
-         }
-         cache_clientbuffer_button.signal_connect('clicked') {
-            clientbuffer_min_entry.sensitive = cache_clientbuffer_button.active?
-            check_changed.call
-         }
-         save_button.signal_connect('clicked') {
-            LichSettings['lich_char']             = lich_char_entry.text
-            LichSettings['cache_serverbuffer']    = cache_serverbuffer_button.active?
-            LichSettings['serverbuffer_max_size'] = serverbuffer_max_entry.text.to_i
-            LichSettings['serverbuffer_min_size'] = serverbuffer_min_entry.text.to_i
-            LichSettings['cache_clientbuffer']    = cache_clientbuffer_button.active?
-            LichSettings['clientbuffer_max_size'] = clientbuffer_max_entry.text.to_i
-            LichSettings['clientbuffer_min_size'] = clientbuffer_min_entry.text.to_i
-            LichSettings.save
-            save_button.sensitive = false
-         }
-=end
-
       #
       # put it together and show the window
       #
       silver = Gdk::RGBA::parse("#d3d3d3")
       notebook = Gtk::Notebook.new
-      #    default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
-      #    notebook.set_icon(default_icon)
       notebook.override_background_color(:normal, silver)
       notebook.append_page(quick_game_entry_tab, Gtk::Label.new('Quick Game Entry'))
       notebook.append_page(game_entry_tab, Gtk::Label.new('Game Entry'))
       notebook.append_page(install_tab, Gtk::Label.new('Link'))
-      #         notebook.append_page(options_tab, Gtk::Label.new('Options'))
+
       notebook.signal_connect('switch-page') { |who,page,page_num|
         if (page_num == 2) and not install_tab_loaded
           refresh_button.clicked
-=begin
-            elsif (page_num == 1) and not checked_frontends
-               checked_frontends = true
-               found_profanity = File.exists?("#{LICH_DIR}/profanity.rb")
-               if defined?(Win32)
-                  begin
-                     key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Simutronics\\STORM32', :samDesired => (Win32::KEY_ALL_ACCESS|Win32::KEY_WOW64_32KEY))[:phkResult]
-                     stormfront_dir = Win32.RegQueryValueEx(:hKey => key, :lpValueName => 'Directory')[:lpData]
-                  rescue
-                     stormfront_dir = nil
-                  ensure
-                     Win32.RegCloseKey(:hKey => key) rescue nil
-                  end
-                  begin
-                     key = Win32.RegOpenKeyEx(:hKey => Win32::HKEY_LOCAL_MACHINE, :lpSubKey => 'Software\\Simutronics\\WIZ32', :samDesired => (Win32::KEY_ALL_ACCESS|Win32::KEY_WOW64_32KEY))[:phkResult]
-                     wizard_dir = Win32.RegQueryValueEx(:hKey => key, :lpValueName => 'Directory')[:lpData]
-                  rescue
-                     wizard_dir = nil
-                  ensure
-                     Win32.RegCloseKey(:hKey => key) rescue nil
-                  end
-               elsif defined?(Wine)
-                  stormfront_dir = Wine.registry_gets('HKEY_LOCAL_MACHINE\\Software\\Simutronics\\STORM32\\Directory').gsub("\\", "/")
-                  wizard_dir = Wine.registry_gets('HKEY_LOCAL_MACHINE\\Software\\Simutronics\\WIZ32\\Directory').gsub("\\", "/")
-               else
-                  stormfront_dir = nil
-                  wizard_dir = nil
-               end
-               Lich.log "wizard_dir: #{wizard_dir}"
-               Lich.log "stormfront_dir: #{stormfront_dir}"
-               unless File.exists?("#{stormfront_dir}\\Stormfront.exe")
-                  Lich.log "stormfront doesn't exist"
-                  stormfront_dir = nil
-               end
-               unless File.exists?("#{wizard_dir}\\Wizard.Exe")
-                  Lich.log "wizard doesn't exist"
-                  wizard_dir = nil
-               end
-=end
         end
       }
       grey = Gdk::RGBA::parse("#d3d3d3")
       window = Gtk::Window.new
-      #    default_icon = GdkPixbuf::Pixbuf.new(:file => 'fly64.png')
       window.set_icon(@default_icon)
       window.title = "Lich v#{LICH_VERSION}"
       window.border_width = 5
       window.add(notebook)
       window.signal_connect('delete_event') { window.destroy; done = true }
       window.default_width = 400
-      # Adjusted to be a little longer due to formatting changes
       window.default_height = 700
-      # Always start window in center of screen
-      window.window_position=Gtk::Window::POS_CENTER
       window.show_all
 
       custom_launch_entry.visible = false
@@ -12440,13 +11914,11 @@ main_thread = Thread.new {
           file = dir_file.sub(/^.*[\\\/]/, '')
           if Lich.win32_launch_method and Lich.win32_launch_method =~ /^(\d+):(.+)$/
             method_num = $1.to_i
-            Lich.log " Method number:  #{method_num} attempted"
             if $2 == 'fail'
               method_num = (method_num + 1) % 6
             end
           else
             method_num = 5
-            Lich.log "Failed out to Method Number 5, no Mambo"
           end
           if method_num == 5
             begin

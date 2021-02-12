@@ -5,9 +5,12 @@
 	  game: any
 	  tags: utility
 
-  version: 0.5 (2020-03-19)
+  version: 0.51 (2021-02-11)
 
   changelog:
+    version 0.51 (2021-02-11)
+      * Add Cabal / Lich detection
+      
     version 0.5 (2020-03-19)
       * Fix our exception handling not actually working.
       * Fix GTK version reporting, particularly w/ GTK3
@@ -53,6 +56,15 @@ def gtk_version
     rescue
         return 'error'
     end
+end
+
+def core_engine
+  begin
+    return "Cabal v #{CABAL_VERSION}" if Object.const_defined?(:CABAL_VERSION)
+    return "Lich v #{LICH_VERSION}" if Object.const_defined?(:LICH_VERSION)
+  rescue
+    return 'Who are you and what have you done to the Lich?'
+  end
 end
 
 def format_report(report, width)
@@ -170,7 +182,7 @@ if show_report
         "Ruby version" => const_get(:RUBY_VERSION, missing: 'unknown'),
         "Ruby platform" =>  const_get(:RUBY_PLATFORM, missing: 'unknown'),
         "Ruby engine" => const_get(:RUBY_ENGINE, missing: 'unknown'),
-        "Lich version" => const_get(:LICH_VERSION, missing: 'unknown'),
+        "Scripting engine" => core_engine,
         "SQLite3 version" => module_version(:SQLite3),
         "Gtk version" => gtk_version,
         "Cairo version" => module_version(:Cairo),
