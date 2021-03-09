@@ -1,10 +1,12 @@
-= GTK3 Lich
+= GTK3 Lich Scripts
 Elanthia Online
 :toc:
 
 == About
 
-This is the GTK3 version of lich.  It starts at version 5.0.0 based on efforts from multiple community members.  Issues and Pull Requests are welcome to support the usage of a centralized GTK3 version of Lich.
+Scripts located here are the GTK3 versions of existing lich scripts.
+
+The intent is to make these available until such time as people have converted fully onto the GTK3 version of lich.  Once this has been accomplished, these scripts should all be converted over to the primary Eol/scripts repository for general consumption and maintenance.
 
 == Usage
 
