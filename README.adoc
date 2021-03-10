@@ -2,7 +2,8 @@
 Elanthia Online
 :toc:
 
-[![Build Status](https://github.com/elanthia-online/scripts/workflows/Build/badge.svg?branch=master)](https://github.com/elanthia-online/scripts/actions)
+[link=https://github.com/elanthia-online/gtk3-lich/actions]
+image::https://github.com/elanthia-online/gtk3-lich/workflows/Build/badge.svg?branch=master[Netlify Build Status]
 
 == About
 
