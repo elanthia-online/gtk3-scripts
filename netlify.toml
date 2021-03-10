@@ -9,3 +9,4 @@ command = """
   && chmod +x jinxp \
   && ./jinxp -i scripts
   """
+

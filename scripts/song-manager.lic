@@ -1,11 +1,11 @@
 =begin
 
   Manages all of your bard spells.
-  
+
   Will make sure you are always singing the songs you specify. Has an option to automatically use SHOUT 1040 if you're stunned/webbed. Has an option to cast/stop a song then cast it again after the effect wears off to help with multi-song penalties. Option to keep Song of Power running until about 30 seconds before it renews, then will stop Song of Power, wait for your songs to renew, then cast it again. Script will warn you if your current mana isn't sufficient to cover the cost of your auto-renewal. Also has an option to stop songs until your current mana is high enough to cover the cost of your auto-renewal. Plus much, MUCH more!
-  
+
   Script is on a 10 second loop meaning it will check for missing songs, when to stop songs, etc, every 10 seconds.
-  
+
   Be sure to do ;song-manager help for more additional info on setting up this script properly.
 
   Author: Tgo01
@@ -54,13 +54,13 @@ renew_cost_1003 = 1
 renew_cost_1006 = 3+([Spells.bard-6,0].max/8)
 renew_cost_1007 = 2+[[Spells.bard-7,0].max,10].min
 renew_cost_1009 = 4
-renew_cost_1010 = 3+((Spells.bard-10)/10) 
+renew_cost_1010 = 3+((Spells.bard-10)/10)
 renew_cost_1011 = 4
 renew_cost_1012 = 4
 renew_cost_1014 = 5
 renew_cost_1017 = 7
 renew_cost_1018 = 15
-renew_cost_1019 = 8+((Spells.bard-19)/10) 
+renew_cost_1019 = 8+((Spells.bard-19)/10)
 renew_cost_1025 = 15
 
 setup = proc{
@@ -83,7 +83,7 @@ setup = proc{
     $song_manager_NOTEBOOK.append_page($song_manager_VERTICAL_BOX1, Gtk::Label.new('Songs'))
     $song_manager_NOTEBOOK.append_page($song_manager_VERTICAL_BOX2, Gtk::Label.new('More Songs'))
     $song_manager_NOTEBOOK.append_page($song_manager_VERTICAL_BOX3, Gtk::Label.new('Other Options'))
-    $song_manager_ENTRY = Hash.new 
+    $song_manager_ENTRY = Hash.new
     $song_manager_TABLE_SIZE = Hash.new
   }
 
@@ -152,13 +152,13 @@ setup = proc{
     $song_manager_ENTRY[variable] = checkbox
     $song_manager_TABLE_SIZE[table] += 1 if x_pos == 1
   end
-        
+
   Gtk.queue {
     $song_manager_WINDOW.signal_connect("delete_event") {
       $song_manager_SETUP_COMPLETED = true
     }
   }
-        
+
   Gtk.queue {
 #   $song_manager_TOOLTIPS = Gtk::Tooltips.new
 #   $song_manager_TOOLTIPS.enable
@@ -176,7 +176,7 @@ setup = proc{
     align.set_padding(50, 0, 0, 40)
     align.add(label)
     $song_manager_TABLE2.attach(align, 1, 2, 8, 9)
-    
+
     label = Gtk::Label.new
     label.set_markup("<b>Auto Stop Songs:</b> Enter <b>yes</b> to have script automatically stop songs 30 seconds before auto renew if your song renewal is greater than your current mana.\nScript will stop songs one at a time until your song renewal is less than your current mana.\nFor each sonic equipment option enter <b>yes</b> to have script NOT stop that song, even if it would result in fried nerves from auto renewal.")
     align = Gtk::Alignment.new(1, 0, 0, 0)
@@ -186,12 +186,12 @@ setup = proc{
 
     $song_manager_WINDOW.show_all
   }
-        
+
   $song_manager_SETUP_COMPLETED = false
   until($song_manager_SETUP_COMPLETED)
     sleep 1
   end
-       
+
   UserVars.song_manager ||= Hash.new
   $song_manager_ENTRY.keys.each { |key|
     if( $song_manager_ENTRY[key].class.to_s =~ /CheckButton/ )
@@ -206,7 +206,7 @@ setup = proc{
     end
   }
   UserVars.save()
-        
+
   Gtk.queue {
     $song_manager_WINDOW.destroy
   }
@@ -480,7 +480,7 @@ low_mana_check_warning = proc{
         echo "WARNING! Your current song renewal cost is #{math} higher than your current mana and your songs will auto-renew in about 30 seconds."
       end
       first_less_than_one_minute_warning = true
-      stop_singing_songs_list.call if UserVars.song_manager["auto_stop_songs"] =~ /yes/i  
+      stop_singing_songs_list.call if UserVars.song_manager["auto_stop_songs"] =~ /yes/i
     elsif time_remaining_message =~ /will renew in a moment/
       echo "WARNING! Your current song renewal cost is #{math} higher than your current mana and your songs will auto-renew any second now!" if first_soon_warning.nil?
       first_soon_warning = true

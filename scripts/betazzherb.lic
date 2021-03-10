@@ -17,8 +17,8 @@ This script doesnt care if creatures are in the room, so be careful using it.
 
 v5 update: Mini-update to change a _drag command to put, hopefully bypassing some weirdness?
 
-v4 update: Handle luminsecent indigo mushrooms properly, MARK them unsellable when found. 
-           This has not been fully tested, because I haven't dug any up myself yet. 
+v4 update: Handle luminsecent indigo mushrooms properly, MARK them unsellable when found.
+           This has not been fully tested, because I haven't dug any up myself yet.
            Let me know how it works for you.
 
 author: Zzentar
@@ -80,7 +80,7 @@ setup = proc {
   gtk_locals['sing_tonis'].active = settings['sing_tonis'] if settings['sing_tonis'].defined?
   gtk_locals['sing_tonis'].has_tooltip = true
   gtk_locals['sing_tonis'].tooltip_markup = "Sing the Song of Tonis?"
-    gtk_locals['sanct_rooms'] = Gtk::CheckButton.new('Sanct the room first?') if Spell[213].known? 
+    gtk_locals['sanct_rooms'] = Gtk::CheckButton.new('Sanct the room first?') if Spell[213].known?
   gtk_locals['sanct_rooms'].active = settings['sanct_rooms'] if settings['sanct_rooms'].defined?
   gtk_locals['sanct_rooms'].has_tooltip = true
   gtk_locals['sanct_rooms'].tooltip_markup = "Cast minor sanctuary in each room before foraging?\nThe script won't recast 213 if it fails or wears off.\nDoes not sing Peace."
@@ -116,18 +116,18 @@ setup = proc {
 
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Lootsack for your foraging: ')),:expand => true, :fill => false, :padding => 0)
-    
+
   hb.pack_start(gtk_globals['lootsack'], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
 
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(gtk_locals['kneel_to_forage'].set_width_request(145), :expand => false, :fill => false, :padding => 0)
   vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-  
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(gtk_locals['hide_to_forage'].set_width_request(145), :expand => false, :fill => false, :padding => 0)
   vb_pg1_1.pack_start(hb, :expand => false, :fill => true, :padding => 0)
-  
+
     hb.pack_start(gtk_locals['stow_stuff'], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => true, :padding => 0)
 
@@ -136,7 +136,7 @@ setup = proc {
       hb.pack_start(gtk_locals['sing_tonis'].set_width_request(145), :expand => false, :fill => false, :padding => 0)
       vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
     end
-  
+
   if Spell[213].known?
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(gtk_locals['sanct_rooms'].set_width_request(145), :expand => false, :fill => false, :padding => 0)
@@ -190,7 +190,7 @@ setup = proc {
       if widget.class == Gtk::CheckButton
         UserVars.change(option,widget.active?,:char)
       elsif widget.class == Gtk::Entry
-        UserVars.change(option,clean_entry.call(widget),:char) 
+        UserVars.change(option,clean_entry.call(widget),:char)
       else
         echo "error: unknown global widget #{option} [#{widget.class}]"
       end
@@ -201,7 +201,7 @@ setup = proc {
         settings[option] = widget.active?
     UserVars.change(option,widget.active?,:char)
       elsif widget.class == Gtk::Entry
-        settings[option] = clean_entry.call(widget) 
+        settings[option] = clean_entry.call(widget)
       else
         echo "error: unknown local widget #{option} [#{widget.class}]"
       end
@@ -317,10 +317,10 @@ if script.vars[1].downcase == 'bounty'
     end
   elsif script.vars[2]
     bounty_string = script.vars[0]
-  elsif bounty? 
+  elsif bounty?
     bounty_string = bounty?
   end
-  
+
   if bounty_string =~ /concoction that requires (?:a |an )?(.*) found (?:on |in )?(.*?)(?: (?:near|between|under) .*?)?\.\s+These samples must be in pristine condition\.\s+You have been tasked to retrieve (\d+) (?:more )?sample/
     herb = $1
     qty = $3.to_i
@@ -382,7 +382,7 @@ if herb == "luminescent indigo mushroom"
   respond '* All you can do is forage for some other herb and hope to accidentally find one.'
   respond '*'
   exit
-end 
+end
 
 herb = 'ayana leaf' if herb =~ /ayana (weed|lichen|berry|root)/
 herb = "ayana'al leaf" if herb =~ /ayana'al (weed|lichen|berry|root)/
@@ -453,7 +453,7 @@ for herb_room in target_list
   start_script 'go2', [ herb_room.to_s ]
   wait_while { running?('go2') }
 
-  # if GameObj.pcs != nil 
+  # if GameObj.pcs != nil
   #   if occupied_rooms != nil
   #     echo 'Room is occupied, let\'s try back later.'
   #     occupied_rooms.push herb_room

@@ -28,7 +28,7 @@ end
 
 class AGtk
   attr_accessor :button, :entry, :combo, :window
-    
+
   def initialize(title = nil)
     @button ||= Hash.new
     @checkbutton ||= { :local => {}, :global => {} }
@@ -37,7 +37,7 @@ class AGtk
     @resizable = true
     @window = Gtk::Window.new(title) unless title.nil?
   end
-  
+
   def add_button(table, row, col, label, name)
     button = Gtk::Button.new(:label => label, :use_underline => nil, :stock_id => nil)
     table.attach(button, col, col + 1, row, row + 1)
@@ -53,7 +53,7 @@ class AGtk
     combo = Gtk::ComboBox.new(true)
 
     table.attach(combo, col + 1, col + 1, row, row + 1)
-    
+
     @combo[type][name] = combo
   end
 
@@ -68,7 +68,7 @@ def armor_show_setup
 
   gtk = AGtk.new("Armor Hindrance Charts")
   gtk.window.resizable = true
-  
+
   Gtk.queue {
     vb = Gtk::Box.new(:vertical)
     vb.set_border_width(5)
@@ -81,14 +81,14 @@ def armor_show_setup
 
     tbl_btns = Gtk::Table.new(0, 0, true)
     gtk.add_button(tbl_btns, 0, 0, 'Close', 'ok')
-    
+
     vb.pack_start(tbl_btns)
-    
+
     tbl = Gtk::Table.new(2, 2, false)
     tbl.set_border_width(2)
     tbl.row_spacings = 3
     tbl.column_spacings = 3
-    
+
     #First Tab
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='red' font_desc='Courier Bold 15'>Armor Ranks to Train off Hindrance</span></b>")
@@ -96,10 +96,10 @@ def armor_show_setup
     align.set_padding(0, 10, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 4, 0, 1)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>ASG</span><span color='black' font_desc='Courier Bold 9'>
-1 Clothing/No Armor 
+1 Clothing/No Armor
 2 Robes
 5 Light Leather
 6 Full Leather
@@ -110,7 +110,7 @@ def armor_show_setup
 11 Studded Leather
 12 Brigandine Armor
 13 Chain Mail
-14 Double Chain 
+14 Double Chain
 15 Augmented Chain
 16 Chain Hauberk
 17 Metal Breastplate
@@ -159,7 +159,7 @@ def armor_show_setup
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 1, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>RT</span><span color='black' font_desc='Courier Bold 9'>
 0
@@ -185,7 +185,7 @@ def armor_show_setup
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 1, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>MnS</span><span color='black' font_desc='Courier Bold 9'>
 0
@@ -211,7 +211,7 @@ def armor_show_setup
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 1, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>MjS/C</span><span color='black' font_desc='Courier Bold 9'>
 0
@@ -237,7 +237,7 @@ def armor_show_setup
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 1, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>MnE</span><span color='black' font_desc='Courier Bold 9'>
 0
@@ -263,7 +263,7 @@ def armor_show_setup
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 1, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>MjE/W</span><span color='black' font_desc='Courier Bold 9'>
 0
@@ -289,7 +289,7 @@ def armor_show_setup
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 1, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>R</span><span color='black' font_desc='Courier Bold 9'>
 0
@@ -315,7 +315,7 @@ def armor_show_setup
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 1, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>S</span><span color='black' font_desc='Courier Bold 9'>
 0
@@ -341,7 +341,7 @@ def armor_show_setup
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 1, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>Em</span><span color='black' font_desc='Courier Bold 9'>
 0
@@ -367,7 +367,7 @@ def armor_show_setup
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 1, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>B</span><span color='black' font_desc='Courier Bold 9'>
 0
@@ -393,7 +393,7 @@ def armor_show_setup
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 1, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>P</span><span color='black' font_desc='Courier Bold 9'>
 0
@@ -419,7 +419,7 @@ def armor_show_setup
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 1, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>Max</span><span color='black' font_desc='Courier Bold 9'>
 0
@@ -445,14 +445,14 @@ def armor_show_setup
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 1, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<span color='black' font_desc='Courier Italic 8'>Brought to you by Pukk</span>")
     align = Gtk::Alignment.new(xalign=2.00, yalign=2.0, xscale=0.0, yscale=0.0)
     align.set_padding(0, 10, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 4, 0, 1)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>
 ASG
@@ -465,7 +465,7 @@ MjS
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>
 Armor Sub-Group
@@ -478,7 +478,7 @@ Major Spirit Circle
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>
 MnE
@@ -491,7 +491,7 @@ R
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>
 Minor Elemental Circle
@@ -504,7 +504,7 @@ Ranger Base Circle
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>
 S
@@ -517,7 +517,7 @@ B
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>
 Sorcerer Base Circle
@@ -530,7 +530,7 @@ Bard Base Circle
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='Red' font_desc='Courier Bold 15'>
 Table Legend
@@ -542,13 +542,13 @@ Table Legend
 
     nb.append_page(tbl, Gtk::Label.new('Armor Hindrance'))
 
-    
+
     # Second Tab
     tbl = Gtk::Table.new(2, 2, false)
     tbl.set_border_width(2)
     tbl.row_spacings = 3
     tbl.column_spacings = 3
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 12'>
@@ -577,7 +577,7 @@ leather</span>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 12'>
@@ -610,7 +610,7 @@ AsG</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 12'>
@@ -643,7 +643,7 @@ Full plate
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -676,7 +676,7 @@ RT</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -709,7 +709,7 @@ AP</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -742,7 +742,7 @@ MnS</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -775,7 +775,7 @@ MjS</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -808,7 +808,7 @@ C</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -841,7 +841,7 @@ MnE</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -874,7 +874,7 @@ MjE</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
         lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -907,7 +907,7 @@ R</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
         lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -940,7 +940,7 @@ S</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
         lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -973,7 +973,7 @@ W</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
         lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -1006,7 +1006,7 @@ B</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
         lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -1039,7 +1039,7 @@ Em</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
         lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -1072,7 +1072,7 @@ P</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
+
         lbl = Gtk::Label.new
     lbl.set_markup("
 <b><span color='blue' font_desc='Courier Bold 9'>
@@ -1105,8 +1105,8 @@ Max</span><span color='black' font_desc='Courier Bold 9'>
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 1, 0, 1)
-    
-    
+
+
 
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>
@@ -1120,7 +1120,7 @@ MjS
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>
 Armor Sub-Group
@@ -1133,7 +1133,7 @@ Major Spirit Circle
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>
 MnE
@@ -1146,7 +1146,7 @@ R
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>
 Minor Elemental Circle
@@ -1159,7 +1159,7 @@ Ranger Base Circle
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>
 S
@@ -1172,7 +1172,7 @@ B
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 9'>
 Sorcerer Base Circle
@@ -1185,7 +1185,7 @@ Bard Base Circle
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='Red' font_desc='Courier Bold 15'>
 Table Legend
@@ -1194,22 +1194,22 @@ Table Legend
     align.set_padding(0, 0, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 2, 0, 2)
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='Red' font_desc='Courier Bold 15'>Min. Spell Hindrance %</span></b>")
     align = Gtk::Alignment.new(xalign=0.15, yalign=0.00, xscale=0.0, yscale=0.0)
     align.set_padding(0, 10, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 4, 0, 1)
-        
+
     nb.append_page(tbl, Gtk::Label.new('Cast vs Hindrance'))
-    
+
     #Third Tab
     tbl = Gtk::Table.new(2, 2, false)
     tbl.set_border_width(2)
     tbl.row_spacings = 2
     tbl.column_spacings = 2
-    
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><big><span color='red'>Levels of padding are as follows:</span></big><span color='blue' font_desc='Courier Bold 12'>
 Lightly
@@ -1232,7 +1232,7 @@ Wondrously
     align.set_padding(0, 10, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 4, 0, 1)
-  
+
     lbl = Gtk::Label.new
     lbl.set_markup("<b><span color='blue' font_desc='Courier Bold 12'>
 01 - 02
@@ -1255,16 +1255,16 @@ Wondrously
     align.set_padding(0, 10, 0, 0)
     align.add(lbl)
     tbl.attach(align, 0, 4, 0, 1)
-  
+
     nb.append_page(tbl, Gtk::Label.new('Padding Info'))
-    
+
     gtk.window.signal_connect('delete_event') { done = true }
     gtk.button['ok'].signal_connect('clicked') { done = true }
     gtk.window.show_all
   }
-  
+
   before_dying { gtk.destroy_window }
-  
+
   loop {
     break if done
     sleep 0.10
@@ -1294,7 +1294,7 @@ respond("18 Aug. Breastplate     100   90    230   450   250   690   370   550  
 respond("19 Half Plate           120   110   250   530   290   790   430   670   530   310   140   94")
 respond("20 Full Plate           140   130   290   790   330   890   490   850   790   890   150   96")
 respond("")
-respond("")     
+respond("")
 message("  AG          AsG        Name              RT      AP                    Min. Spell Hindrance %")
 respond("                                       MnS MjS   C  MnE MjE  R   S   W   B   Em  P   Max
 Cloth     1     Robes        0    0     -   -    -   -   -   -   -   -   -   -   -   -

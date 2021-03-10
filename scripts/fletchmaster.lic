@@ -4,7 +4,7 @@ This script is a work-in-progress for mastering fletching.
 
 It will begin fletching in your current room.
 When you run out of wood, it will run to the fletcher and buy it for you (using #40, should check for all towns)
-  Can get coins from the bank 
+  Can get coins from the bank
 Can use a garbage can.
 Only works on an arrow until a rank is gained or we get past the first three steps.
 Pauses for experience if numbed or higher (presently hardcoded and thresholds must be changed by user directly in code)
@@ -42,7 +42,7 @@ hook_style = proc { |server_string|
     nil
   else
     server_string
-  end 
+  end
 }
 
 before_dying {
@@ -66,7 +66,7 @@ setup = proc{
     $FM_BOX.add($FM_NOTEBOOK)
     $FM_NOTEBOOK.append_page($FM_VERTICAL_BOX1, Gtk::Label.new('General'))
 
-    $FM_ENTRY = Hash.new 
+    $FM_ENTRY = Hash.new
     $FM_TABLE_SIZE = Hash.new
   }
 
@@ -104,13 +104,13 @@ setup = proc{
 
   }
 
-        
+
   Gtk.queue {
     $FM_WINDOW.signal_connect("delete_event") {
       $FM_SETUP_COMPLETED = true
     }
   }
-        
+
   Gtk.queue {
 #   $FM_TOOLTIPS = Gtk::Tooltips.new
 #   $FM_TOOLTIPS.enable
@@ -124,12 +124,12 @@ setup = proc{
 
     $FM_WINDOW.show_all
   }
-        
+
   $FM_SETUP_COMPLETED = false
   until($FM_SETUP_COMPLETED)
     sleep 1
   end
-       
+
   UserVars.fletchmaster ||= Hash.new
   $FM_ENTRY.keys.each { |key|
     if( $FM_ENTRY[key].class.to_s =~ /CheckButton/ )
@@ -144,7 +144,7 @@ setup = proc{
     end
   }
   UserVars.save()
-        
+
   Gtk.queue {
     $FM_WINDOW.destroy
   }
@@ -169,8 +169,8 @@ if script.vars[1] == "setup"
 #elsif script.vars[1] == "?"
 # usage
 #elsif script.vars[1] =~ /(.*)/
-# message("Usage is: 
-#;fletchmaster setup 
+# message("Usage is:
+#;fletchmaster setup
 #;fletchmaster help
 end
 
@@ -181,7 +181,7 @@ check_silvers = proc {
                         nil
                 elsif server_string =~ /^\s*Mana\:\s+\-?[0-9]+\s+Silver\:\s+([0-9]+)/
                         DownstreamHook.remove('fletchmaster_check_silvers')
-                        nil  
+                        nil
                 else
                         server_string
                 end
@@ -191,7 +191,7 @@ check_silvers = proc {
         silence_me unless undo_silence = silence_me
         put 'info'
         silence_me if undo_silence
-        while (line = get) 
+        while (line = get)
                 if line =~ /^\s*Mana\:\s+\-?[0-9]+\s+Silver\:\s+([0-9]+)/
                         silvers = $1.to_i
                         break
@@ -206,9 +206,9 @@ start_spot = Room.current.id
 
 if UserVars.fletchmaster["dagger_setup"].nil? || UserVars.fletchmaster["dagger_setup"].empty?
   dagger = "knife"
-  echo "No dagger set.  Using default: #{dagger}.  Use setup to change." 
+  echo "No dagger set.  Using default: #{dagger}.  Use setup to change."
 else
-  dagger = UserVars.fletchmaster["dagger_setup"] 
+  dagger = UserVars.fletchmaster["dagger_setup"]
   echo "Using dagger: #{dagger}"
 end
 
@@ -217,9 +217,9 @@ fput "look my #{dagger}"
 
 if UserVars.fletchmaster["handaxe_setup"].nil? || UserVars.fletchmaster["handaxe_setup"].empty?
   handaxe = "handaxe"
-  echo "No handaxe set.  Using default: #{handaxe}.  Use setup to change." 
+  echo "No handaxe set.  Using default: #{handaxe}.  Use setup to change."
 else
-  dagger = UserVars.fletchmaster["handaxe_setup"] 
+  dagger = UserVars.fletchmaster["handaxe_setup"]
   echo "Using handaxe: #{handaxe}"
 end
 
@@ -231,14 +231,14 @@ if UserVars.fletchmaster["garbage_setup"].nil? || UserVars.fletchmaster["garbage
   if Room.current.tags.include?("fletcher")
     goto "FLETCHER"
   end
-  if garbage.nil? || garbage.empty? 
+  if garbage.nil? || garbage.empty?
     # no setting, and we are not in the fletcher, and the room didn't have a detected garbage can
     echo "No garbage can could be found automatically.  Please use setup to customize it.  All shafts will be dropped!"
-  else 
-    echo "No garbage set.  Using room default: #{garbage}." 
+  else
+    echo "No garbage set.  Using room default: #{garbage}."
   end
 else
-  garbage = UserVars.fletchmaster["garbage_setup"] 
+  garbage = UserVars.fletchmaster["garbage_setup"]
   echo "Using custom garbage: #{garbage}"
 end
 
@@ -309,7 +309,7 @@ RESTART:
     fput "put my SHAFT in #{garbage}"
   end
 goto "BEGIN"
-  
+
 FLETCHER:
   current_silvers = check_silvers.call
   if current_silvers < silvers_min
@@ -323,7 +323,7 @@ FLETCHER:
       echo "Not enough coins in account.  Get more silvers or decrease silvers_max below #{silvers_max} silvers in #{$lich_char}#{script.name}"
       exit
     end
-  
+
   end
   if !Room.current.tags.include?("fletcher")
     empty_hands
@@ -336,7 +336,7 @@ FLETCHER:
   #Script.run('go2', '#{start_spot}')
   # TODO need to fail more politely
   Script.run('go2', start_spot.to_s)
-  
+
   goto "STARTWOOD"
   #Script.run('order', '#{woodorderno} #{woodamount}')
 exit

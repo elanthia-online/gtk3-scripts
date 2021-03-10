@@ -125,13 +125,13 @@ setup = proc {
             iter[0] = spell.num.to_s
                 iter[1] = spell.name
             end
-            
+
             if perm_list.include?(spell.num)
             iter    = perm_ls.append
             iter[0] = spell.num.to_s
             iter[1] = spell.name
             end
-            
+
             iter    = nocast_ls.append
             iter[0] = spell.num.to_s
             iter[1] = spell.name

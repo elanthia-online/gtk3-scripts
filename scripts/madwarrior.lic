@@ -212,7 +212,7 @@ setup = proc{
     $BBB_NOTEBOOK.append_page($BBB_VERTICAL_BOX3, Gtk::Label.new('Batter Barriers'))
     $BBB_NOTEBOOK.append_page($BBB_VERTICAL_BOX4, Gtk::Label.new('Tackle'))
     $BBB_NOTEBOOK.append_page($BBB_VERTICAL_BOX5, Gtk::Label.new('Trading Tasks'))
-    $BBB_ENTRY = Hash.new 
+    $BBB_ENTRY = Hash.new
     $BBB_TABLE_SIZE = Hash.new
   }
 
@@ -305,13 +305,13 @@ setup = proc{
     $BBB_ENTRY[variable] = checkbox
     $BBB_TABLE_SIZE[table] += 1 if x_pos == 1
   end
-        
+
   Gtk.queue {
     $BBB_WINDOW.signal_connect("delete_event") {
       $BBB_SETUP_COMPLETED = true
     }
   }
-        
+
   Gtk.queue {
 #   $BBB_TOOLTIPS = Gtk::Tooltips.new
 #   $BBB_TOOLTIPS.enable
@@ -353,12 +353,12 @@ setup = proc{
 
     $BBB_WINDOW.show_all
   }
-        
+
   $BBB_SETUP_COMPLETED = false
   until($BBB_SETUP_COMPLETED)
     sleep 1
   end
-       
+
   UserVars.warrior ||= Hash.new
   $BBB_ENTRY.keys.each { |key|
     if( $BBB_ENTRY[key].class.to_s =~ /CheckButton/ )
@@ -373,7 +373,7 @@ setup = proc{
     end
   }
   UserVars.save()
-        
+
   Gtk.queue {
     $BBB_WINDOW.destroy
   }
@@ -435,8 +435,8 @@ check_in = proc{
   target_room_list = Map.list.find_all { |room| room.tags.include?('warrior guild guildmaster') }
   go_to.call
   fput "ask #{person} about checkin"
-  current_skill_start.call  
-} 
+  current_skill_start.call
+}
 
 get_task = proc{
   checking_rank_status = nil
@@ -492,7 +492,7 @@ trade_in_task = proc{
   target_room_list = Map.list.find_all { |room| room.tags.include?('warrior guild administrator') }
   go_to.call
   if current_skill_name == "War Cries"
-    fput "ask #{person} about trading warcries" 
+    fput "ask #{person} about trading warcries"
   else
     fput "ask #{person} about trading #{current_skill_name}"
   end
@@ -545,7 +545,7 @@ check_popped_muscles = proc{
       start_script 'go2', [ this_room ]
       wait_while { running?('go2') }
       current_task = "wander"
-    end   
+    end
   end
 }
 
@@ -916,7 +916,7 @@ check_task = proc {
             break
           elsif line =~ /You have earned enough training points for your next rank\./
             current_task = "get rank"
-            break       
+            break
           elsif line =~ /You are not currently training in this skill\.|You have not been assigned a current task for this skill\./
             current_task = "get task"
             break
@@ -933,7 +933,7 @@ check_task = proc {
     wait_until {current_task != nil }
     if checking_status
       nil
-    else      
+    else
       if current_task == "first rank"
         message_string = "Getting #{current_skill_name} task."
         display_message.call
@@ -992,11 +992,11 @@ check_task = proc {
                   start_script 'go2', [ UserVars.warrior["locker_room_number"] ]
                   wait_until { !running? "go2" }
                   if way_in = (GameObj.loot.to_a + GameObj.room_desc.to_a).find { |obj| obj.noun =~ /^(?:opening|curtain)$/ }
-                    move "go #{way_in.noun}"  
+                    move "go #{way_in.noun}"
                   else
                     message_string = "Could not find entrance to locker."
                     display_message.call
-                    if current_task == "Batter Barriers: Bash Critter Boxes"                
+                    if current_task == "Batter Barriers: Bash Critter Boxes"
                       start_script 'go2', [ this_room ]
                       wait_while { running?('go2') }
                     end
@@ -1010,13 +1010,13 @@ check_task = proc {
                   if checkright !~ /#{UserVars.warrior["batter_barriers_weapon"]}/
                     message_string = "Could not find batter barriers weapon on character or in locker."
                     display_message.call
-                    if current_task == "Batter Barriers: Bash Critter Boxes"                
+                    if current_task == "Batter Barriers: Bash Critter Boxes"
                       start_script 'go2', [ this_room ]
                       wait_while { running?('go2') }
                     end
                     exit
                   else
-                    if current_task == "Batter Barriers: Bash Critter Boxes"                
+                    if current_task == "Batter Barriers: Bash Critter Boxes"
                       start_script 'go2', [ this_room ]
                       wait_while { running?('go2') }
                     end
@@ -1050,7 +1050,7 @@ check_task = proc {
             move 'out' if checkpaths 'out'
             target_room_list = sheet_metal_rooms
             current_batter_barriers_material = "metal"
-          elsif current_task == "Batter Barriers: Break Practice Boxes" || current_task == "Batter Barriers: Break Practice Boxes With Head" 
+          elsif current_task == "Batter Barriers: Break Practice Boxes" || current_task == "Batter Barriers: Break Practice Boxes With Head"
             stand_up.call
             move 'out' if checkpaths 'out'
             target_room_list = Map.list.find_all { |room| room.tags.include?('warrior guild wooden boxes') }
@@ -1251,7 +1251,7 @@ masters_task = proc{
           break
         end
       end
-    end 
+    end
     loop{
       break if (current_task == "finished") || (current_task == "start over again")
       waitrt?
@@ -1385,7 +1385,7 @@ batter_barriers_stuff = proc{
           wait_until { !running? "#{UserVars.warrior["low_health_script"]}" }
           start_script "#{UserVars.warrior["low_health_script"]}"
           wait_while { running? "#{UserVars.warrior["low_health_script"]}" }
-          go_to.call        
+          go_to.call
         end
       end
       if !Spell[506].active?
@@ -1398,7 +1398,7 @@ batter_barriers_stuff = proc{
           wait_until { !running? "#{UserVars.warrior["haste_script"]}" }
           start_script "#{UserVars.warrior["haste_script"]}"
           wait_while { running? "#{UserVars.warrior["haste_script"]}" }
-          go_to.call          
+          go_to.call
         end
       end
       fput "batter #{current_batter_barriers_material}"
@@ -1449,7 +1449,7 @@ batter_critter_boxes = proc{
       start_script 'go2', [ UserVars.warrior["critter_boxes_room"] ]
       wait_while { running?('go2') }
     end
-  end   
+  end
   wait_until { !stunned? }
   stand_up.call
   boxes_here = nil
@@ -1503,7 +1503,7 @@ batter_critter_boxes = proc{
 
 #########################################
 ##############Berserk Tasks##############
-######################################### 
+#########################################
 berserk_tasks = proc{
   if main_task =~ /Berserk\: Sauna|Berserk\: Tub/
     loop{
@@ -1609,7 +1609,7 @@ disarm_wheel = proc{
   stand_up.call
   fput "drop ##{practice_disarm_weapon_id}"
   turn_in_task.call
-} 
+}
 
 #########################################
 ##############Tackle Tasks###############
@@ -1770,7 +1770,7 @@ warrior_tricks_masters_and_audience = proc{
         stow_all.call
       end
       fput "wtrick #{trick_to_perform}"
-      while line = get        
+      while line = get
         if line =~ /You need to hold a weapon in your right hand to do this\.|You need to be holding a weapon to do that\.|You need to hold a weapon in your right hand with your left hand empty\./
           stow_all.call
           fput "get my #{UserVars.warrior["weapon"]}"
@@ -1843,7 +1843,7 @@ warrior_tricks_masters_and_audience = proc{
         elsif line =~ /Invalid trick\./
           echo "The master insists on giving you another lesson. Waiting 5 seconds before trying again."
           sleep 5
-          break 
+          break
         elsif line =~ /You need to be holding a weapon in your right hand and an edible \(non\-herb\) item in your left\./
           wait_rt.call
           if tricks_weapon
@@ -1883,7 +1883,7 @@ warrior_tricks_masters_and_audience = proc{
                 fput "get my #{UserVars.warrior["weapon"]}" if UserVars.warrior["weapon"] != "nil" && UserVars.warrior["weapon"] != nil && UserVars.warrior["offhand"] != ""
                 fput "get my #{UserVars.warrior["offhand"]}" if UserVars.warrior["offhand"] != "nil" && UserVars.warrior["offhand"] != nil && UserVars.warrior["offhand"] != ""
                 start_script 'go2', [ 228 ]
-                wait_while { running?('go2') } 
+                wait_while { running?('go2') }
               else
                 message_string = "You did not get a rep. There are #{people_here} people here. Audience reps require a minimum of 5 non-guild members or 2 guild masters. Trying again in 20 seconds."
                 display_message.call
@@ -1904,7 +1904,7 @@ warrior_tricks_masters_and_audience = proc{
       fput "stop juggle"
     elsif trick_to_perform =~ /TSHEATH/i
       if (tricks_weapon)
-        fput "get my #{tricks_weapon}"  
+        fput "get my #{tricks_weapon}"
       else
         fput "get my #{UserVars.warrior["weapon"]}"
       end
@@ -2331,7 +2331,7 @@ critter_task_on_critter = proc{
     check_critter_task_status.call
     wait_until { current_task }
     if current_task == "finished"
-      nil     
+      nil
     else
       if need_to_rest_vocal_cords
         current_task = "need to rest vocal cords"
@@ -2428,17 +2428,17 @@ check_room_acceptable = proc{
   possible_hidden_person_here = nil
   critter_here = nil
   critter_task_target = nil
-  checkpcs.each { |pc| 
+  checkpcs.each { |pc|
     if pc != nil
       person_here = true
     end
   }
   GameObj.loot.each { |obj|
-    if (obj.noun == 'disk|coffin') && (obj.name !~ /#{checkname}/) 
+    if (obj.noun == 'disk|coffin') && (obj.name !~ /#{checkname}/)
         disk_here = true
     end
   }
-  GameObj.npcs.each { |npc| 
+  GameObj.npcs.each { |npc|
     if npc.status =~ /dead|stun|sleep|prone|lay|lie|lying/
       possible_hidden_person_here = true
     end
@@ -2474,12 +2474,12 @@ wander_critter_tasks = proc {
     wander_rooms.delete(next_room)
     wander_rooms.push(next_room)
     way = room.wayto[next_room]
-    if way.class == String 
+    if way.class == String
       move(way)
       current_task = "check room"
     else
       way.call
-      current_task = "check room" 
+      current_task = "check room"
     end
   else
     kill_script "go2" if running? "go2"
@@ -2599,7 +2599,7 @@ do_guild_chores = proc{
             if line =~ /\[You have \d+ repetition\(s\) remaining for this .* task\.\]|That\'s enough .*\, let someone else have a crack at it\./
               break
             elsif line =~/\[You have completed this .* task\.\]|You have already finished that task\./
-              current_task = "finished" 
+              current_task = "finished"
               break
             end
           end
@@ -2617,7 +2617,7 @@ do_guild_chores = proc{
         if line =~ /\[You have \d+ repetition\(s\) remaining for this .* task\.\]|That\'s enough .* for this .*\, let someone else have a crack at it\.|What were you referring to\?/
           break
         elsif line =~/\[You have completed this .* task\.\]|You have already finished that task\./
-          current_task = "finished" 
+          current_task = "finished"
           break
         end
       end
@@ -2856,7 +2856,7 @@ rake_leaves = proc{
     end
   }
   put_tools_away.call
-  turn_in_task.call 
+  turn_in_task.call
 }
 
 empty_leaves_in_bin = proc{
@@ -3190,7 +3190,7 @@ be_attacked_by_partner_tasks = proc{
           sleep 2
         end
       end
-      
+
     }
   else
     loop{
@@ -3331,7 +3331,7 @@ help_with_partner_tasks_be_attacked = proc{
         put "stance offensive"
         put "gld stance defensive"
       end
-    end 
+    end
   end
   stand_up.call
   message_string = "Waiting for a partner."
@@ -3453,7 +3453,7 @@ help_with_partner_tasks_attack_partner = proc{
         #end
       elsif line =~ /^#{my_partner} whispers\, "All finished\. Thank you\!\"/
         break
-      end 
+      end
     end
   end
   if current_skill_name == "Disarm Weapon"

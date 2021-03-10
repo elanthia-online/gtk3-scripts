@@ -11,7 +11,7 @@
 
   Select the desired tone and verb.
   Press Save and Close.
-   
+
   Favorites:
 
   Clicking the Set Favorites will change to Favorites mode.
@@ -20,18 +20,18 @@
   These will now appear in your Favorites window
 
   Recent Addition:
-  
+
   Added in import and export features for category modifications
     - Import file must be in your lich directory and named PT_import.csv.
     - Create your own categories and upload it to the repository to share.
-    
+
   Older Additions:
   Added in the new verbs
-  Added the ability to remove the daily check all together.  
+  Added the ability to remove the daily check all together.
   Updated trust check for version checking only. (Optional now)
   Added in checkbox syncing.
   Added in checks to keep just 1 tone and 1 verb checked.
-  Added in automatic version checking. 
+  Added in automatic version checking.
   Added in a configuration tab with version updating options.
   Rebuilt the entire GUI
   Rebuilt the frames to seperate Tone and Verbs
@@ -39,7 +39,7 @@
   Target selection.  Target Refresh!
   Commandline text now passed to GUI.
   Dropdown boxes now have labels
-  
+
   Bug Fixes:
   Fixed a bug if PT_IMPORT doesn't exist.
 
@@ -176,7 +176,7 @@ def verbadd(item,cat)
   @verbarray.push(hash)
 end
 
-import_dir = "#{$lich_dir}" 
+import_dir = "#{$lich_dir}"
 import_filename = "PT_import.csv"
 import_file = "#{import_dir}#{import_filename}"
 import_fav_filename = "PT_FAV_import.csv"
@@ -1061,7 +1061,7 @@ def check_version(cv_title)
     _respond "#{monsterbold_start}This check may be completely disabled through the configuration tab.#{monsterbold_end}"
     return true
   end
-  
+
   begin
     #echo "Scanning"
     require 'openssl'
@@ -1153,14 +1153,14 @@ end
 
 
 def pop_choice_array(pca_array,pca_type)
-    echo "POPULATE CHOICE ARRAY" if @debug 
+    echo "POPULATE CHOICE ARRAY" if @debug
     pca_array.each{|b|
       Choice.new(b["name"],Gtk::CheckButton.new((b["name"])),pca_type,b["category"])
     }
 end
 
 def pop_cat_choice_array(pca_array,pca_type)
-    echo "POPULATE CHOICE ARRAY" if @debug 
+    echo "POPULATE CHOICE ARRAY" if @debug
     pca_array.each{|b|
       Cat_Choice.new(b["name"],Gtk::CheckButton.new((b["name"])),pca_type,b["category"])
     }
@@ -1175,22 +1175,22 @@ def pop_fav_array
   ### POPULATE FAVORTE ARRAY
   $fav_choice_array = Array.new
   pfa_tmp = Array.new
-  echo "POPULATE FAVORTE ARRAY" if @debug     
+  echo "POPULATE FAVORTE ARRAY" if @debug
   if @favs_found['importfav'] != true || !(File.file?(@import_fav_file))
-    $choice_array.each {|a| 
+    $choice_array.each {|a|
       if @favs_found[a.choicename] == "fav"
         pfa_tmp.push(a.choicename)
         Fav_Choice.new(a.choicename,Gtk::CheckButton.new((a.choicename)),a.choicetype,a.choicecat)
       end
     }
-    $cat_choice_array.each {|a| 
+    $cat_choice_array.each {|a|
       if @favs_found[a.choicename] == "fav"  && !(pfa_tmp.include? a.choicename)
         Fav_Choice.new(a.choicename,Gtk::CheckButton.new((a.choicename)),a.choicetype,a.choicecat)
       end
     }
   else
      #echo "working on a CSV"
-     #import_dir = "#{$lich_dir}" 
+     #import_dir = "#{$lich_dir}"
      #import_filename = "PT_FAV_import.csv"
      #import_file = "#{import_dir}#{import_filename}"
      csv = File.open(@import_fav_file, "r")
@@ -1231,7 +1231,7 @@ def build_table(bt_attacharray = nil, bt_table = nil)
   c=0
   last_start = "a"
   verbnotfound = true
-  bt_attacharray.each {|a| 
+  bt_attacharray.each {|a|
       if a.choicetype == "verb" && verbnotfound
         c += 1
         r = 2
@@ -1243,14 +1243,14 @@ def build_table(bt_attacharray = nil, bt_table = nil)
         c += 1
         r = 2
        end
-      a.choicevalue.show      
+      a.choicevalue.show
   }
   return bt_table
 end
 
 def savetv_fav
   sf_array = Array.new
-  $choice_array.each {|a| 
+  $choice_array.each {|a|
     if a.choicevalue.active?
       @favs_found[a.choicename] = "fav"
       sf_array.push(a.choicename)
@@ -1258,7 +1258,7 @@ def savetv_fav
       @favs_found[a.choicename] = ""
     end
   }
-  $cat_choice_array.each {|a| 
+  $cat_choice_array.each {|a|
     if a.choicevalue.active? && !(sf_array.push.include? a.choicename)
       @favs_found[a.choicename] = "fav"
     elsif @favs_found[a.choicename] == "fav" && !(sf_array.push.include? a.choicename)
@@ -1268,14 +1268,14 @@ def savetv_fav
 end
 
 def savetv
-  $choice_array.each {|a| 
+  $choice_array.each {|a|
     if a.choicetype ==  "tone"
       @tone = a.choicename if a.choicevalue.active?
     elsif a.choicetype ==  "verb"
       @verb = a.choicename if a.choicevalue.active?
     end
   }
-  $cat_choice_array.each {|a| 
+  $cat_choice_array.each {|a|
     if a.choicetype ==  "tone"
       @tone = a.choicename if a.choicevalue.active?
     elsif a.choicetype ==  "verb"
@@ -1286,7 +1286,7 @@ def savetv
 end
 
 def savefav
-  $fav_choice_array.each {|a| 
+  $fav_choice_array.each {|a|
     if a.choicetype ==  "tone"
       @tone = a.choicename if a.choicevalue.active?
     elsif a.choicetype ==  "verb"
@@ -1300,7 +1300,7 @@ def find_button(fb_name,fb_array)
   if fb_name.nil?
     return nil
   end
-  
+
   fb_array.each{|a|
     if a.choicename == fb_name
       return a.choicevalue
@@ -1339,8 +1339,8 @@ end
 
 
   @window = window_action = nil
-  
-  Gtk.queue {         
+
+  Gtk.queue {
     ### POPULATE  ARRAYS
     pop_choice_array(@tonearray,"tone")
     pop_choice_array(@verbarray,"verb")
@@ -1350,7 +1350,7 @@ end
     pop_cat_array(@verbarray)
     pop_fav_array
     build_target_array
-    
+
     ##### BUILD WINDOW ###
     @window = Gtk::Window.new
 
@@ -1361,7 +1361,7 @@ end
       if check_version($pt_version)
         @window.title = $pt_version
       else
-        @window.title = ($pt_version + "--- OUT OF DATE ---") 
+        @window.title = ($pt_version + "--- OUT OF DATE ---")
       end
     else
      @window.title = $pt_version
@@ -1369,14 +1369,14 @@ end
     @window.border_width = 3
     @window.resizable = false
     @window.resize(450, 300)
-    
-    
+
+
     ###INIT NOTEBOOK
     notebook_main = Gtk::Notebook.new.set_show_border(true)
-    
-    
+
+
     #### PAGE 1 #####
-    
+
     hb = Gtk::Box.new(:horizontal,1)
     frame_page1 = Gtk::Box.new(:vertical,1).set_border_width(3)
     main_page1_t = Gtk::Box.new(:vertical,1).set_border_width(3)
@@ -1391,17 +1391,17 @@ end
     hb.pack_start(Gtk::Alignment.new(0,0,0,0).add(frame1_t), :expand => false, :fill => false, :padding => 0)
     hb.pack_start(Gtk::Alignment.new(0,0,0,0).add(frame1_v), :expand => false, :fill => false, :padding => 0)
     frame_page1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-     
+
     $tmp_fav_t =Array.new
-    $fav_choice_array.each {|a| 
+    $fav_choice_array.each {|a|
       if a.choicetype == "tone"
         $tmp_fav_t.push(a)
       end
     }
     @favtable_t = build_table($tmp_fav_t)
-    
+
     $tmp_fav_v =Array.new
-    $fav_choice_array.each {|a| 
+    $fav_choice_array.each {|a|
       if a.choicetype == "verb"
         $tmp_fav_v.push(a)
       end
@@ -1413,15 +1413,15 @@ end
     notebook_main.append_page(frame_page1,Gtk::Label.new('Favorites'))
 
     #### PAGE 2 #####
-    
- 
+
+
     hb = Gtk::Box.new(:horizontal,1)
     frame_page2 = Gtk::Box.new(:vertical,1).set_border_width(3)
     main_page2_t = Gtk::Box.new(:vertical,1).set_border_width(3)
     main_page2_v = Gtk::Box.new(:vertical,1).set_border_width(3)
     frame2_t = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Tone</b></big>'))
     frame2_t.add(main_page2_t)
-  
+
     frame2_v = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Verb</b></big>'))
     frame2_v.add(main_page2_v)
 
@@ -1429,30 +1429,30 @@ end
     hb.pack_start(Gtk::Alignment.new(0,0,0,0).add(frame2_v))
     frame_page2.pack_start(hb, :expand => false, :fill => false, :padding => 0)
 
-    
+
 
     @cat_table_t = build_table()
     @cat_table_v = build_table()
- 
 
-  
-  
+
+
+
     main_page2_t.pack_start(@cat_table_t, :expand => false, :fill => false, :padding => 0)
     main_page2_v.pack_start(@cat_table_v, :expand => false, :fill => false, :padding => 0)
-    
-    
-    notebook_main.append_page(frame_page2,Gtk::Label.new('Categories'))  
-    
+
+
+    notebook_main.append_page(frame_page2,Gtk::Label.new('Categories'))
+
     #### PAGE 3 #####
-    
-    
+
+
     hb = Gtk::Box.new(:horizontal,1)
     frame_page3 = Gtk::Box.new(:vertical,1).set_border_width(3)
     main_page3_t = Gtk::Box.new(:vertical,1).set_border_width(3)
     main_page3_v = Gtk::Box.new(:vertical,1).set_border_width(3)
     frame3_t = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Tone</b></big>'))
     frame3_t.add(main_page3_t)
-  
+
     frame3_v = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Verb</b></big>'))
     frame3_v.add(main_page3_v)
 
@@ -1460,18 +1460,18 @@ end
     hb.pack_start(Gtk::Alignment.new(0,0,0,0).add(frame3_v))
     frame_page3.pack_start(hb, :expand => false, :fill => false, :padding => 0)
 
-    
+
     $tmp =Array.new
-    $choice_array.each {|a| 
+    $choice_array.each {|a|
       if a.choicename[0] == "a" && a.choicetype == "tone"
         $tmp.push(a)
       end
     }
     @table_t = build_table($tmp)
     $tmp =Array.new
-    
+
     $tmp =Array.new
-    $choice_array.each {|a| 
+    $choice_array.each {|a|
       if a.choicename[0] == "a" && a.choicetype == "verb"
         $tmp.push(a)
       end
@@ -1479,26 +1479,26 @@ end
     @table_v = build_table($tmp)
     $tmp =Array.new
 
-  
-  
+
+
     main_page3_t.pack_start(@table_t, :expand => false, :fill => false, :padding => 0)
     main_page3_v.pack_start(@table_v, :expand => false, :fill => false, :padding => 0)
-    notebook_main.append_page(frame_page3,Gtk::Label.new('By Letter'))  
+    notebook_main.append_page(frame_page3,Gtk::Label.new('By Letter'))
 
     #### PAGE 4 #####
-    
+
     frame_page4 = Gtk::Box.new(:vertical,1).set_border_width(3)
     main_page4 = Gtk::Box.new(:vertical,1).set_border_width(3)
     frame4 = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Configuration</b></big>'))
     frame4.add(main_page4)
     frame_page4.pack_start(frame4, :expand => false, :fill => false, :padding => 0)
-    
+
     notebook_main.append_page(frame_page4,Gtk::Label.new('Configuration'))
 
 
-    
 
-#############################  BUTTONS ################################################  
+
+#############################  BUTTONS ################################################
 
 
   #### BUILD BUTTONS  ######
@@ -1509,7 +1509,7 @@ end
     setfavorites = Gtk::Button.new(:label => "Set _Favorites")
     combo = Gtk::ComboBoxText.new()
     combo.append_text("By Letter")
-    ('A'..'Z').to_a.each {|alpha| combo.append_text(alpha)} 
+    ('A'..'Z').to_a.each {|alpha| combo.append_text(alpha)}
     combo.active = 0
     cat_combo = Gtk::ComboBoxText.new()
     cat_combo.append_text("Categories")
@@ -1519,7 +1519,7 @@ end
     @textbox.set_editable(true)
     @textbox.text = script.vars[0]
     @textbox.set_has_frame(true)
-    
+
     ########## BUILD CONFIG BUTTONS #####################
     update = Gtk::Button.new(:label => "Download the Latest Version")
     auto_update = Gtk::Button.new(:label => "Set to Auto Update")
@@ -1555,10 +1555,10 @@ end
     $target_array.each {|ta_obj| @target_count += 1;@target_combo.append_text(ta_obj.targetname)}
     @target_combo.active = 0
 
-    
-    
-  #### SET BUTTON CLICKS ######    
-    
+
+
+  #### SET BUTTON CLICKS ######
+
     $fav_choice_array.each{|a|
       a.choicevalue.signal_connect('clicked'){
         clear_current(a.choicename,a.choicetype) if !($fav)
@@ -1576,15 +1576,15 @@ end
         clear_current(a.choicename,a.choicetype) if !($fav)
         sync_button(a.choicename,a.choicevalue.active?,a.choicetype)
       }
-    }   
-    
+    }
+
     update.signal_connect('clicked') {Script.run("repo","download pt.lic") }
     auto_update.signal_connect('clicked') {
-      Script.run("repo","set-updatable pt.lic") 
+      Script.run("repo","set-updatable pt.lic")
       @favs_found['LastRun'] = "Off"
     }
     toggle_repo_check.signal_connect('clicked') {
-      if (@favs_found['LastRun'] == "Off") 
+      if (@favs_found['LastRun'] == "Off")
         toggle_repo_check.set_label(repo_check_on)
         @favs_found['LastRun'] = nil
       else
@@ -1597,7 +1597,7 @@ end
         _respond "#{monsterbold_start}This feature is disabled.  Trust PT and it will be enabled. (;trust pt.lic)#{monsterbold_end}"
         else
         echo "working on a CSV"
-        export_dir = "#{$lich_dir}" 
+        export_dir = "#{$lich_dir}"
         datetimestamp = "#{Time.now.strftime("%Y-%m-%d_%H-%M-%S")}"
         export_filename = "PT_#{datetimestamp}.csv"
         export_file = "#{export_dir}#{export_filename}"
@@ -1611,13 +1611,13 @@ end
             etc_array = [etc_hash["name"],etc_hash["category"],"tone"]
            # echo etc_array
             csv << etc_array
-          } 
+          }
           @verbarray.each { |hash_item|
             etc_hash = hash_item.to_hash
             etc_array = [etc_hash["name"],etc_hash["category"],"verb"]
             #echo etc_array
             csv << etc_array
-          } 
+          }
         ensure
           csv.close rescue()
         end
@@ -1641,7 +1641,7 @@ end
         _respond "#{monsterbold_start}This feature is disabled.  Trust PT and it will be enabled. (;trust pt.lic)#{monsterbold_end}"
         else
         echo "working on a CSV"
-        export_dir = "#{$lich_dir}" 
+        export_dir = "#{$lich_dir}"
         datetimestamp = "#{Time.now.strftime("%Y-%m-%d_%H-%M-%S")}"
         export_filename = "PT_FAV_#{datetimestamp}.csv"
         export_file = "#{export_dir}#{export_filename}"
@@ -1677,14 +1677,14 @@ end
     combo.signal_connect("changed"){
       if combo.active_iter[0].downcase != "by letter"
          $tmp_com_t =Array.new
-         $choice_array.each {|a| 
-           if a.choicename[0] == combo.active_iter[0].downcase && a.choicetype == "tone" 
+         $choice_array.each {|a|
+           if a.choicename[0] == combo.active_iter[0].downcase && a.choicetype == "tone"
                $tmp_com_t.push(a)
            end
          }
          $tmp_com_v =Array.new
-         $choice_array.each {|a| 
-           if a.choicename[0] == combo.active_iter[0].downcase && a.choicetype == "verb" 
+         $choice_array.each {|a|
+           if a.choicename[0] == combo.active_iter[0].downcase && a.choicetype == "verb"
                $tmp_com_v.push(a)
            end
          }
@@ -1696,31 +1696,31 @@ end
     cat_combo.signal_connect("changed"){
       if cat_combo.active_iter[0].downcase != "categories"
         $tmp_cat_t =Array.new
-        $cat_choice_array.each {|a| 
-          if a.choicecat.downcase == cat_combo.active_iter[0].downcase && a.choicetype == "tone" 
+        $cat_choice_array.each {|a|
+          if a.choicecat.downcase == cat_combo.active_iter[0].downcase && a.choicetype == "tone"
               $tmp_cat_t.push(a)
           end
         }
 
         $tmp_cat_v =Array.new
-        $cat_choice_array.each {|a| 
-          if a.choicecat.downcase == cat_combo.active_iter[0].downcase && a.choicetype == "verb" 
+        $cat_choice_array.each {|a|
+          if a.choicecat.downcase == cat_combo.active_iter[0].downcase && a.choicetype == "verb"
               $tmp_cat_v.push(a)
           end
         }
 
-        
+
         @cat_table_v = build_table($tmp_cat_v,@cat_table_v)
-        @cat_table_t = build_table($tmp_cat_t,@cat_table_t)        
+        @cat_table_t = build_table($tmp_cat_t,@cat_table_t)
         notebook_main.set_page(1)
       end
     }
-    
+
     setfavorites.signal_connect('clicked'){
       if !($fav)
         $fav = true
         setfavorites.set_label("Save _Favorites")
-        $choice_array.each {|a| 
+        $choice_array.each {|a|
           if @favs_found[a.choicename] == "fav"
             a.choicevalue.active = (true)
             Fav_Choice.new(a.choicename,Gtk::CheckButton.new((a.choicename + ":" + a.choicetype.upcase)),a.choicetype,a.choicecat)
@@ -1728,33 +1728,33 @@ end
             a.choicevalue.active = (false)
           end
         }
-        $cat_choice_array.each {|a| 
+        $cat_choice_array.each {|a|
           if @favs_found[a.choicename] == "fav"
             a.choicevalue.active = (true)
             Fav_Choice.new(a.choicename,Gtk::CheckButton.new((a.choicename + ":" + a.choicetype.upcase)),a.choicetype,a.choicecat)
           end
         }
-        
+
         $fav_choice_array.each{|a|
           a.choicevalue.active = (true)
-  
+
         }
-        
+
       elsif
         setfavorites.set_label("Set _Favorites")
         $fav = false
         savetv_fav
         pop_fav_array
         $tmp_fav_t =Array.new
-        $fav_choice_array.each {|a| 
+        $fav_choice_array.each {|a|
           if a.choicetype == "tone"
             $tmp_fav_t.push(a)
           end
         }
         @favtable_t = build_table($tmp_fav_t,@favtable_t)
-        
+
         $tmp_fav_v =Array.new
-        $fav_choice_array.each {|a| 
+        $fav_choice_array.each {|a|
           if a.choicetype == "verb"
             $tmp_fav_v.push(a)
           end
@@ -1766,10 +1766,10 @@ end
         $cat_choice_array.each {|a|
           a.choicevalue.active = (false)
         }
-        
-  
-      end 
-    } 
+
+
+      end
+    }
     @target_combo.signal_connect("changed"){
       if @target_combo.active_iter[0].downcase != "targets" && @target_combo.active_iter[0].downcase != "refresh"
         @target_say=  @target_combo.active_iter[0].downcase
@@ -1782,9 +1782,9 @@ end
         @target_combo.active = 0
       end
     }
-    
+
       #### ATTACH BUTTONS  ######
-    
+
     hb_saveclose.pack_start(@target_combo, :expand => false, :fill => false, :padding => 0)
     hb_saveclose.pack_start(cat_combo, :expand => false, :fill => false, :padding => 0)
     hb_saveclose.pack_start(combo, :expand => false, :fill => false, :padding => 0)
@@ -1800,7 +1800,7 @@ end
     main_page4.pack_start(import_to_csv, :expand => false, :fill => false, :padding => 0)
     main_page4.pack_start(export_fav_to_csv, :expand => false, :fill => false, :padding => 0)
     main_page4.pack_start(import_fav_to_csv, :expand => false, :fill => false, :padding => 0)
-    
+
     # Primary VerticalBox to split up Notebook and Save/Close buttons
     vb_main = Gtk::Box.new(:vertical, 5)
     vb_main.border_width = 3
@@ -1808,12 +1808,12 @@ end
     vb_main.pack_start(notebook_main, :expand => false, :fill => false, :padding => 0)
     vb_main.pack_start(Gtk::Alignment.new(1,0,0,0).add(hb_saveclose), :expand => false, :fill => false, :padding => 0)
     vb_main.pack_start(Gtk::Alignment.new(0,0,1,0).add(hb_text), :expand => false, :fill => false, :padding => 0)
-    
+
     @window.signal_connect('delete_event') { window_action = :exit }
     @window.add(vb_main)
     @window.show_all
-    @window.keep_above = true # On windows keep_above is required AFTER show_all      
-    @window.set_focus(@textbox)    
+    @window.keep_above = true # On windows keep_above is required AFTER show_all
+    @window.set_focus(@textbox)
   }
 
 before_dying { Gtk.queue { @window.destroy } }
@@ -1835,15 +1835,15 @@ if $goforit && output != "" && output != nil
     else
       output = "::#{@target_say} " + output
     end
-  end 
-  
+  end
+
   output = "'" + output
   fput output
 end
-  
-  
-  
-Script.self.kill                        
+
+
+
+Script.self.kill
 
 
 

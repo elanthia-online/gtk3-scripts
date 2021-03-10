@@ -1375,7 +1375,7 @@ task_search = proc {
 }
 
 task_bandit = proc {
-    # You have been tasked to suppress bandit activity on the Icemule Trail between Wehnimer's Landing 
+    # You have been tasked to suppress bandit activity on the Icemule Trail between Wehnimer's Landing
     # and Icemule Trace.  You need to kill 4 more of them to complete your task.
 
     if $sbounty[:enable_bandit_script] and not Script.exists?($sbounty[:bandit_script])
@@ -1587,10 +1587,10 @@ task_forage = proc {
             break
                 elsif res =~ /and manage to find/
                     while checkleft && (checkleft =~ /#{herb}/ || herb =~ /#{checkleft}/)
-                        fput "put #{checkleft} in ##{lootsack.id}" 
+                        fput "put #{checkleft} in ##{lootsack.id}"
                     end
                     while checkright && (checkright =~ /#{herb}/ || herb =~ /#{checkright}/)
-                        fput "put #{checkright} in ##{lootsack.id}" 
+                        fput "put #{checkright} in ##{lootsack.id}"
                     end
 
             print.call "-- success, found #{get_herb_count.call} of #{count} #{herb}"
@@ -1607,10 +1607,10 @@ task_forage = proc {
 
             # Sanity check, cleanup any remaining herbs
             while checkleft && (checkleft =~ /#{herb}/ || herb =~ /#{checkleft}/)
-                fput "put #{checkleft} in ##{lootsack.id}" 
+                fput "put #{checkleft} in ##{lootsack.id}"
             end
             while checkright && (checkright =~ /#{herb}/ || herb =~ /#{checkright}/)
-                fput "put #{checkright} in ##{lootsack.id}" 
+                fput "put #{checkright} in ##{lootsack.id}"
             end
 
             if not standing?
@@ -1665,7 +1665,7 @@ success_heirloom = proc {
         if item.name !~ /#{heirloom}/
             next
         end
-        
+
         res = dothistimeout "look ##{item.id}", 2, /^Engraved .* initials|^You see nothing unusual\.$|^The ring appears|^It takes you a moment|^It is difficult to see/
         if res =~ /^Engraved .* initials/
             fput "get ##{item.id}"

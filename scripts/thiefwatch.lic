@@ -47,7 +47,7 @@ setup = proc{
     $AAA_NOTEBOOK.append_page($AAA_VERTICAL_BOX5, Gtk::Label.new('Container Four'))
     $AAA_NOTEBOOK.append_page($AAA_VERTICAL_BOX6, Gtk::Label.new('Container Five'))
     $AAA_NOTEBOOK.append_page($AAA_VERTICAL_BOX7, Gtk::Label.new('Container Six'))
-    $AAA_ENTRY = Hash.new 
+    $AAA_ENTRY = Hash.new
     $AAA_TABLE_SIZE = Hash.new
   }
 
@@ -140,13 +140,13 @@ setup = proc{
     $AAA_ENTRY[variable] = checkbox
     $AAA_TABLE_SIZE[table] += 1 if x_pos == 1
   end
-        
+
   Gtk.queue {
     $AAA_WINDOW.signal_connect("delete_event") {
       $AAA_SETUP_COMPLETED = true
     }
   }
-        
+
   Gtk.queue {
 #   $AAA_TOOLTIPS = Gtk::Tooltips.new
 #   $AAA_TOOLTIPS.enable
@@ -203,12 +203,12 @@ setup = proc{
 
     $AAA_WINDOW.show_all
   }
-        
+
   $AAA_SETUP_COMPLETED = false
   until($AAA_SETUP_COMPLETED)
     sleep 1
   end
-       
+
   UserVars.thiefwatch ||= Hash.new
   $AAA_ENTRY.keys.each { |key|
     if( $AAA_ENTRY[key].class.to_s =~ /CheckButton/ )
@@ -223,7 +223,7 @@ setup = proc{
     end
   }
   UserVars.save()
-        
+
   Gtk.queue {
     $AAA_WINDOW.destroy
   }

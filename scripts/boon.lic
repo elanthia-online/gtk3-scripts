@@ -3,9 +3,9 @@
 =begin
 
     Code mostly derived from SpiffyLoot by SpiffyJr
-  Was specifically asked to remove sloot2 so I did. However, I have friends that use this as well so I renamed it to 
+  Was specifically asked to remove sloot2 so I did. However, I have friends that use this as well so I renamed it to
   prevent confusion while allowing me to maintain this spin-off project.
-  
+
        todo: add weapon pickup by name
      author: Steworaeus
      name: boon
@@ -181,7 +181,7 @@ echo gtk_globals['ammosack']
         gtk_locals['enable_skin_604'] = Gtk::CheckButton.new('(?) Use 604').set_active(settings['enable_skin_604'] ? nil : false)
         gtk_locals['enable_skin_sigil'] = Gtk::CheckButton.new('(?) Use Sigil of Resolve').set_active(settings['enable_skin_sigil'] ? nil : false)
         gtk_locals['enable_skin_stats'] = Gtk::CheckButton.new('(?) Track statistics').set_active(settings['enable_skin_stats'] ? nil : false).set_sensitive(false)
-        gtk_locals['skin_stand_verb'] = Gtk::Entry.new.set_text(settings['skin_stand_verb'] ||= "") 
+        gtk_locals['skin_stand_verb'] = Gtk::Entry.new.set_text(settings['skin_stand_verb'] ||= "")
         gtk_locals['enable_sell_type_gem'] = Gtk::CheckButton.new('Gems').set_active(settings['enable_sell_type_gem'] ? nil : false)
         gtk_locals['enable_sell_type_valuable'] = Gtk::CheckButton.new('Valuables').set_active(settings['enable_sell_type_valuable'] ? nil : false)
         gtk_locals['enable_sell_type_clothing'] = Gtk::CheckButton.new('Clothings').set_active(settings['enable_sell_type_clothing'] ? nil : false)
@@ -196,7 +196,7 @@ echo gtk_globals['ammosack']
         gtk_locals['enable_sell_type_wand'] = Gtk::CheckButton.new('Wands').set_active(settings['enable_sell_type_wand'] ? nil : false)
         gtk_locals['enable_sell_chronomage'] = Gtk::CheckButton.new('(?) Rings -> Chrono').set_active(settings['enable_sell_chronomage'] ? nil : false)
         gtk_locals['enable_sell_share_silvers'] = Gtk::CheckButton.new('(?) Share silvers').set_active(settings['enable_sell_share_silvers'] ? nil : false)
-        gtk_locals['sell_withdraw'] = Gtk::Entry.new.set_text(settings['sell_withdraw'] ||= "")     
+        gtk_locals['sell_withdraw'] = Gtk::Entry.new.set_text(settings['sell_withdraw'] ||= "")
         gtk_locals['enable_sell_locksmith'] = Gtk::CheckButton.new('(?) Enable locksmith').set_active(settings['enable_sell_locksmith'] ? nil : false)
         gtk_locals['enable_sell_wait_line'] = Gtk::CheckButton.new('(?) Wait in line').set_active(settings['enable_sell_wait_line'] ? nil : false).set_sensitive(false)
         gtk_locals['enable_sell_stockpile'] = Gtk::CheckButton.new('(?) Stockpile gems').set_active(settings['enable_sell_stockpile'] ? nil : false)
@@ -358,7 +358,7 @@ echo gtk_globals['ammosack']
         hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('(?) Exclude loot:')).set_width_request(100),:expand => false, :fill => false, :padding => 0)
         hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['loot_exclude'].set_width_request(419)))
         vb_pg2_1.pack_start(hb,:expand => false, :fill => false, :padding => 0)
-    
+
         hb = Gtk::Box.new(:horizontal,1)
         hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['enable_search_all'].set_width_request(129)),:expand => false, :fill => false, :padding => 0)
         vb_pg2_1.pack_start(hb,:expand => false, :fill => false, :padding => 0)
@@ -387,7 +387,7 @@ echo gtk_globals['ammosack']
         hb = Gtk::Box.new(:horizontal,1)
         hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['enable_loot_clothing'].set_width_request(129)),:expand => false, :fill => false, :padding => 0)
     hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['enable_loot_weapon'].set_width_request(129)),:expand => false, :fill => false, :padding => 0)
-    
+
         vb_pg2_1.pack_start(hb,:expand => false, :fill => false, :padding => 0)
 
         #
@@ -424,7 +424,7 @@ echo gtk_globals['ammosack']
         hb.pack_start(Gtk::Alignment.new(1,0,0,0).add(gtk_locals['use_spiders'].set_width_request(129)),:expand => false, :fill => false, :padding => 0)
         hb.pack_start(gtk_locals['spider_bag'],:expand => false, :fill => false, :padding => 0)
         vb_pg2_2.pack_start(hb,:expand => false, :fill => false, :padding => 0)
-    
+
         nb.append_page(vb_pg2, Gtk::Label.new('Looting'))
 
         #
@@ -624,7 +624,7 @@ echo gtk_globals['ammosack']
         hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('(?) Orb/Deed value:')).set_width_request(100),:expand => false, :fill => false, :padding => 0)
         hb.pack_start(gtk_locals['orb_value'],:expand => false, :fill => false, :padding => 0)
         vb_pg4_5.pack_start(hb,:expand => false, :fill => false, :padding => 0)
-    
+
         nb.append_page(vb_pg4, Gtk::Label.new('Selling'))
 
         # Save/Close buttons
@@ -874,7 +874,7 @@ get_item = proc { |item, sack|
       elsif line =~ /dissolve into fine dust|few moments of rest/
         fput "get #{id}"
       end
-    else 
+    else
       fput "get #{id}"
     end
     elsif sack.class == GameObj or sack = GameObj[sack]
@@ -885,7 +885,7 @@ get_item = proc { |item, sack|
 
     noun   = item.class == GameObj ? item.noun : item
     result = false
-    
+
   if line =~ /As it drags/
     result = true
   end
@@ -907,7 +907,7 @@ get_item = proc { |item, sack|
       sleep 0.10
     }
   end
-  
+
     result
 }
 
@@ -1702,7 +1702,7 @@ sell = proc {
             unless put_item.call(item,UserVars.send("#{item.type.split(',').first}sack"))
               dothistimeout "drop ##{item.id}", 5, /drop/
             end
-          end     
+          end
         end
       else
         dothistimeout "sell ##{sellme.id}", 5, /ask|offer/
@@ -1710,7 +1710,7 @@ sell = proc {
           unless put_item.call(item,UserVars.send("#{item.type.split(',').first}sack"))
             dothistimeout "drop ##{item.id}", 5, /drop/
           end
-        end     
+        end
       end
     else
             msg.call("-- failed to find #{item.name}")

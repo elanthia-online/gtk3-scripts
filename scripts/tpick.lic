@@ -1,7 +1,7 @@
 =begin
 
   This script will disarm, measure, pick (and will use the appropriate lockpick based on your skill and lock difficulty) and empty your boxes into your container. This script can also be used to automatically accept, disarm,      measure, pick and hand back other people's boxes.
-  
+
   Script will attempt to read lock difficulty for Rogues using calipers and for Bards using loresinging. If you are a Rogue or Bard and would prefer to skip all that and always use a vaalin lock pick instead then use the v variables listed below.
 
   Script will attempt to use vials bundled into your locksmith's pouch first for plated boxes, if no vials are bundled into your locksmith's pouch it will attempt to use wedges found in your wedge sack.
@@ -27,7 +27,7 @@
   plin(ite) - will open all plinites in your open containers.
 
   The above commands can be used in any combination. Some examples:
-  
+
   ;tpick other v - will pick other people's boxes and always use a vaalin lockpick.
   ;tpick loot ground v - will pick all boxes on the ground, will loot each box after picking them, and will always use a vaalin lockpick.
   ;tpick - will pick all boxes in your open containers.
@@ -41,7 +41,7 @@
 
 
   Non Rogues and bards do not need to use the "v" command line, they will always pick boxes with a vaalin lockpick and won't use calipers.
-  
+
   Author: Tgo01
   Version: 217
 
@@ -290,7 +290,7 @@ stats_check = proc{
     respond "##############################"
     respond "##############################"
   end
-    
+
 }
 
 reset_math = proc{
@@ -457,7 +457,7 @@ setup = proc{
     $OP_NOTEBOOK.append_page($OP_VERTICAL_BOX7, Gtk::Label.new('Experience'))
     $OP_NOTEBOOK.append_page($OP_VERTICAL_BOX8, Gtk::Label.new('Speech'))
     $OP_NOTEBOOK.append_page($OP_VERTICAL_BOX9, Gtk::Label.new('Popping'))
-    $OP_ENTRY = Hash.new 
+    $OP_ENTRY = Hash.new
     $OP_TABLE_SIZE = Hash.new
   }
 
@@ -593,13 +593,13 @@ setup = proc{
     $OP_ENTRY[variable] = checkbox
     $OP_TABLE_SIZE[table] += 1 if x_pos == 1
   end
-        
+
   Gtk.queue {
     $OP_WINDOW.signal_connect("delete_event") {
       $OP_SETUP_COMPLETED = true
     }
   }
-        
+
   Gtk.queue {
 #   $OP_TOOLTIPS = Gtk::Tooltips.new
 #   $OP_TOOLTIPS.enable
@@ -669,12 +669,12 @@ setup = proc{
 
     $OP_WINDOW.show_all
   }
-        
+
   $OP_SETUP_COMPLETED = false
   until($OP_SETUP_COMPLETED)
     sleep 1
   end
-  
+
   UserVars.tpick ||= Hash.new
   $OP_ENTRY.keys.each { |key|
     if( $OP_ENTRY[key].class.to_s =~ /CheckButton/ )
@@ -690,7 +690,7 @@ setup = proc{
   }
 
   UserVars.save()
-        
+
   Gtk.queue {
     $OP_WINDOW.destroy
   }
@@ -749,7 +749,7 @@ def tpick_get_box(current_box)
   end
 end
 
-def tpick_stop_403_404    
+def tpick_stop_403_404
   waitrt?
   fput "stop 403" if Spell[403].active? && UserVars.tpick["always_use_403"] == "cancel"
   fput "stop 404" if Spell[404].active? && UserVars.tpick["always_use_404"] == "cancel"
@@ -993,7 +993,7 @@ detect_plinite = proc{
       echo "Your total picking skill for this attempt is: #{quick_maths}"
       echo "Lock difficulty: #{lock}"
       pick2.call
-    end 
+    end
   end
 }
 
@@ -1341,7 +1341,7 @@ fill_up_locksmith_container = proc{
   if putty_remaining < 50 || cotton_remaining < 50
     buy_locksmith_pouch.call
   end
-  fput "wear ##{locksmiths_container.id}" 
+  fput "wear ##{locksmiths_container.id}"
 }
 
 buy_locksmith_pouch = proc{
@@ -1367,7 +1367,7 @@ check_locksmiths_container = proc{
         putty_remaining = $1.to_i
       elsif server_string =~ /you see a pinch of squishy white putty/
         putty_remaining = 1
-      else 
+      else
         putty_remaining = 0
       end
       if server_string =~ /(\d+) little ball/
@@ -1670,7 +1670,7 @@ start_worker = proc{
     start_worker2.call
   end
 }
-  
+
 start_worker2 = proc{
   if offered_tip_amount <= minimum_tip_wanted
     echo "Minimum tip wanted not met, turning in box."
@@ -1751,7 +1751,7 @@ bash_the_box_open = proc{
   if result =~ /That is already open\.|You open/
     box_counts_for_math = nil
     box_was_not_locked = true
-  elsif result =~ /It appears to be locked\./ 
+  elsif result =~ /It appears to be locked\./
     fput "get my #{UserVars.tpick["bashing_weapon"]}"
     until current_box.status == "gone"
       waitrt?
@@ -1762,7 +1762,7 @@ bash_the_box_open = proc{
   elsif result.nil?
     bash_the_box_open.call
   end
-  
+
 }
 
 start_ground = proc{
@@ -1821,7 +1821,7 @@ start_ground = proc{
                           sleep ($1.to_i + 1)
                           break
                         end
-                      end                 
+                      end
                     end
                     waitrt?
                     break
@@ -1855,7 +1855,7 @@ start_ground = proc{
                   wait_until { checkleft != nil }
                   fput "bundle"
                   fput "wear ##{locksmiths_container.id}"
-                  wait_until { checkright == nil }      
+                  wait_until { checkright == nil }
                 end
               else
                 if (item.type =~ /gem/) && (gem_container)
@@ -1889,7 +1889,7 @@ start_ground = proc{
                           sleep ($1.to_i + 1)
                           break
                         end
-                      end                 
+                      end
                     end
                     waitrt?
                     break
@@ -1923,7 +1923,7 @@ start_ground = proc{
                   wait_until { checkleft != nil }
                   fput "bundle"
                   fput "wear ##{locksmiths_container.id}"
-                  wait_until { checkright == nil }      
+                  wait_until { checkright == nil }
                 end
               else
                 if (item.type =~ /gem/) && (gem_container)
@@ -2442,7 +2442,7 @@ manually_disarm_trap = proc{
             if (solo_or_other == "solo" || solo_or_other == "other")
               tpick_get_box(current_box)
               wait_until { checkright }
-            end       
+            end
           end
         end
         if current_trap_type == "Scarab trap has been disarmed."
@@ -2620,7 +2620,7 @@ open_all_containers = proc{
     open_or_close_containers.push(locksmiths_container.id)
     fput "open ##{locksmiths_container.id}"
   end
-  
+
   temp_container = UserVars.tpick["gem_container"].split(",")
   gem_container = temp_container[0]
   gem_container_close = true if temp_container[1] =~ /close/
@@ -2759,7 +2759,7 @@ measure = proc{
     needed_pick_id = $copper_lockpick_id
     recommended_pick = "copper"
     recommended_pick_modifier = 1.00
-    pick2.call  
+    pick2.call
   elsif UserVars.tpick["always_use_407"] == "all"
     echo "Always use 407 setting enabled, using 407."
     if (scale_trap_found)
@@ -3461,7 +3461,7 @@ open_solo = proc{
   update_math_information = true
   total_boxes_picked_math.call
   waitrt?
-  (tpick_cast_spells (506)) if (use_spell_506)  
+  (tpick_cast_spells (506)) if (use_spell_506)
   total_boxes_picked += 1
   fput "open ##{current_box.id}" unless popping
   lootbox = GameObj.right_hand
@@ -3483,7 +3483,7 @@ open_solo = proc{
                   sleep ($1.to_i + 1)
                   break
                 end
-              end                 
+              end
             end
             waitrt?
             break
@@ -3520,7 +3520,7 @@ open_solo = proc{
           fput "wear ##{locksmiths_container.id}"
           wait_until { checkright.nil? }
           tpick_get_box(current_box)
-          wait_until { checkright }     
+          wait_until { checkright }
         end
       else
         if (item.type =~ /gem/) && (gem_container)
@@ -3627,13 +3627,13 @@ open_others = proc{
   start_others.call
 }
 
-before_dying { 
+before_dying {
   if ground_loot || solo_or_other == "solo"
     wealth_after.call
     wait_until { silver_after }
     silver_gained = silver_after - silver_before
   end;
-  
+
   DownstreamHook.remove("#{script.name}_check_locksmiths_container")
   DownstreamHook.remove("#{script.name}_check_for_boxes")
   DownstreamHook.remove("#{script.name}_wealth_before")
@@ -3812,7 +3812,7 @@ stow_left = proc{
     end
   end
 }
-          
+
 get_wire_order_numbers = proc{
   move 'out' if checkpaths 'out'
   target_room = Room.current.find_nearest(toolbenches_room_number)
@@ -3878,7 +3878,7 @@ get_wire_order_numbers = proc{
 
 if (CharSettings['setup_has_been_run'].nil? || CharSettings['setup_has_been_run_again'].nil?|| UserVars.tpick.nil?) and (script.vars[1] != 'setup')
   echo "Setup is required, type ;tpick setup and fill in all settings."
-  echo "If you are upgrading to a new version of ;tpick keep in mind all lockpick settings AND container names AND scale trap weapon now require the full name of each lockpick, not including the words 'a' and 'an'." 
+  echo "If you are upgrading to a new version of ;tpick keep in mind all lockpick settings AND container names AND scale trap weapon now require the full name of each lockpick, not including the words 'a' and 'an'."
   exit
 end
 if script.vars[1] == 'setup'
@@ -3949,7 +3949,7 @@ if script.vars[1] =~ /buy/
     echo "You already have 100 each of putty and cotton balls."
     exit
   else
-    if Wounds.lhand >= 3 || Wounds.rhand >= 3 || Wounds.larm >= 3 || Wounds.rarm >= 3 || Scars.lhand >= 3 || Scars.rhand >= 3 || Scars.larm >= 3 || Scars.rarm >= 3 
+    if Wounds.lhand >= 3 || Wounds.rhand >= 3 || Wounds.larm >= 3 || Wounds.rarm >= 3 || Scars.lhand >= 3 || Scars.rhand >= 3 || Scars.larm >= 3 || Scars.rarm >= 3
       echo "Your wounds are too great to do this task. You can't have a missing hand or arm to do this."
       exit
     else
@@ -4006,12 +4006,12 @@ if script.vars[1] =~ /repair/ && Char.prof =~ /Rogue/
         current_wire_cost = $tpick_silver_wire_cost
       elsif number == 5
         lockpick_type = "mithril"
-        current_wire = $tpick_mithril_wire 
+        current_wire = $tpick_mithril_wire
         current_wire_cost = $tpick_mithril_wire_cost
       elsif number == 6
         lockpick_type = "ora"
-        current_wire = $tpick_ora_wire 
-        current_wire_cost = $tpick_ora_wire_cost 
+        current_wire = $tpick_ora_wire
+        current_wire_cost = $tpick_ora_wire_cost
       elsif number == 7
         lockpick_type = "laje"
         current_wire = $tpick_laje_wire

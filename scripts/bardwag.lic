@@ -4,12 +4,12 @@
 
 	;waggle help
 
-	This script is a rewrite of ultrawaggle from SpiffyJr, which is 
+	This script is a rewrite of ultrawaggle from SpiffyJr, which is
 	a heavily modified version of spellup from Shaelun and Blueland.
-	
+
 	I have made a few edits to make this script more bard friendly adding in options for sonic armor, sonic weapons, and sonic shields
-	
-	
+
+
 	Tenzle
 =end
 
@@ -23,9 +23,9 @@ wander_to_wrack   = CharSettings['wander_to_wrack']   || false
 use_power         = CharSettings['use_power']         || false
 use_concentration = CharSettings['use_concentration'] || false
 skip_jerks        = CharSettings['skip_jerks']        ||  false
-ASG 			        = CharSettings['ASG']                
+ASG 			        = CharSettings['ASG']
 sonic_weapon	    = CharSettings['sonic_weapon']
-sonic_shield	    = CharSettings['sonic_shield']      
+sonic_shield	    = CharSettings['sonic_shield']
 retribution_spell = CharSettings['retribution_spell']
 
 
@@ -78,16 +78,16 @@ if setting = script.vars.find { |var| var =~ /^\-\-skip[_\-]jerks=(?:on|off)$/ }
 end
 if setting = script.vars.find { |var| var =~ /^\-\-asg=[0-9]+$/ }
 		ASG = setting.slice(/[0-9]+/).to_i
-		script.vars.delete(setting)	
-end		
+		script.vars.delete(setting)
+end
 if setting = script.vars.find { |var| var =~ /^\-\-sonic[_\-]weapon=(.+)$/ }
 		sonic_weapon = $1
-		script.vars.delete(setting)		
+		script.vars.delete(setting)
 end
 if setting = script.vars.find { |var| var =~ /^\-\-sonic[_\-]shield=(?:on|off)$/ }
 		sonic_shield = $1
-		script.vars.delete(setting)				
-end	
+		script.vars.delete(setting)
+end
 if setting = script.vars.find { |var| var =~ /^\-\-retribution[_\-]spell=(?:[0-9]+|off)$/ }
 	if setting =~ /^\-\-retribution[_\-]spell=off$/
 		retribution_spell = nil
@@ -183,7 +183,7 @@ elsif script.vars[1] =~ /^setup$|^options$/i
 			nocast_sw = Gtk::ScrolledWindow.new
 			nocast_sw.set_policy(:automatic, :always)
 			nocast_sw.add(nocast_tv)
-	
+
 			cast_ls = Gtk::ListStore.new(String, String)
 			cast_ls.set_sort_column_id(0, :ascending)
 			cast_tv = Gtk::TreeView.new(cast_ls)
@@ -299,9 +299,9 @@ elsif script.vars[1] =~ /^setup$|^options$/i
 			temp_box = Gtk::Box.new(:horizontal, 0)
 			temp_box.pack_end(sonic_shield_entry, :expand => false, :fill => false, :padding => 5)
 			temp_box.pack_end(sonic_shield_label, :expand => false, :fill => false, :padding => 5)
-			option_box.pack_start(temp_box, :expand => false, :fill => false, :padding => 4)			
-			
-			
+			option_box.pack_start(temp_box, :expand => false, :fill => false, :padding => 4)
+
+
 			option_box_spacer = Gtk::Box.new(:vertical)
 			option_box_spacer.pack_start(option_box, :expand => false, :fill => false, :padding => 4)
 
@@ -443,12 +443,12 @@ elsif script.vars[1] =~ /^setup$|^options$/i
 						sonic_weapon = sonic_weapon_entry.text
 					elsif sonic_weapon_entry.text.empty? or sonic_weapon_entry.text =~ /none|off/
 						sonic_weapon = nil
-					end	
+					end
 					if sonic_shield_entry.text =~ /^.+$/i
 						sonic_shield = sonic_shield_entry.text
 					elsif sonic_shield_entry.text.empty? or sonic_shield_entry.text =~ /none|off/
 						sonic_shield = nil
-					end						
+					end
 					use_wracking = use_wracking_option.active?
 					wander_to_wrack = wander_to_wrack_option.active?
 					use_power = use_power_option.active?
@@ -496,7 +496,7 @@ elsif script.vars[1] =~ /^setup$|^options$/i
 		unless HAVE_GTK
 			echo 'GTK bindings are not installed or failed to load.'
 		end
-	end	
+	end
 	exit
 elsif script.vars[1].downcase == 'add'
 	add_list = script.vars[2..-1].collect { |spell| spell.to_i }
@@ -516,7 +516,7 @@ elsif script.vars[1] =~ /^rem(?:ove)?$|^del(?:ete)?$/i
 		end
 	}
 	CharSettings['cast_list'] = cast_list
-	exit	
+	exit
 elsif script.vars[1] =~ /^list$|^show$/i
 	fix_setting = { true => 'on', false => 'off' }
 	respond
@@ -644,7 +644,7 @@ elsif script.vars[1].downcase =~ /^asg$/
 	else
 		echo "You're doing it wrong..."
 	end
-	exit	
+	exit
 elsif script.vars[1].downcase =~ /^sonic[_\-]weapon$/
 	if script.vars[2].downcase =~ /^(?:off|none)$/
 		CharSettings['sonic_weapon'] = nil
@@ -655,7 +655,7 @@ elsif script.vars[1].downcase =~ /^sonic[_\-]weapon$/
 	else
 		echo "You're doing it wrong..."
 	end
-	exit		
+	exit
 elsif script.vars[1].downcase =~ /^sonic[_\-]shield$/
 	if script.vars[2].downcase =~ /^(?:off|none)$/
 		CharSettings['sonic_shield'] = nil
@@ -666,7 +666,7 @@ elsif script.vars[1].downcase =~ /^sonic[_\-]shield$/
 	else
 		echo "You're doing it wrong..."
 	end
-	exit	
+	exit
 else
 	if script.vars[1].downcase == 'info'
 		list_mode = true
@@ -702,7 +702,7 @@ wander = proc {
 	wander_rooms.delete(next_room)
 	wander_rooms.push(next_room)
 	way = room.wayto[next_room]
-	if way.class == String 
+	if way.class == String
 		move(way)
 	else
 		way.call
@@ -729,7 +729,7 @@ check_mana = proc { |spell|
 			until spell.affordable?
 				waitrt?
 				waitcastrt?
-				if sign_of_wracking.affordable? and not punishment.active? 
+				if sign_of_wracking.affordable? and not punishment.active?
 					if invisible? or hidden? or not checkpcs
 						sign_of_wracking.cast if checkspirit(6)
 					else
@@ -974,7 +974,7 @@ else
 		}
 		release_spell.call
 	}
-	
+
 	#
 	# cast non-stacking spells
 	#

@@ -17,10 +17,10 @@ setup = proc {
 	gtk_locals = Hash.new
 
 	window = window_action = nil
-	
+
 	Gtk.queue {
 #		ttips = Gtk::Tooltips.new.enable
-		ttips_text = { 
+		ttips_text = {
 			'mainforgebag' => "This is the bag for your bars",
 			'cutterbag' => "This is the bag for your cut bars - must be different from the Main Forge Bag",
 			'fsilveramount' => "How much you want to withdraw",
@@ -36,13 +36,13 @@ setup = proc {
 			'fneedperfect' => "Check this to create a perfect hammer.      Note: this is a LOT more expensive.",
 			'fstowhammer' => "Check this if you want to put your hammer in your main forging bag instead of wearing it."
 		}
-		
+
 		gtk_globals['mainforgebag'] = Gtk::Entry.new; gtk_globals['mainforgebag'].text = (UserVars.mainforgebag ||= "")
 		gtk_globals['cutterbag'] = Gtk::Entry.new; gtk_globals['cutterbag'].text = (UserVars.cutterbag ||= "")
 		gtk_globals['fsilveramount'] = Gtk::Entry.new; gtk_globals['fsilveramount'].text = (UserVars.fsilveramount ||= "")
 		gtk_globals['fmindstate'] = Gtk::Entry.new; gtk_globals['fmindstate'].text = (UserVars.fmindstate ||= "")
 		gtk_globals['trashtype'] = Gtk::Entry.new; gtk_globals['trashtype'].text = (UserVars.trashtype ||= "")
-		
+
 		gtk_locals['doohe'] = Gtk::CheckButton.new('(?) One Handed Edged'); gtk_locals['doohe'].active = (settings['doohe'] ||= false)
 		gtk_locals['doohb'] = Gtk::CheckButton.new('(?) One Handed Blunt'); gtk_locals['doohb'].active = ( settings['doohb'] ||= false)
 		gtk_locals['dopole'] = Gtk::CheckButton.new('(?) Polearms'); gtk_locals['dopole'].active = (settings['dopole'] ||= false)
@@ -52,7 +52,7 @@ setup = proc {
 		gtk_locals['fneedhammer'] = Gtk::CheckButton.new('(?) Make a Hammer'); gtk_locals['fneedhammer'].active = (settings['fneedhammer'] ||= false)
 		gtk_locals['fneedperfect'] = Gtk::CheckButton.new('(?) Make a Perfect Hammer'); gtk_locals['fneedperfect'].active = (settings['fneedperfect'] ||= false)
 		gtk_locals['fstowhammer'] = Gtk::CheckButton.new('(?) Store forging-hammer in Main Forge Bag.  Will wear if unchecked.'); gtk_locals['fstowhammer'].active = (settings['fstowhammer'] ||= false)
-		
+
 	# Add tooltips
 		ttips_text.each_pair { |widget,tip|
 			if widget = gtk_globals[widget] || gtk_locals[widget]
@@ -66,120 +66,120 @@ setup = proc {
 		window.border_width = 3
 		window.resizable = true
 		window.resize(450, 300)
-	
+
 		nb = Gtk::Notebook.new.set_show_border(true)
-		
+
 		vb_pg1 = Gtk::Box.new(:vertical, 1).set_border_width(3)
-		
+
 		vb_pg1_1 = Gtk::Box.new(:vertical, 1).set_border_width(3)
 		fr_pg1_1 = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Settings</b></big>'))
 		fr_pg1_1.add(vb_pg1_1)
 		vb_pg1.pack_start(fr_pg1_1, :expand => false, :fill => false, :padding => 0)
-	
+
 		lbl = Gtk::Label.new.set_markup("Configuration Settings for #{Char.name}:")
 		lbl.set_wrap(true).set_width_request(600).set_padding(0,10)
 		vb_pg1_1.pack_start(lbl, :expand => false, :fill => false, :padding => 0)
-		
+
 		hb = Gtk::Box.new(:horizontal, 1)
 		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['docraft'].set_width_request(180)), :expand => false, :fill => false, :padding => 0)
 		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['doohe'].set_width_request(180)), :expand => false, :fill => false, :padding => 0)
 		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['doohb'].set_width_request(180)), :expand => false, :fill => false, :padding => 0)
 		vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-		
+
 		hb = Gtk::Box.new(:horizontal, 1)
 		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['dobrawl'].set_width_request(180)), :expand => false, :fill => false, :padding => 0)
 		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['dothw'].set_width_request(180)), :expand => false, :fill => false, :padding => 0)
 		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['dopole'].set_width_request(180)), :expand => false, :fill => false, :padding => 0)
 		vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-		
+
 		hb = Gtk::Box.new(:horizontal, 1)
 		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Main Forge Bag: ')).set_width_request(130))
 		hb.pack_start(gtk_globals['mainforgebag'], :expand => false, :fill => false, :padding => 0)
 		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Cut Bars Bag: ')).set_width_request(130))
 		hb.pack_start(gtk_globals['cutterbag'], :expand => false, :fill => false, :padding => 0)
 		vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-		
+
 		hb = Gtk::Box.new(:horizontal, 1)
 		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Silvers to Withdraw: ')).set_width_request(130))
 		hb.pack_start(gtk_globals['fsilveramount'], :expand => false, :fill => false, :padding => 0)
 		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Mind State to Rest At: ')).set_width_request(130))
 		hb.pack_start(gtk_globals['fmindstate'], :expand => false, :fill => false, :padding => 0)
 		vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-		
+
 		hb = Gtk::Box.new(:horizontal, 1)
 		hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Trash Bin Type: ')).set_width_request(130))
 		hb.pack_start(gtk_globals['trashtype'], :expand => false, :fill => false, :padding => 0)
 		vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-		
+
 		hb = Gtk::Box.new(:horizontal, 1)
 		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['fneedhammer'].set_width_request(180)), :expand => false, :fill => false, :padding => 0)
 		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['fneedperfect'].set_width_request(180)), :expand => false, :fill => false, :padding => 0)
 		vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-		
+
 		hb = Gtk::Box.new(:horizontal, 1)
 		hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['fstowhammer'].set_width_request(480)), :expand => false, :fill => false, :padding => 0)
 		vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-		
+
 		nb.append_page(vb_pg1,Gtk::Label.new('Settings'))
-		
+
 		lbl = Gtk::Label.new.set_markup("")
 		lbl.set_wrap(true).set_width_request(600).set_padding(0,0)
 		vb_pg1_1.pack_start(lbl, :expand => false, :fill => false, :padding => 0)
-		
+
 		lbl = Gtk::Label.new.set_markup("Like my original StormFront scripts, this is NOT intended for AFK use.")
 		lbl.set_wrap(true).set_width_request(600).set_padding(0,0)
 		vb_pg1_1.pack_start(lbl, :expand => false, :fill => false, :padding => 0)
-		
+
 		lbl = Gtk::Label.new.set_markup("Thank you to SpiffyJr, whose code I cannibalized to make this setup GUI.")
 		lbl.set_wrap(true).set_width_request(600).set_padding(0,0)
 		vb_pg1_1.pack_start(lbl, :expand => false, :fill => false, :padding => 0)
-		
+
 		lbl = Gtk::Label.new.set_markup("-Dintarl")
 		lbl.set_wrap(true).set_width_request(600).set_padding(0,0)
 		vb_pg1_1.pack_start(lbl, :expand => false, :fill => false, :padding => 0)
-		
+
 	#Save/Close Buttons
-	
+
 		hb_saveclose = Gtk::Box.new(:horizontal, 0)
 		save = Gtk::Button.new(:label => 'Save')
 		close = Gtk::Button.new(:label => 'Exit')
-		
+
 		save.signal_connect('clicked') { window_action = :save }
 		close.signal_connect('clicked') { window_action = :done }
-		
+
 		hb_saveclose.pack_start(save, :expand => false, :fill => false, :padding => 0)
 		hb_saveclose.pack_start(close, :expand => false, :fill => false, :padding => 0)
-		
+
 	#Box for Save/Close Buttons
-	
+
 		vb_main = Gtk::Box.new(:vertical, 5)
 		vb_main.border_width = 3
-		
+
 		vb_main.pack_start(nb, :expand => false, :fill => false, :padding => 0)
 		vb_main.pack_start(Gtk::Alignment.new(1,0,0,0).add(hb_saveclose), :expand => false, :fill => false, :padding => 0)
-		
+
 		window.signal_connect('delete_event') { respond window.allocation.width; window_action = :exit }
-		
-		window.add(vb_main)	
+
+		window.add(vb_main)
 		window.show_all
 		window.keep_above = true # On windows keep_above is required AFTER show_all
 	}
-	
+
 	before_dying { Gtk.queue { window.destroy } }
 	wait_while { window_action.nil? }
 	undo_before_dying
 	Gtk.queue { window.destroy }
-	
+
 	clean_entry = proc { |entry|
 		entry.text = entry.text.strip
 		if entry.text.empty?
 			entry.text = ""
 		end
-		
+
 		entry.text
 	}
-		
-	if window_action == :save		
+
+	if window_action == :save
 		gtk_globals.each_pair { |option,widget|
 			if widget.class == Gtk::CheckButton
 				UserVars.change(option,widget.active?,:char)
@@ -189,7 +189,7 @@ setup = proc {
 				echo "error: unknown global widget #{option} [#{widget.class}]"
 			end
 		}
-		
+
 		gtk_locals.each_pair { |option,widget|
 			if widget.class == Gtk::CheckButton
 			#	UserVars.change(option,widget.active?,:char)
@@ -200,7 +200,7 @@ setup = proc {
 				echo "error: unknown local widget #{option} [#{widget.class}]"
 			end
 		}
-		
+
 		echo 'settings saved'
 	else
 		echo 'closed without saving'
@@ -284,14 +284,14 @@ START:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "APRCHECK"
-	
+
 APRCHECK:
 	match "BUYAPRON", "for more options"
 	match "STALLSTART", "leather crafter's apron"
 	match "STALLSTART", "forging apron"
 	fput "inventory"
 		matchwait
-		
+
 BUYAPRON:
 	multifput "order 1", "buy", "wear apron"
 		goto "STALLSTART"
@@ -331,7 +331,7 @@ GLYPH:
 	respond ("")
 	fput "artisan skill"
 		matchwait
-		
+
 GLYPH2:
 	if(checkmind(UserVars.fmindstate))
 		respond(""); respond("Waiting for mind to clear.")
@@ -343,7 +343,7 @@ GLYPH2:
 	else
 		goto "GLYPH2A"
 	end
-	
+
 GLYPH2A:
 	match "GLYPH3", "block in your left hand"
 	match "SWAP", "block in your right hand"
@@ -354,7 +354,7 @@ GLYPH2A:
 SWAP:
 	fput "swap"
 		goto "GLYPH3"
-		
+
 GLYPH3:
 	match "TOOSMALL", "Before the design is complete"
 	match "GRINDER", "Your material is marked with a pattern,"
@@ -386,11 +386,11 @@ GRINDER:
 OOPSGRIND:
 	if GameObj.left_hand.nil?
 		goto "OOPSGRIND2"
-	else 
+	else
 		fput "put #{GameObj.left_hand} in #{UserVars.trashtype}"
 		goto "OOPSGRIND2"
 	end
-		
+
 OOPSGRIND2:
 	if GameObj.right_hand.nil?
 		goto "WORKSTART"
@@ -425,7 +425,7 @@ HAMMER:
 NEEDBLOCK:
 	fput "out"
 	goto "NEEDBLOCK2"
-	
+
 NEEDBLOCK2:
 	match "NEEDSILVER2", "But you do not have enough silver!"
 	match "PACKIT", "placed your purchases in this"
@@ -437,7 +437,7 @@ PACKIT:
 	match "PACKIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 PACKIT2:
 	waitrt?
 	match "FORGEBACKIN", "You throw"
@@ -481,13 +481,13 @@ MASTER:
 MASTER2:
 	put "put my block in #{UserVars.trashtype}"
 		goto "MASTER"
-	
+
 MASTER3:
 	multifput "put my block in #{UserVars.trashtype}","out"
 	respond(""); respond("Congratulations! You have mastered crafting!")
 	respond("")
 	goto "DCRAFT"
-	
+
 ### EDGED SECTION START ###
 
 ESTART:
@@ -498,14 +498,14 @@ ESTART:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "EAPRCHECK"
-	
+
 EAPRCHECK:
 	match "EBUYAPRON", "for more options"
 	match "ESTALLSTART", "leather crafter's apron"
 	match "ESTALLSTART", "forging apron"
 	fput "inventory"
 		matchwait
-		
+
 EBUYAPRON:
 	multifput "order 1", "buy", "wear apron"
 		goto "ESTALLSTART"
@@ -533,7 +533,7 @@ ECUTTER1:
 	match "ECUTTER9", "4lb. piece and a 5lb. piece"
 	match "ECUTTER6", "in half."
 	multifput "swap", "poke slab"
-		matchwait 
+		matchwait
 
 ECUTTER15:
 	multifput "push slab", "pull slab"
@@ -568,7 +568,7 @@ EFORGE2:
 	match "EFORGE2", "...wait"
 	fput "take blade-glyph from my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 EFORGE3:
 	match "EGETBAR", "Get what?"
 	match "EGLYPH", "You remove"
@@ -590,7 +590,7 @@ EGLYPH:
 	respond ("")
 	fput "artisan skill"
 		matchwait
-		
+
 EGLYPH2:
 	if(checkmind(UserVars.fmindstate))
 		respond(""); respond("Waiting for mind to clear.")
@@ -613,7 +613,7 @@ EGLYPH2A:
 EGSWAP:
 	fput "swap"
 		goto "EGLYPH3"
-		
+
 EGLYPH3:
 	match "ETOOSMALL", "Before the design is complete"
 	match "EGLYPH4", "Your material is marked with a pattern,"
@@ -634,7 +634,7 @@ EGLYPH4:
 		fput "remove my forging-hammer"
 	end
 		matchwait
-		
+
 ETOOSMALL:
 	waitrt?
 	match "EWORKSTART", "You put"
@@ -746,11 +746,11 @@ ETIME2:
 EFORGE4:
 	fput "go door"
 		goto "ETONGS1"
-		
+
 EGETBAR:
 	multifput "put my blade-glyph in my #{UserVars.mainforgebag}", "go door", "out"
 	goto "ENEEDBLOCK2"
-	
+
 ENEEDBLOCK2:
 	match "ENEEDSILVER2", "But you do not have enough silver!"
 	match "EPACKIT", "placed your purchases in this"
@@ -762,7 +762,7 @@ EPACKIT:
 	match "EPACKIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 EPACKIT2:
 	waitrt?
 	match "EFORGEBACKIN", "You throw"
@@ -794,7 +794,7 @@ ENEEDSILVER2:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "ENEEDBLOCK2"
-	
+
 ENEEDSILVER3:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -802,7 +802,7 @@ ENEEDSILVER3:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "ETIME2"
-	
+
 ENEEDSILVER4:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -810,7 +810,7 @@ ENEEDSILVER4:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "ENEEDGLYPH2"
-		
+
 ENEEDSILVER5:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -828,13 +828,13 @@ ENEEDGLYPH2:
 	match "EGLYPHIT", "placed your purchases in this"
 	multifput "order 3 of 14 material wax", "buy"
 		matchwait
-	
+
 EGLYPHIT:
 	match "EGLYPHIT2", "and everything falls in"
 	match "EGLYPHIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
-		matchwait	
-	
+		matchwait
+
 EGLYPHIT2:
 	waitrt?
 	match "EGLYPHIT3", "You throw"
@@ -865,17 +865,17 @@ EMASTER2:
 	match "EMASTER3", "You grab"
 	fput "get blade-glyph from my #{UserVars.mainforgebag}"
 		matchwait
-	
+
 EMASTER3:
 	fput "put my blade-glyph in #{UserVars.trashtype}"
 		goto "EMASTER2"
-	
+
 EMASTER4:
 	fput "out"
 	respond(""); respond("Congratulations! You have mastered the art of forging one handed edged weapons!")
 	respond("")
 	goto "DEGDED"
-	
+
 ENOHAMMER:
 	multifput "put my bar in my #{UserVars.cutterbag}", "go door", "out"
 	respond(""); respond("You need a forging hammer to be able to run this script.  Making one now.")
@@ -892,14 +892,14 @@ BSTART:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "BAPRCHECK"
-	
+
 BAPRCHECK:
 	match "BBUYAPRON", "for more options"
 	match "BSTALLSTART", "leather crafter's apron"
 	match "BSTALLSTART", "forging apron"
 	fput "inventory"
 		matchwait
-		
+
 BBUYAPRON:
 	multifput "order 1", "buy", "wear apron"
 		goto "BSTALLSTART"
@@ -927,7 +927,7 @@ BCUTTER1:
 	match "BCUTTER7", "3lb. piece and a 4lb. piece"
 	match "BCUTTER8", "in half."
 	multifput "swap", "poke slab"
-		matchwait 
+		matchwait
 
 BCUTTER15:
 	fput "pull slab"
@@ -962,7 +962,7 @@ BFORGE2:
 	match "BFORGE2", "...wait"
 	fput "take head-glyph from my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 BFORGE3:
 	match "BGETBAR", "Get what?"
 	match "BGLYPH", "You remove"
@@ -984,7 +984,7 @@ BGLYPH:
 	respond ("")
 	fput "artisan skill"
 		matchwait
-		
+
 BGLYPH2:
 	if(checkmind(UserVars.fmindstate))
 		respond(""); respond("Waiting for mind to clear.")
@@ -1007,7 +1007,7 @@ BGLYPH2A:
 BGSWAP:
 	fput "swap"
 		goto "BGLYPH3"
-		
+
 BGLYPH3:
 	match "BTOOSMALL", "Before the design is complete"
 	match "BGLYPH4", "Your material is marked with a pattern,"
@@ -1028,7 +1028,7 @@ BGLYPH4:
 		fput "remove my forging-hammer"
 	end
 		matchwait
-		
+
 BTOOSMALL:
 	waitrt?
 	match "BWORKSTART", "You put"
@@ -1140,11 +1140,11 @@ BTIME2:
 BFORGE4:
 	fput "go door"
 		goto "BTONGS1"
-		
+
 BGETBAR:
 	multifput "put my head-glyph in my #{UserVars.mainforgebag}", "go door", "out"
 	goto "BNEEDBLOCK2"
-	
+
 BNEEDBLOCK2:
 	match "BNEEDSILVER2", "But you do not have enough silver!"
 	match "BPACKIT", "placed your purchases in this"
@@ -1156,7 +1156,7 @@ BPACKIT:
 	match "BPACKIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 BPACKIT2:
 	waitrt?
 	match "BFORGEBACKIN", "You throw"
@@ -1188,7 +1188,7 @@ BNEEDSILVER2:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "BNEEDBLOCK2"
-	
+
 BNEEDSILVER3:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -1196,7 +1196,7 @@ BNEEDSILVER3:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "BTIME2"
-	
+
 BNEEDSILVER4:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -1204,7 +1204,7 @@ BNEEDSILVER4:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "BNEEDGLYPH2"
-		
+
 BNEEDSILVER5:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -1222,13 +1222,13 @@ BNEEDGLYPH2:
 	match "BGLYPHIT", "placed your purchases in this"
 	multifput "order 3 of 20 material wax", "buy"
 		matchwait
-	
+
 BGLYPHIT:
 	match "BGLYPHIT2", "and everything falls in"
 	match "BGLYPHIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
-		matchwait	
-	
+		matchwait
+
 BGLYPHIT2:
 	waitrt?
 	match "BGLYPHIT3", "You throw"
@@ -1259,23 +1259,23 @@ BMASTER2:
 	match "BMASTER3", "You grab"
 	fput "get head-glyph from my #{UserVars.mainforgebag}"
 		matchwait
-	
+
 BMASTER3:
 	fput "put my head-glyph in #{UserVars.trashtype}"
 		goto "BMASTER2"
-	
+
 BMASTER4:
 	multifput "go door", "out"
 	respond(""); respond("Congratulations! You have mastered the art of forging one handed blunt weapons!")
 	respond("")
 	goto "DBLUNT"
-	
+
 BNOHAMMER:
 	multifput "put my bar in my #{UserVars.cutterbag}", "go door", "out"
 	respond(""); respond("You need a forging hammer to be able to run this script.  Making one now.")
 	respond("")
 	goto "HSTART"
-	
+
 ### THW SECTION START ###
 
 RSTART:
@@ -1286,14 +1286,14 @@ RSTART:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "RAPRCHECK"
-	
+
 RAPRCHECK:
 	match "RBUYAPRON", "for more options"
 	match "RSTALLSTART", "leather crafter's apron"
 	match "RSTALLSTART", "forging apron"
 	fput "inventory"
 		matchwait
-		
+
 RBUYAPRON:
 	multifput "order 1", "buy", "wear apron"
 		goto "RSTALLSTART"
@@ -1321,7 +1321,7 @@ RCUTTER1:
 	match "RCUTTER9", "4lb. piece and a 5lb. piece"
 	match "RCUTTER6", "in half."
 	multifput "swap", "poke slab"
-		matchwait 
+		matchwait
 
 RCUTTER15:
 	multifput "push slab", "pull slab"
@@ -1356,7 +1356,7 @@ RFORGE2:
 	match "RFORGE2", "...wait"
 	fput "take endcap-glyph from my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 RFORGE3:
 	match "RGETBAR", "Get what?"
 	match "RGLYPH", "You remove"
@@ -1378,7 +1378,7 @@ RGLYPH:
 	respond ("")
 	fput "artisan skill"
 		matchwait
-		
+
 RGLYPH2:
 	if(checkmind(UserVars.fmindstate))
 		respond(""); respond("Waiting for mind to clear.")
@@ -1401,7 +1401,7 @@ RGLYPH2A:
 RGSWAP:
 	fput "swap"
 		goto "RGLYPH3"
-		
+
 RGLYPH3:
 	match "RTOOSMALL", "Before the design is complete"
 	match "RGLYPH4", "Your material is marked with a pattern,"
@@ -1422,7 +1422,7 @@ RGLYPH4:
 		fput "remove my forging-hammer"
 	end
 		matchwait
-		
+
 RTOOSMALL:
 	waitrt?
 	match "RWORKSTART", "You put"
@@ -1534,11 +1534,11 @@ RTIME2:
 RFORGE4:
 	fput "go door"
 		goto "RTONGS1"
-		
+
 RGETBAR:
 	multifput "put my endcap-glyph in my #{UserVars.mainforgebag}", "go door", "out"
 	goto "RNEEDBLOCK2"
-	
+
 RNEEDBLOCK2:
 	match "RNEEDSILVER2", "But you do not have enough silver!"
 	match "RPACKIT", "placed your purchases in this"
@@ -1550,7 +1550,7 @@ RPACKIT:
 	match "RPACKIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 RPACKIT2:
 	waitrt?
 	match "RFORGEBACKIN", "You throw"
@@ -1582,7 +1582,7 @@ RNEEDSILVER2:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "RNEEDBLOCK2"
-	
+
 RNEEDSILVER3:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -1590,7 +1590,7 @@ RNEEDSILVER3:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "RTIME2"
-	
+
 RNEEDSILVER4:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -1598,7 +1598,7 @@ RNEEDSILVER4:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "RNEEDGLYPH2"
-		
+
 RNEEDSILVER5:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -1616,13 +1616,13 @@ RNEEDGLYPH2:
 	match "RGLYPHIT", "placed your purchases in this"
 	multifput "order 3 of 26 material wax", "buy"
 		matchwait
-	
+
 RGLYPHIT:
 	match "RGLYPHIT2", "and everything falls in"
 	match "RGLYPHIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
-		matchwait	
-	
+		matchwait
+
 RGLYPHIT2:
 	waitrt?
 	match "RGLYPHIT3", "You throw"
@@ -1653,23 +1653,23 @@ RMASTER2:
 	match "RMASTER3", "You grab"
 	fput "get endcap-glyph from my #{UserVars.mainforgebag}"
 		matchwait
-	
+
 RMASTER3:
 	fput "put my endcap-glyph in #{UserVars.trashtype}"
 		goto "RMASTER2"
-	
+
 RMASTER4:
 	multifput "go door", "out"
 	respond(""); respond("Congratulations! You have mastered the art of forging two handed weapons!")
 	respond("")
 	goto "DTHW"
-	
+
 RNOHAMMER:
 	multifput "put my bar in my #{UserVars.cutterbag}", "go door", "out"
 	respond(""); respond("You need a forging hammer to be able to run this script.  Making one now.")
 	respond("")
 	goto "HSTART"
-	
+
 ### BRAWL SECTION START ###
 
 TSTART:
@@ -1680,14 +1680,14 @@ TSTART:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "TAPRCHECK"
-	
+
 TAPRCHECK:
 	match "TBUYAPRON", "for more options"
 	match "TSTALLSTART", "leather crafter's apron"
 	match "TSTALLSTART", "forging apron"
 	fput "inventory"
 		matchwait
-		
+
 TBUYAPRON:
 	multifput "order 1", "buy", "wear apron"
 		goto "TSTALLSTART"
@@ -1715,7 +1715,7 @@ TCUTTER1:
 	match "TCUTTER9", "4lb. piece and a 5lb. piece"
 	match "TCUTTER6", "in half."
 	multifput "swap", "poke slab"
-		matchwait 
+		matchwait
 
 TCUTTER15:
 	multifput "push slab", "pull slab"
@@ -1750,7 +1750,7 @@ TFORGE2:
 	match "TFORGE2", "...wait"
 	fput "take blade-glyph from my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 TFORGE3:
 	match "TGETBAR", "Get what?"
 	match "TGLYPH", "You remove"
@@ -1772,7 +1772,7 @@ TGLYPH:
 	respond ("")
 	fput "artisan skill"
 		matchwait
-		
+
 TGLYPH2:
 	if(checkmind(UserVars.fmindstate))
 		respond(""); respond("Waiting for mind to clear.")
@@ -1795,7 +1795,7 @@ TGLYPH2A:
 TGSWAP:
 	fput "swap"
 		goto "TGLYPH3"
-		
+
 TGLYPH3:
 	match "TTOOSMALL", "Before the design is complete"
 	match "TGLYPH4", "Your material is marked with a pattern,"
@@ -1816,7 +1816,7 @@ TGLYPH4:
 		fput "remove my forging-hammer"
 	end
 		matchwait
-		
+
 TTOOSMALL:
 	waitrt?
 	match "TWORKSTART", "You put"
@@ -1928,11 +1928,11 @@ TTIME2:
 TFORGE4:
 	fput "go door"
 		goto "TTONGS1"
-		
+
 TGETBAR:
 	multifput "put my blade-glyph in my #{UserVars.mainforgebag}", "go door", "out"
 	goto "TNEEDBLOCK2"
-	
+
 TNEEDBLOCK2:
 	match "TNEEDSILVER2", "But you do not have enough silver!"
 	match "TPACKIT", "placed your purchases in this"
@@ -1944,7 +1944,7 @@ TPACKIT:
 	match "TPACKIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 TPACKIT2:
 	waitrt?
 	match "TFORGEBACKIN", "You throw"
@@ -1976,7 +1976,7 @@ TNEEDSILVER2:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "TNEEDBLOCK2"
-	
+
 TNEEDSILVER3:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -1984,7 +1984,7 @@ TNEEDSILVER3:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "TTIME2"
-	
+
 TNEEDSILVER4:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -1992,7 +1992,7 @@ TNEEDSILVER4:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "TNEEDGLYPH2"
-		
+
 TNEEDSILVER5:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -2010,13 +2010,13 @@ TNEEDGLYPH2:
 	match "TGLYPHIT", "placed your purchases in this"
 	multifput "order 3 of 38 material wax", "buy"
 		matchwait
-	
+
 TGLYPHIT:
 	match "TGLYPHIT2", "and everything falls in"
 	match "TGLYPHIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
-		matchwait	
-	
+		matchwait
+
 TGLYPHIT2:
 	waitrt?
 	match "TGLYPHIT3", "You throw"
@@ -2047,23 +2047,23 @@ TMASTER2:
 	match "TMASTER3", "You grab"
 	fput "get blade-glyph from my #{UserVars.mainforgebag}"
 		matchwait
-	
+
 TMASTER3:
 	fput "put my blade-glyph in #{UserVars.trashtype}"
 		goto "TMASTER2"
-	
+
 TMASTER4:
 	multifput "go door", "out"
 	respond(""); respond("Congratulations! You have mastered the art of forging brawling weapons!")
 	respond("")
 	goto "DBRAWL"
-	
+
 TNOHAMMER:
 	multifput "put my bar in my #{UserVars.cutterbag}", "go door", "out"
 	respond(""); respond("You need a forging hammer to be able to run this script.  Making one now.")
 	respond("")
 	goto "HSTART"
-	
+
 ### POLEARM SECTION START ###
 
 PSTART:
@@ -2074,14 +2074,14 @@ PSTART:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "PAPRCHECK"
-	
+
 PAPRCHECK:
 	match "PBUYAPRON", "for more options"
 	match "PSTALLSTART", "leather crafter's apron"
 	match "PSTALLSTART", "forging apron"
 	fput "inventory"
 		matchwait
-		
+
 PBUYAPRON:
 	multifput "order 1", "buy", "wear apron"
 		goto "PSTALLSTART"
@@ -2109,7 +2109,7 @@ PCUTTER1:
 	match "PCUTTER9", "4lb. piece and a 5lb. piece"
 	match "PCUTTER6", "in half."
 	multifput "swap", "poke slab"
-		matchwait 
+		matchwait
 
 PCUTTER15:
 	multifput "push slab", "pull slab"
@@ -2144,7 +2144,7 @@ PFORGE2:
 	match "PFORGE2", "...wait"
 	fput "take head-glyph from my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 PFORGE3:
 	match "PGETBAR", "Get what?"
 	match "PGLYPH", "You remove"
@@ -2166,7 +2166,7 @@ PGLYPH:
 	respond ("")
 	fput "artisan skill"
 		matchwait
-		
+
 PGLYPH2:
 	if(checkmind(UserVars.fmindstate))
 		respond(""); respond("Waiting for mind to clear.")
@@ -2189,7 +2189,7 @@ PGLYPH2A:
 PGSWAP:
 	fput "swap"
 		goto "PGLYPH3"
-		
+
 PGLYPH3:
 	match "PTOOSMALL", "Before the design is complete"
 	match "PGLYPH4", "Your material is marked with a pattern,"
@@ -2210,7 +2210,7 @@ PGLYPH4:
 		fput "remove my forging-hammer"
 	end
 		matchwait
-		
+
 PTOOSMALL:
 	waitrt?
 	match "PWORKSTART", "You put"
@@ -2236,7 +2236,7 @@ PTONGER:
 	match "PDONE", "With a brief"
 	match "PBREAK", "With a single, faulty blow"
 		matchwait
-	
+
 PTONGS2:
 	waitrt?
 	match "PMASTER", "pole arms, you are a master"
@@ -2322,11 +2322,11 @@ PTIME2:
 PFORGE4:
 	fput "go door"
 		goto "PTONGS1"
-		
+
 PGETBAR:
 	multifput "put my head-glyph in my #{UserVars.mainforgebag}", "go door", "out"
 	goto "PNEEDBLOCK2"
-	
+
 PNEEDBLOCK2:
 	match "PNEEDSILVER2", "But you do not have enough silver!"
 	match "PPACKIT", "placed your purchases in this"
@@ -2338,7 +2338,7 @@ PPACKIT:
 	match "PPACKIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 PPACKIT2:
 	waitrt?
 	match "PFORGEBACKIN", "You throw"
@@ -2370,7 +2370,7 @@ PNEEDSILVER2:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "PNEEDBLOCK2"
-	
+
 PNEEDSILVER3:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -2378,7 +2378,7 @@ PNEEDSILVER3:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "PTIME2"
-	
+
 PNEEDSILVER4:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -2386,7 +2386,7 @@ PNEEDSILVER4:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "PNEEDGLYPH2"
-		
+
 PNEEDSILVER5:
 	start_script "go2", [ "bank", "_disable_confirm_" ]
 		wait_while{running?("go2")}
@@ -2404,13 +2404,13 @@ PNEEDGLYPH2:
 	match "PGLYPHIT", "placed your purchases in this"
 	multifput "order 3 of 32 material wax", "buy"
 		matchwait
-	
+
 PGLYPHIT:
 	match "PGLYPHIT2", "and everything falls in"
 	match "PGLYPHIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
-		matchwait	
-	
+		matchwait
+
 PGLYPHIT2:
 	waitrt?
 	match "PGLYPHIT3", "You throw"
@@ -2441,23 +2441,23 @@ PMASTER2:
 	match "PMASTER3", "You grab"
 	fput "get head-glyph from my #{UserVars.mainforgebag}"
 		matchwait
-	
+
 PMASTER3:
 	fput "put my head-glyph in #{UserVars.trashtype}"
 		goto "PMASTER2"
-	
+
 PMASTER4:
 	multifput "go door", "out"
 	respond(""); respond("Congratulations! You have mastered the art of forging pole arm weapons!")
 	respond("")
 	goto "DPOLE"
-	
+
 PNOHAMMER:
 	multifput "put my bar in my #{UserVars.cutterbag}", "go door", "out"
 	respond(""); respond("You need a forging hammer to be able to run this script.  Making one now.")
 	respond("")
 	goto "HSTART"
-	
+
 ### REGULAR HAMMER SECTION START ###
 
 HSTART:
@@ -2468,14 +2468,14 @@ HSTART:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "HAPRCHECK"
-	
+
 HAPRCHECK:
 	match "HBUYAPRON", "for more options"
 	match "HSTALLSTART", "leather crafter's apron"
 	match "HSTALLSTART", "forging apron"
 	fput "inventory"
 		matchwait
-		
+
 HBUYAPRON:
 	multifput "order 1", "buy", "wear apron"
 		goto "HSTALLSTART"
@@ -2512,7 +2512,7 @@ HGLYPH:
 HSWAP:
 	fput "swap"
 		goto "HGLYPH3"
-		
+
 HGLYPH3:
 	match "HTOOSMALL", "Before the design is complete"
 	match "HGRINDER", "Your material is marked with a pattern,"
@@ -2549,11 +2549,11 @@ HGRINDER2:
 HOOPSGRIND:
 	if GameObj.left_hand.nil?
 		goto "HOOPSGRIND2"
-	else 
+	else
 		fput "put #{GameObj.left_hand} in #{UserVars.trashtype}"
 		goto "HOOPSGRIND2"
 	end
-		
+
 HOOPSGRIND2:
 	if GameObj.right_hand.nil?
 		goto "HWORKSTART"
@@ -2591,7 +2591,7 @@ HPOLITIME:
 	match "HPOLISILVER", "You don't have enough silver, rentals"
 	fput "go workshop"
 		matchwait
-		
+
 HPOLISILVER:
 	fput "stow all"
 	start_script "go2", [ "bank", "_disable_confirm_" ]
@@ -2620,7 +2620,7 @@ HDUMPWOOD2:
 HNEEDBLOCK:
 	fput "out"
 	goto "HNEEDBLOCK2"
-	
+
 HNEEDBLOCK2:
 	match "HNEEDSILVER2", "But you do not have enough silver!"
 	match "HPACKIT", "placed your purchases in this"
@@ -2632,7 +2632,7 @@ HPACKIT:
 	match "HPACKIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 HPACKIT2:
 	waitrt?
 	match "HFORGEBACKIN", "You throw"
@@ -2664,11 +2664,11 @@ HNEEDSILVER2:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "HNEEDBLOCK2"
-	
+
 H1START:
 	fput "out"
 		goto "H1NEEDBLOCK2"
-	
+
 H1WORKSTART:
 	fput "take slab from my #{UserVars.mainforgebag}"
 	match "H1GOTBLOCK", "You remove"
@@ -2691,7 +2691,7 @@ H1GLYPH:
 H1SWAP:
 	fput "swap"
 		goto "H1GLYPH3"
-		
+
 H1GLYPH3:
 	match "H1TOOSMALL", "Before the design is complete"
 	match "H1GRINDER", "Your material is marked with a pattern,"
@@ -2722,17 +2722,17 @@ H1GRINDER2:
 	match "H1GLYPH", "You decide the safest"
 	match "H1TOOTHPICK", "Things seem to be going fine"
 	match "H1HAMMER", "satisfied with the piece"
-	match "H1HAMMER", "very best"	
+	match "H1HAMMER", "very best"
 		matchwait
 
 H1OOPSGRIND:
 	if GameObj.left_hand.nil?
 		goto "H1OOPSGRIND2"
-	else 
+	else
 		fput "put #{GameObj.left_hand} in #{UserVars.trashtype}"
 		goto "H1OOPSGRIND2"
 	end
-		
+
 H1OOPSGRIND2:
 	if GameObj.right_hand.nil?
 		goto "H1WORKSTART"
@@ -2763,14 +2763,14 @@ H1HAMMER:
 	match "H1HAMMER", "...wait"
 	multifput "put my slab in #{UserVars.trashtype}", "lean polisher"
 		matchwait
-		
+
 H1POLITIME:
 	fput "out"
 	match "H1HAMMER", "The clerk collects 300 silvers"
 	match "H1POLISILVER", "You don't have enough silver, rentals"
 	fput "go workshop"
 		matchwait
-		
+
 H1POLISILVER:
 	fput "stow all"
 	start_script "go2", [ "bank", "_disable_confirm_" ]
@@ -2779,7 +2779,7 @@ H1POLISILVER:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "H1POLITIME"
-		
+
 H1HAMMER2:
 	waitrt?
 	match "H1HAMMER2", "...wait"
@@ -2788,7 +2788,7 @@ H1HAMMER2:
 	match "H1VISE", "You grab"
 	fput "get hammer from my #{UserVars.cutterbag}"
 		matchwait
-	
+
 H1DUMPWOOD:
 	match "H1DUMPWOOD2", "You remove"
 	match "H1DUMPWOOD2", "You grab"
@@ -2803,7 +2803,7 @@ H1DUMPWOOD2:
 H1NEEDBLOCK:
 	fput "out"
 	goto "H1NEEDBLOCK2"
-	
+
 H1NEEDBLOCK2:
 	match "H1NEEDSILVER2", "But you do not have enough silver!"
 	match "H1PACKIT", "placed your purchases in this"
@@ -2815,7 +2815,7 @@ H1PACKIT:
 	match "H1PACKIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 H1PACKIT2:
 	waitrt?
 	match "H1FORGEBACKIN", "You throw"
@@ -2847,12 +2847,12 @@ H1NEEDSILVER2:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "H1NEEDBLOCK2"
-	
+
 H2DONE:
 	waitrt?
 	fput "out"
 	goto "DHAMMER"
-	
+
 H1VISE:
 	waitrt?
 	match "H1WEAR", "You finish your work and step back"
@@ -2880,14 +2880,14 @@ FSTART:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "FAPRCHECK"
-	
+
 FAPRCHECK:
 	match "FBUYAPRON", "for more options"
 	match "FSTALLSTART", "leather crafter's apron"
 	match "FSTALLSTART", "forging apron"
 	fput "inventory"
 		matchwait
-		
+
 FBUYAPRON:
 	multifput "order 1", "buy", "wear apron"
 		goto "FSTALLSTART"
@@ -2924,7 +2924,7 @@ FGLYPH:
 FSWAP:
 	fput "swap"
 		goto "FGLYPH3"
-		
+
 FGLYPH3:
 	match "FTOOSMALL", "Before the design is complete"
 	match "FGRINDER", "Your material is marked with a pattern,"
@@ -2961,11 +2961,11 @@ FGRINDER2:
 FOOPSGRIND:
 	if GameObj.left_hand.nil?
 		goto "FOOPSGRIND2"
-	else 
+	else
 		fput "put #{GameObj.left_hand} in #{UserVars.trashtype}"
 		goto "FOOPSGRIND2"
 	end
-		
+
 FOOPSGRIND2:
 	if GameObj.right_hand.nil?
 		goto "FWORKSTART"
@@ -2996,14 +2996,14 @@ FHAMMER:
 	match "FHAMMER", "...wait"
 	multifput "put my block in #{UserVars.trashtype}", "lean polisher"
 		matchwait
-		
+
 FPOLITIME:
 	fput "out"
 	match "FHAMMER", "The clerk collects 300 silvers"
 	match "FPOLISILVER", "You don't have enough silver, rentals"
 	fput "go workshop"
 		matchwait
-		
+
 FPOLISILVER:
 	fput "stow all"
 	start_script "go2", [ "bank", "_disable_confirm_" ]
@@ -3012,7 +3012,7 @@ FPOLISILVER:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "FPOLITIME"
-		
+
 FHAMMER2:
 	waitrt?
 	fput "put hammer in my #{UserVars.cutterbag}"
@@ -3032,7 +3032,7 @@ FDUMPWOOD2:
 FNEEDBLOCK:
 	fput "out"
 	goto "FNEEDBLOCK2"
-	
+
 FNEEDBLOCK2:
 	match "FNEEDSILVER2", "But you do not have enough silver!"
 	match "FPACKIT", "placed your purchases in this"
@@ -3044,7 +3044,7 @@ FPACKIT:
 	match "FPACKIT", "...wait"
 	multifput "open my package", "empty my package in my #{UserVars.mainforgebag}"
 		matchwait
-		
+
 FPACKIT2:
 	waitrt?
 	match "FFORGEBACKIN", "You throw"
@@ -3076,11 +3076,11 @@ FNEEDSILVER2:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "FNEEDBLOCK2"
-	
+
 FESTART:
 	fput "out"
 		goto "FENEEDBLOCK2"
-	
+
 FEWORKSTART:
 	fput "take slab from my #{UserVars.mainforgebag}"
 	match "FEGOTBLOCK", "You remove"
@@ -3103,7 +3103,7 @@ FEGLYPH:
 FESWAP:
 	fput "swap"
 		goto "FEGLYPH3"
-		
+
 FEGLYPH3:
 	match "FETOOSMALL", "Before the design is complete"
 	match "FEGRINDER", "Your material is marked with a pattern,"
@@ -3140,11 +3140,11 @@ FEGRINDER2:
 FEOOPSGRIND:
 	if GameObj.left_hand.nil?
 		goto "FEOOPSGRIND2"
-	else 
+	else
 		fput "put #{GameObj.left_hand} in #{UserVars.trashtype}"
 		goto "FEOOPSGRIND2"
 	end
-		
+
 FEOOPSGRIND2:
 	if GameObj.right_hand.nil?
 		goto "FEWORKSTART"
@@ -3175,14 +3175,14 @@ FEHAMMER:
 	match "FEHAMMER", "...wait"
 	multifput "put my slab in #{UserVars.mainforgebag}", "lean polisher"
 		matchwait
-		
+
 FEPOLITIME:
 	fput "out"
 	match "FEHAMMER", "The clerk collects 300 silvers"
 	match "FEPOLISILVER", "You don't have enough silver, rentals"
 	fput "go workshop"
 		matchwait
-		
+
 FEPOLISILVER:
 	fput "stow all"
 	start_script "go2", [ "bank", "_disable_confirm_" ]
@@ -3191,7 +3191,7 @@ FEPOLISILVER:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "FEPOLITIME"
-		
+
 FEHAMMER2:
 	waitrt?
 	match "FEHAMMER2", "...wait"
@@ -3200,7 +3200,7 @@ FEHAMMER2:
 	match "FEVISE", "You grab"
 	fput "get hammer from my #{UserVars.cutterbag}"
 		matchwait
-	
+
 FEDUMPWOOD:
 	match "FEDUMPWOOD2", "You remove"
 	match "FEDUMPWOOD2", "You grab"
@@ -3215,7 +3215,7 @@ FEDUMPWOOD2:
 FENEEDBLOCK:
 	fput "out"
 	goto "FENEEDBLOCK2"
-	
+
 FENEEDBLOCK2:
 	match "FENEEDSILVER2", "But you do not have enough silver!"
 	match "FEFORGEBACKIN", "Thanks for your patronage."
@@ -3246,12 +3246,12 @@ FENEEDSILVER2:
 	start_script "go2", [ "forge", "_disable_confirm_" ]
 		wait_while{running?("go2")}
 	goto "FENEEDBLOCK2"
-	
+
 F2DONE:
 	waitrt?
 	fput "out"
 	goto "DHAMMER"
-	
+
 FEVISE:
 	waitrt?
 	match "FENOPE", "satisfied with the piece"
@@ -3269,7 +3269,7 @@ FEWEAR:
 		fput "wear my forging-hammer"
 	end
 	goto "FEDUMPWOOD"
-	
+
 FENOPE:
 	waitrt?
 	match "FENOPE", "...wait"

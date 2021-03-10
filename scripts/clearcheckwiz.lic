@@ -2,7 +2,7 @@
     REIM Scoreboard
   This will show a scoreboard based on treim feedback to clearchecks.
   It include the character name, section of reim they are cleared to displayed as a number, scrip for the run, and time remaining.
-  
+
     SYNTAX - ;clearcheckwiz
 
      author: Spenster
@@ -16,7 +16,7 @@
     1.3 (2017-07-11)
       Rewritten, now with less evals.
     1.2 (2017-07-10)
-      Rearranged a few things.  Set the script to watch for responses for 30 seconds and then pause.  
+      Rearranged a few things.  Set the script to watch for responses for 30 seconds and then pause.
       Attempting to trouble shoot lag when using wizard.
     1.1 (2017-07-07)
       Set the window to refresh no quicker than every 2 seconds.
@@ -50,16 +50,16 @@ before_dying {
 
 
 #  First time window setup
-Gtk.queue {   
+Gtk.queue {
 
   @window = Gtk::Window.new(:toplevel)
   @window.set_title  "Spenster's ClearCheck Viewer"       #Sets window title
-  @window.border_width = 12 
-  
+  @window.border_width = 12
+
   @vbox = Gtk::Table.new(1,2, false)
-  
+
   @window.add(@vbox)
-  
+
   @window.signal_connect('delete_event') {@window_action = true}                #Deals with you hitting the X to close the window, no changes to settings made (I think)
   @window.show_all                                #Displays the GUI
   @window.resize(20, 20)
@@ -99,7 +99,7 @@ def refreshgtkwindow()
       label_time = Gtk::Label.new("#{value[2]}")
       label_time.set_alignment(1, 0.5)
 
-      
+
       @vbox.attach label_name, 0,1,index,indexplus, :fill,:fill,5,0
       @vbox.attach label_clear, 1,2,index,indexplus, :fill,:fill,5,0
       @vbox.attach label_scrip, 2,3,index,indexplus, :fill,:fill,5,0
@@ -146,7 +146,7 @@ def updateselfinfo()
     # areaclear = "6"
   # when "throne"
     # areaclear = "7"
-  # end 
+  # end
   @last_loop = Time.now
   @refreshwindow = true
 end

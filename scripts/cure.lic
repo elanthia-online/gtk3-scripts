@@ -94,7 +94,7 @@ end
   nerves_scars_Hunt     = Settings[Char.name]['nerves_scars_Hunt']||=3
 
 #echo @HNPriority
-  
+
 if Spell[9909].known?
 @signToUse = 9909
 elsif Spell[9905].known?
@@ -115,7 +115,7 @@ end
 if script.vars[1] =~ /^setup$|^options$/i
   window = window_action = nil
   Gtk.queue {
-    
+
     doneVerbCheck = Gtk::Entry.new()
     doneVerbCheck.set_text(@doneVerb)
     doneVerbCheckLabel = (Gtk::Label.new("Optional action for when the script finishes:"))
@@ -160,7 +160,7 @@ if script.vars[1] =~ /^setup$|^options$/i
       @useTB = false
     end
     }
-    
+
     altBehaviorCheck = Gtk::CheckButton.new "Alternative Behavior"
     if @altBehavior == true
     altBehaviorCheck.set_active true
@@ -184,12 +184,12 @@ if script.vars[1] =~ /^setup$|^options$/i
       @useSigns = false
     end
     }
-    
+
     allWoundsCheck = Gtk::SpinButton.new(0,3,1)
     allWoundsLabel = (Gtk::Label.new("All Wounds Target Level"))
     allWoundsCheck.value = @allWounds.to_f
     allScarsCheck = Gtk::SpinButton.new(0,3,1)
-    allScarsLabel = (Gtk::Label.new("All Scars Target Level"))  
+    allScarsLabel = (Gtk::Label.new("All Scars Target Level"))
     allScarsCheck.value = @allScars.to_f
     head_wounds_HealCheck = Gtk::SpinButton.new( (Gtk::Adjustment.new(0, 0, 3, 1, 1, 0)), 1, 0);
     head_wounds_HealCheck.value = head_wounds_Heal.to_f
@@ -220,7 +220,7 @@ if script.vars[1] =~ /^setup$|^options$/i
     nerves_wounds_HealCheck = Gtk::SpinButton.new( (Gtk::Adjustment.new(0, 0, 3, 1, 1, 0)), 1, 0);
     nerves_wounds_HealCheck.value = nerves_wounds_Heal.to_f
 
-  
+
     woundBox = Gtk::Box.new(:vertical, 0)
     woundBox.add(Gtk::Label.new("Head:"))
     woundBox.pack_start(head_wounds_HealCheck, :expand => true, :fill => false, :padding => 0)
@@ -251,7 +251,7 @@ if script.vars[1] =~ /^setup$|^options$/i
     woundBox.add(Gtk::Label.new("Nerves:"))
     woundBox.pack_end(nerves_wounds_HealCheck, :expand => true, :fill => false, :padding => 0)
 
-    
+
     head_scars_HealCheck = Gtk::SpinButton.new( (Gtk::Adjustment.new(0, 0, 3, 1, 1, 0)), 1, 0);
     head_scars_HealCheck.value = head_scars_Heal.to_f
     neck_scars_HealCheck = Gtk::SpinButton.new( (Gtk::Adjustment.new(0, 0, 3, 1, 1, 0)), 1, 0);
@@ -310,7 +310,7 @@ if script.vars[1] =~ /^setup$|^options$/i
     scarBox.pack_start(lefthand_scars_HealCheck, :expand => true, :fill => false, :padding => 0)
     scarBox.add(Gtk::Label.new("Nerves:"))
     scarBox.pack_end(nerves_scars_HealCheck, :expand => true, :fill => false, :padding => 0)
-    
+
     head_wounds_HuntCheck = Gtk::SpinButton.new( (Gtk::Adjustment.new(0, 0, 3, 1, 1, 0)), 1, 0);
     head_wounds_HuntCheck.value = head_wounds_Hunt.to_f
     neck_wounds_HuntCheck = Gtk::SpinButton.new( (Gtk::Adjustment.new(0, 0, 3, 1, 1, 0)), 1, 0);
@@ -340,7 +340,7 @@ if script.vars[1] =~ /^setup$|^options$/i
     nerves_wounds_HuntCheck = Gtk::SpinButton.new( (Gtk::Adjustment.new(0, 0, 3, 1, 1, 0)), 1, 0);
     nerves_wounds_HuntCheck.value = nerves_wounds_Hunt.to_f
 
-    
+
     huntBox = Gtk::Box.new(:vertical, 0)
     huntBox.add(Gtk::Label.new("Head:"))
     huntBox.pack_start(head_wounds_HuntCheck, :expand => true, :fill => false, :padding => 0)
@@ -371,7 +371,7 @@ if script.vars[1] =~ /^setup$|^options$/i
     huntBox.add(Gtk::Label.new("Nerves:"))
     huntBox.pack_end(nerves_wounds_HuntCheck, :expand => true, :fill => false, :padding => 0)
 
-    
+
     head_scars_HuntCheck = Gtk::SpinButton.new( (Gtk::Adjustment.new(0, 0, 3, 1, 1, 0)), 1, 0);
     head_scars_HuntCheck.value = head_scars_Hunt.to_f
     neck_scars_HuntCheck = Gtk::SpinButton.new( (Gtk::Adjustment.new(0, 0, 3, 1, 1, 0)), 1, 0);
@@ -430,7 +430,7 @@ if script.vars[1] =~ /^setup$|^options$/i
     huntscarBox.pack_start(lefthand_scars_HuntCheck, :expand => true, :fill => false, :padding => 0)
     huntscarBox.add(Gtk::Label.new("Nerves:"))
     huntscarBox.pack_end(nerves_scars_HuntCheck, :expand => true, :fill => false, :padding => 0)
-    
+
     WelcomeText = Gtk::Label.new(";cure <commands>:\n\n;cure all or ;cure <target> all\nIncluding the word 'all' will heal you down of all wounds.\n\n;cure group\nHeals everyone in your group.\n\n;cure room\nHeals everyone in a room. Use this responsibly!\n\n\nThis script is still very untested!  Please contact me if you have any feedback!  Talonhawke@gmail.com")
     WelcomeText.wrap = true
     ModeText = Gtk::Label.new("Mode Button: Toggles between settings for Hunting and Healing which can be set on their respective tabs.\nYou can also change this by typing ;#{script.name} hunt or ;#{script.name} heal")
@@ -438,13 +438,13 @@ if script.vars[1] =~ /^setup$|^options$/i
     AllButtonsText = Gtk::Label.new("All Wounds & All Scars: Sets the level of wound or scar that will be healed down to. A value of 3 will do nothing, while 0 will attempt to heal down completely.\n\nWARNING: These buttons will override any higher values set on the Hunting and Healing Setup tabs. They are here for those who want to keep things simple!")
     AllButtonsText.wrap = true
 
-#   toolTips = Gtk::Tooltips.new    
+#   toolTips = Gtk::Tooltips.new
     HNPriorityCheck.set_tooltip_text("If active, will cause the script to heal any head or nervous system wounds down to a Level 1 scar before doing other injuries.\nUseful if you're worried about XP loss from these injuries.")
     useTBCheck.set_tooltip_text("Checks to see if Troll's Blood is active and will cast it before any healing.\nKeep in mind, if you are low on mana, this will cause you to wait until you have enough to cast 1125.")
     altBehaviorCheck.set_tooltip_text("Changes script behavior so that ;#{script.name} by itself will heal *you* down, but when targeting others, the script will only heal you down enough to take all their wounds.")
     useSignsCheck.set_tooltip_text("...uses powers from a Council(that may or may not exist)to keep you from bleeding.")
     doneVerbCheck.set_tooltip_text("You can enter an action to do when the script finishes. Helps let others know when you're done healing.")
-    
+
     simpleTable = Gtk::Table.new(11,2,false)
     simpleTable.border_width = 10
 #   hunt_table.attach(advancedHuntText,0,2,0,1,:shrink,:shrink,20,20)
@@ -476,7 +476,7 @@ if script.vars[1] =~ /^setup$|^options$/i
     simpleTable.attach(WelcomeText,0,2,10,11, :shrink,:shrink,20,40)
 
     saveButton = Gtk::Button.new(:label => 'Save')
-    
+
     advancedHealText = Gtk::Label.new("Healing Mode:\nHere you can set individual heal down levels for each body part. Setting a value to 3 will cause that area to be ignored, while setting a value to 0 will heal that location completely.")
     advancedHealText.width_request = 300
     advancedHealText.wrap = true
@@ -491,7 +491,7 @@ if script.vars[1] =~ /^setup$|^options$/i
     HealingText = Gtk::Label.new("Healing Setup")
     SimpleText = Gtk::Label.new("Basic Setup")
 
-    
+
     hunt_table = Gtk::Table.new(4,2,false)
     hunt_table.border_width = 10
     hunt_table.attach(advancedHuntText,0,2,0,1,:shrink,:shrink,20,20)
@@ -500,7 +500,7 @@ if script.vars[1] =~ /^setup$|^options$/i
     hunt_table.attach(scarText,1,2,1,2)
     hunt_table.attach(huntscarBox,1,2,2,3,:shrink,:shrink,20,3)
 
-    
+
     heal_table = Gtk::Table.new(4,2,false)
     heal_table.border_width = 10
     heal_table.attach(advancedHealText,0,2,0,1,:shrink,:shrink,20,20)
@@ -508,10 +508,10 @@ if script.vars[1] =~ /^setup$|^options$/i
     heal_table.attach(woundBox,0,1,2,3,:shrink,:shrink,20,3)
     heal_table.attach(HscarText,1,2,1,2)
     heal_table.attach(scarBox,1,2,2,3,:shrink,:shrink,20,3)
-    
+
 #   simple_table = Gtk::Table.new(1,1,false)
 #   simple_table.attach(simpleBox,0,1,0,1,:shrink,:shrink,20,5)
-  
+
     Gui = Gtk::Notebook.new
     Gui.append_page(simpleTable, SimpleText)
     Gui.append_page(hunt_table, HuntingText)
@@ -561,7 +561,7 @@ if script.vars[1] =~ /^setup$|^options$/i
   righthand_scars_Heal    = righthand_scars_HealCheck.value
   lefthand_scars_Heal   = lefthand_scars_HealCheck.value
   nerves_scars_Heal   = nerves_scars_HealCheck.value
-          
+
   head_wounds_Hunt        = head_wounds_HuntCheck.value
   neck_wounds_Hunt        = neck_wounds_HuntCheck.value
   abdomen_wounds_Hunt     = abdomen_wounds_HuntCheck.value
@@ -610,62 +610,62 @@ if script.vars[1] =~ /^setup$|^options$/i
   Settings[Char.name]['@toggle']        = @toggle
   Settings[Char.name]['@allWounds']     = @allWounds
   Settings[Char.name]['@allScars']      = @allScars
-  Settings[Char.name]['head_wounds_Heal']   = head_wounds_Heal    
-  Settings[Char.name]['neck_wounds_Heal']      =  neck_wounds_Heal    
-  Settings[Char.name]['abdomen_wounds_Heal']   =  abdomen_wounds_Heal 
+  Settings[Char.name]['head_wounds_Heal']   = head_wounds_Heal
+  Settings[Char.name]['neck_wounds_Heal']      =  neck_wounds_Heal
+  Settings[Char.name]['abdomen_wounds_Heal']   =  abdomen_wounds_Heal
   Settings[Char.name]['back_wounds_Heal']      =  back_wounds_Heal
-  Settings[Char.name]['chest_wounds_Heal']     =  chest_wounds_Heal 
-  Settings[Char.name]['righteye_wounds_Heal']  =  righteye_wounds_Heal  
-  Settings[Char.name]['lefteye_wounds_Heal']   =  lefteye_wounds_Heal 
-  Settings[Char.name]['rightleg_wounds_Heal']  =  rightleg_wounds_Heal  
-  Settings[Char.name]['leftleg_wounds_Heal']   =  leftleg_wounds_Heal 
-  Settings[Char.name]['rightarm_wounds_Heal']  =  rightarm_wounds_Heal  
-  Settings[Char.name]['leftarm_wounds_Heal']   =  leftarm_wounds_Heal 
+  Settings[Char.name]['chest_wounds_Heal']     =  chest_wounds_Heal
+  Settings[Char.name]['righteye_wounds_Heal']  =  righteye_wounds_Heal
+  Settings[Char.name]['lefteye_wounds_Heal']   =  lefteye_wounds_Heal
+  Settings[Char.name]['rightleg_wounds_Heal']  =  rightleg_wounds_Heal
+  Settings[Char.name]['leftleg_wounds_Heal']   =  leftleg_wounds_Heal
+  Settings[Char.name]['rightarm_wounds_Heal']  =  rightarm_wounds_Heal
+  Settings[Char.name]['leftarm_wounds_Heal']   =  leftarm_wounds_Heal
   Settings[Char.name]['righthand_wounds_Heal'] =  righthand_wounds_Heal
-  Settings[Char.name]['lefthand_wounds_Heal']  =  lefthand_wounds_Heal  
-  Settings[Char.name]['nerves_wounds_Heal']   = nerves_wounds_Heal  
-  Settings[Char.name]['head_scars_Heal']       =  head_scars_Heal   
-  Settings[Char.name]['neck_scars_Heal']       =  neck_scars_Heal   
-  Settings[Char.name]['abdomen_scars_Heal']    =  abdomen_scars_Heal  
+  Settings[Char.name]['lefthand_wounds_Heal']  =  lefthand_wounds_Heal
+  Settings[Char.name]['nerves_wounds_Heal']   = nerves_wounds_Heal
+  Settings[Char.name]['head_scars_Heal']       =  head_scars_Heal
+  Settings[Char.name]['neck_scars_Heal']       =  neck_scars_Heal
+  Settings[Char.name]['abdomen_scars_Heal']    =  abdomen_scars_Heal
   Settings[Char.name]['back_scars_Heal']       =  back_scars_Heal
-  Settings[Char.name]['chest_scars_Heal']      =  chest_scars_Heal    
-  Settings[Char.name]['righteye_scars_Heal']   =  righteye_scars_Heal 
-  Settings[Char.name]['lefteye_scars_Heal']    =  lefteye_scars_Heal  
-  Settings[Char.name]['rightleg_scars_Heal']   =  rightleg_scars_Heal 
-  Settings[Char.name]['leftleg_scars_Heal']    =  leftleg_scars_Heal  
-  Settings[Char.name]['rightarm_scars_Heal']   =  rightarm_scars_Heal 
-  Settings[Char.name]['leftarm_scars_Heal']    =  leftarm_scars_Heal  
-  Settings[Char.name]['righthand_scars_Heal']  =  righthand_scars_Heal  
-  Settings[Char.name]['lefthand_scars_Heal']   =  lefthand_scars_Heal 
+  Settings[Char.name]['chest_scars_Heal']      =  chest_scars_Heal
+  Settings[Char.name]['righteye_scars_Heal']   =  righteye_scars_Heal
+  Settings[Char.name]['lefteye_scars_Heal']    =  lefteye_scars_Heal
+  Settings[Char.name]['rightleg_scars_Heal']   =  rightleg_scars_Heal
+  Settings[Char.name]['leftleg_scars_Heal']    =  leftleg_scars_Heal
+  Settings[Char.name]['rightarm_scars_Heal']   =  rightarm_scars_Heal
+  Settings[Char.name]['leftarm_scars_Heal']    =  leftarm_scars_Heal
+  Settings[Char.name]['righthand_scars_Heal']  =  righthand_scars_Heal
+  Settings[Char.name]['lefthand_scars_Heal']   =  lefthand_scars_Heal
   Settings[Char.name]['nerves_scars_Heal']    = nerves_scars_Heal
-  Settings[Char.name]['head_wounds_Hunt']   = head_wounds_Hunt    
-  Settings[Char.name]['neck_wounds_Hunt']     = neck_wounds_Hunt    
-  Settings[Char.name]['abdomen_wounds_Hunt']  = abdomen_wounds_Hunt 
+  Settings[Char.name]['head_wounds_Hunt']   = head_wounds_Hunt
+  Settings[Char.name]['neck_wounds_Hunt']     = neck_wounds_Hunt
+  Settings[Char.name]['abdomen_wounds_Hunt']  = abdomen_wounds_Hunt
   Settings[Char.name]['back_wounds_Hunt']     = back_wounds_Hunt
-  Settings[Char.name]['chest_wounds_Hunt']    = chest_wounds_Hunt 
-  Settings[Char.name]['righteye_wounds_Hunt'] = righteye_wounds_Hunt  
-  Settings[Char.name]['lefteye_wounds_Hunt']  = lefteye_wounds_Hunt 
-  Settings[Char.name]['rightleg_wounds_Hunt'] = rightleg_wounds_Hunt  
-  Settings[Char.name]['leftleg_wounds_Hunt']  = leftleg_wounds_Hunt 
-  Settings[Char.name]['rightarm_wounds_Hunt'] = rightarm_wounds_Hunt  
-  Settings[Char.name]['leftarm_wounds_Hunt']  = leftarm_wounds_Hunt 
+  Settings[Char.name]['chest_wounds_Hunt']    = chest_wounds_Hunt
+  Settings[Char.name]['righteye_wounds_Hunt'] = righteye_wounds_Hunt
+  Settings[Char.name]['lefteye_wounds_Hunt']  = lefteye_wounds_Hunt
+  Settings[Char.name]['rightleg_wounds_Hunt'] = rightleg_wounds_Hunt
+  Settings[Char.name]['leftleg_wounds_Hunt']  = leftleg_wounds_Hunt
+  Settings[Char.name]['rightarm_wounds_Hunt'] = rightarm_wounds_Hunt
+  Settings[Char.name]['leftarm_wounds_Hunt']  = leftarm_wounds_Hunt
   Settings[Char.name]['righthand_wounds_Hunt']= righthand_wounds_Hunt
-  Settings[Char.name]['lefthand_wounds_Hunt'] = lefthand_wounds_Hunt  
-  Settings[Char.name]['nerves_wounds_Hunt']   = nerves_wounds_Hunt  
-  Settings[Char.name]['head_scars_Hunt']       =  head_scars_Hunt   
-  Settings[Char.name]['neck_scars_Hunt']       =  neck_scars_Hunt   
-  Settings[Char.name]['abdomen_scars_Hunt']    =  abdomen_scars_Hunt  
+  Settings[Char.name]['lefthand_wounds_Hunt'] = lefthand_wounds_Hunt
+  Settings[Char.name]['nerves_wounds_Hunt']   = nerves_wounds_Hunt
+  Settings[Char.name]['head_scars_Hunt']       =  head_scars_Hunt
+  Settings[Char.name]['neck_scars_Hunt']       =  neck_scars_Hunt
+  Settings[Char.name]['abdomen_scars_Hunt']    =  abdomen_scars_Hunt
   Settings[Char.name]['back_scars_Hunt']       =  back_scars_Hunt
-  Settings[Char.name]['chest_scars_Hunt']      =  chest_scars_Hunt    
-  Settings[Char.name]['righteye_scars_Hunt']   =  righteye_scars_Hunt 
-  Settings[Char.name]['lefteye_scars_Hunt']    =  lefteye_scars_Hunt  
-  Settings[Char.name]['rightleg_scars_Hunt']   =  rightleg_scars_Hunt 
-  Settings[Char.name]['leftleg_scars_Hunt']    =  leftleg_scars_Hunt  
-  Settings[Char.name]['rightarm_scars_Hunt']   =  rightarm_scars_Hunt 
-  Settings[Char.name]['leftarm_scars_Hunt']    =  leftarm_scars_Hunt  
-  Settings[Char.name]['righthand_scars_Hunt']  =  righthand_scars_Hunt  
-  Settings[Char.name]['lefthand_scars_Hunt']   =  lefthand_scars_Hunt 
-  Settings[Char.name]['nerves_scars_Hunt']    = nerves_scars_Hunt 
+  Settings[Char.name]['chest_scars_Hunt']      =  chest_scars_Hunt
+  Settings[Char.name]['righteye_scars_Hunt']   =  righteye_scars_Hunt
+  Settings[Char.name]['lefteye_scars_Hunt']    =  lefteye_scars_Hunt
+  Settings[Char.name]['rightleg_scars_Hunt']   =  rightleg_scars_Hunt
+  Settings[Char.name]['leftleg_scars_Hunt']    =  leftleg_scars_Hunt
+  Settings[Char.name]['rightarm_scars_Hunt']   =  rightarm_scars_Hunt
+  Settings[Char.name]['leftarm_scars_Hunt']    =  leftarm_scars_Hunt
+  Settings[Char.name]['righthand_scars_Hunt']  =  righthand_scars_Hunt
+  Settings[Char.name]['lefthand_scars_Hunt']   =  lefthand_scars_Hunt
+  Settings[Char.name]['nerves_scars_Hunt']    = nerves_scars_Hunt
   Settings.save
   exit
 end
@@ -674,7 +674,7 @@ end
   respond "Please use ';#{script.name} setup' first!"
   exit
   end
-  
+
 silence_me
 
 if script.vars.include?("all")
@@ -910,7 +910,7 @@ wounds.each { |wound|
       healdown.call(wound)
     end
     fput "transfer #{@healtarget} #{wound}"
-    
+
   elsif /abdom/ =~ wound
     to_heal.push('abdomen')
     if Wounds.send("abs") == 3
@@ -931,14 +931,14 @@ wounds.each { |wound|
       healdown.call(headneck)
     end
     fput "transfer #{@healtarget} #{headneck}"
-    
+
   elsif /(?'chestback'chest|back)/ =~ wound
     to_heal.push(chestback)
     if Wounds.send(chestback) == 3
       healdown.call(chestback)
     end
     put "transfer #{@healtarget} #{chestback}"
-    
+
   end
 }
 
@@ -1044,10 +1044,10 @@ def FinalHeal(location, manaModifier)
   CheckHealth()
   cLocation = location.to_s.gsub(/(right|left)(.*)/,"\\1 \\2")
   while checkmana < manaModifier
-    CheckHealth()   
+    CheckHealth()
     pause 5
   end
-  
+
   waitrt?
   waitcastrt?
   fput "cure #{cLocation}"
@@ -1058,8 +1058,8 @@ def FinalHeal(location, manaModifier)
 
 def varset(location, type, switch)
 #echo location
-  mode = ->(key,value) { 
-  key[/#{location}.#{type}.#{switch}/i] 
+  mode = ->(key,value) {
+  key[/#{location}.#{type}.#{switch}/i]
   }
   item = Settings[Char.name].select(&mode).values
   return(item[0])
@@ -1089,16 +1089,16 @@ def HeadNerveHeal()
     end
   FinalHeal('nerves', (checkCost('nerves')+9))
   end
-end 
+end
 
 def finalWcheck(aName, lName, aLevel)
   areaLevel = Wounds.send(lName)
     if aName =~ /head|nerves/ and @HNPriority == true
       HeadNerveHeal()
-    end 
+    end
     if areaLevel == aLevel
       if areaLevel > varset(aName, 'wounds', @toggle) || areaLevel > @allWounds
-        if areaLevel > 1    
+        if areaLevel > 1
           FinalHeal(aName, (checkCost(aName)+5))
         else
           FinalHeal(aName, (checkCost(aName)))
@@ -1112,7 +1112,7 @@ def finalScheck(aName, lName, aLevel)
   woundLevel = Wounds.send(lName)
     if areaLevel == aLevel and woundLevel == 0
       if areaLevel > varset(aName, 'scars', @toggle) || areaLevel > @allScars
-        if areaLevel > 1    
+        if areaLevel > 1
           FinalHeal(aName, (checkCost(aName)+13))
         else
           FinalHeal(aName, (checkCost(aName)+9))

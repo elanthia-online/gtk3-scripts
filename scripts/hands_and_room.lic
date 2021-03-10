@@ -103,7 +103,7 @@ until window_close
   end
   if (GameObj.pcs == nil || GameObj.pcs.length < 1) then
     rpcs = ""
-  end 
+  end
   if (GameObj.pcs && GameObj.pcs.join(", ") != rpcs) then
     rpcs=GameObj.pcs.join(", ")
   end
@@ -112,14 +112,14 @@ until window_close
   end
   if (GameObj.npcs && GameObj.npcs.join(", ") != rnpcs) then
     rnpcs=GameObj.npcs.join(", ")
-  
+
   end
   if ((rpcs==nil || rpcs.length < 1) && (rnpcs ==nil || rnpcs.length < 1)) then
     rstring = "Room: "
     bars[2].set_text(rstring)
   end
 
-  if (rpcs && rpcs.length > 0) then 
+  if (rpcs && rpcs.length > 0) then
     rstring = "Room: " + rpcs
     if (rnpcs==nil || rnpcs.length<1) then
       bars[2].set_text(rstring)
@@ -136,7 +136,7 @@ until window_close
     rstring += rnpcs
     bars[2].set_text(rstring)
   end
-    
-  
+
+
   sleep 1
 end

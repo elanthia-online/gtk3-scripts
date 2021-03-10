@@ -47,7 +47,7 @@ settings[:paint]      ||= 0
 settings[:paintstick1]    ||= ""
 settings[:paintstick2]    ||= ""
 settings[:wood]       ||= "limb of wood"
-settings[:fletchings]     ||= "bundle of fletchings" 
+settings[:fletchings]     ||= "bundle of fletchings"
 settings[:limit]      ||= ""
 settings[:waggle]       ||= false
 settings[:learning]     ||= false
@@ -59,13 +59,13 @@ settings[:mind]       ||= "60"
 
 #doesnt really need to be a hash but had to make sure they were in the right order to add the drop down menu on the gui
 ammo_types = {
-  0 => 'none',    
+  0 => 'none',
   1 => 'arrow',
   2 => 'light bolt',
   3 => 'heavy bolt',
 }
 paints = {
-  0 => 'none',    
+  0 => 'none',
   1 => 'bright golden paint',
   2 => 'fiery orange paint',
   3 => 'bright yellow paint',
@@ -94,9 +94,9 @@ paints = {
 
 #Ripped setup from sloot, no clue waht is going on here but it works!
 setup = proc {
-  
-  
-  
+
+
+
   gtk_global = Hash.new
   window = window_action = nil
   Gtk.queue {
@@ -122,7 +122,7 @@ setup = proc {
       :drill => 'The noun of your drill which should be in your supplies container.',
       :tip => 'The noun of the tips you wish to use which should be in your supplies container.',
     }
-    
+
     gtk_global[:sack] = Gtk::Entry.new; gtk_global[:sack].text = (settings[:sack])
     gtk_global[:quiver] = Gtk::Entry.new; gtk_global[:quiver].text = (settings[:quiver])
     gtk_global[:axe] = Gtk::Entry.new; gtk_global[:axe].text = (settings[:axe])
@@ -142,7 +142,7 @@ setup = proc {
     gtk_global[:mind] = Gtk::Entry.new; gtk_global[:mind].text = (settings[:mind])
 #   gtk_global[:drill] = Gtk::Entry.new; gtk_global[:drill].text = (settings[:drill])
 #   gtk_global[:tip] = Gtk::Entry.new.set_tip(settings[:tip])
-    
+
     #use paints array to form combox
     x = 0
     while x < paints.length
@@ -156,21 +156,21 @@ setup = proc {
     end
     gtk_global[:paint].active = (settings[:paint]) #have to set active after apending
     gtk_global[:ammo].active = (settings[:ammo])
-    
-    
-    
+
+
+
     ttips_text.each_pair { |widget,tip|
       if widget = gtk_global[widget]# || gtk_locals[widget]
         widget.set_tooltip_text(tip).has_tooltip = true
       end
     }
-    
+
     window = Gtk::Window.new
     window.title = "FletchIT"
     window.border_width = 3
     window.resizable = true
     #window.resize(10, 10)
-    
+
     settings_page = Gtk::Box.new(:vertical, 1).set_border_width(3)
     vb_pg1_1 = Gtk::Box.new(:vertical, 1).set_border_width(3)
     fr_pg1_1 = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>Settings</b></big>'))
@@ -182,102 +182,102 @@ setup = proc {
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Supplies Container: ')).set_width_request(120))
     hb.pack_start(gtk_global[:sack], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Finished Container: ')).set_width_request(120))
     hb.pack_start(gtk_global[:quiver], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Bow: ')).set_width_request(120))
     hb.pack_start(gtk_global[:bow], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Ammo: ')).set_width_request(120))
     hb.pack_start(gtk_global[:ammo].set_width_request(158), :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Axe: ')).set_width_request(120))
     hb.pack_start(gtk_global[:axe], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Knife: ')).set_width_request(120))
     hb.pack_start(gtk_global[:knife], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
 #   hb = Gtk::Box.new(:horizontal, 1)
 #   hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Drill: ')).set_width_request(120))
 #   hb.pack_start(gtk_global[:drill], :expand => false, :fill => false, :padding => 0)
 #   vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Buy Items: ')).set_width_request(120))
     hb.pack_start(gtk_global[:enable_buying], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Wood: ')).set_width_request(120))
     hb.pack_start(gtk_global[:wood], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Paint: ')).set_width_request(120))
     hb.pack_start(gtk_global[:paint].set_width_request(158), :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Paintstick 1: ')).set_width_request(120))
     hb.pack_start(gtk_global[:paintstick1], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Paintstick 2: ')).set_width_request(120))
     hb.pack_start(gtk_global[:paintstick2], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Fletchings: ')).set_width_request(120))
     hb.pack_start(gtk_global[:fletchings], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
 #   hb = Gtk::Box.new(:horizontal, 1)
 #   hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Tip Ammo: ')).set_width_request(120))
 #   hb.pack_start(gtk_global[:tip], :expand => false, :fill => false, :padding => 0)
 #   vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Make limit: ')).set_width_request(120))
     hb.pack_start(gtk_global[:limit], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Learn Fletching: ')).set_width_request(120))
     hb.pack_start(gtk_global[:learning], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Mind: ')).set_width_request(120))
     hb.pack_start(gtk_global[:mind], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Monitor Interactions: ')).set_width_request(120))
     hb.pack_start(gtk_global[:alerts], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Use waggle: ')).set_width_request(120))
     hb.pack_start(gtk_global[:waggle], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
-    
+
+
     lbl = Gtk::Label.new.set_markup("Mouse over each box for more help")
     lbl.set_wrap(true).set_padding(0,10)
     vb_pg1_1.pack_start(lbl, :expand => false, :fill => false, :padding => 0)
-    
+
     hb_saveclose = Gtk::Box.new(:horizontal, 1)
     save = Gtk::Button.new(:label => '_Save & Close')
     close = Gtk::Button.new(:label => 'E_xit')
@@ -286,24 +286,24 @@ setup = proc {
     hb_saveclose.pack_start(save, :expand => false, :fill => false, :padding => 0)
     hb_saveclose.pack_start(close, :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb_saveclose, :expand => false, :fill => false, :padding => 0)
-    
+
     window.signal_connect('delete_event') { window_action = :exit }
-    
+
     window.add(settings_page)
-    
+
     window.show_all
     window.keep_above = true
-    
+
   }
-  
+
   before_dying { Gtk.queue { window.destroy } }
   wait_while { window_action.nil? }
   undo_before_dying
   Gtk.queue { window.destroy }
-  
-  if window_action == :save   
+
+  if window_action == :save
     gtk_global.each_pair { |option,widget|
-      
+
       if widget.class == Gtk::CheckButton
         settings[option] = widget.active?
       elsif widget.class == Gtk::Entry
@@ -314,7 +314,7 @@ setup = proc {
         echo "error: unknown local widget #{option} [#{widget.class}]"
       end
     }
-    
+
     #attempt some error checking
     warning = ""
     if settings[:sack] == ""
@@ -414,7 +414,7 @@ def checksilver
 end
 
 def get_container_contents(container_name)
-  
+
   if container_name.nil?
     echo 'Blank name passed to get_container_contents'
     sleep 1
@@ -467,9 +467,9 @@ def check_needed_items(settings,fletch_sack_contents,paints)
       need_paintstick2 = false
     end
   }
-  
+
   needed_items = Array.new
-  
+
   if need_wood
     needed_items << settings[:wood]
   end
@@ -488,9 +488,9 @@ def check_needed_items(settings,fletch_sack_contents,paints)
   if need_paintstick2 and settings[:paintstick2].length > 0
     needed_items << settings[:paintstick2]
   end
-  
-  
-  
+
+
+
   return needed_items
 end
 
@@ -508,10 +508,10 @@ def find_order_num(supply)
   end
   clear
   status_tags
-  
+
   #menu = read_menu.call
   #echo menu.inspect
-  
+
   item_name = menu.keys.find { |name| name =~ /#{supply}/i }
   unless order_number = menu[item_name]
     echo ""
@@ -519,13 +519,13 @@ def find_order_num(supply)
     echo ""
   end
   return order_number
-  
+
 end
 
 def buy_items(settings, needed_items)
   if invisible?
     invis = true
-  else 
+  else
     invis = false
   end
   start_room = Room.current.id
@@ -544,7 +544,7 @@ def buy_items(settings, needed_items)
   start_script "go2",['fletcher']
   wait_while {running?("go2")}
   move "south" if Room.current.location == "Ta'Vaalor"
-          
+
   if checkleft != nil
     empty_left_hand
   end
@@ -552,7 +552,7 @@ def buy_items(settings, needed_items)
     empty_right_hand
   end
   needed_items.each {|item|
-    
+
     if item =~ /vial of paint/
       order_number = find_order_num(item)
       multifput "order #{order_number} color #{settings[:paint]}", "buy"
@@ -560,7 +560,7 @@ def buy_items(settings, needed_items)
       order_number = find_order_num(item)
       multifput "order #{order_number}", "buy"
     end
-    
+
     #wait up to three seconds to see if purchase was succesful
     endtime = Time.now + 3
     loop {
@@ -582,10 +582,10 @@ def buy_items(settings, needed_items)
       echo "stowcheck failed, stopping"
       exit
     end
-    
+
   }
   spent_silver += (5000 - checksilver)
-  
+
   start_script "go2",['bank']
   wait_while {running?("go2")}
   fput "unhide" if hidden? or invisible?
@@ -701,7 +701,7 @@ def bundle(settings)
       bundle_ids << item.id
     end
   }
-  
+
   bundle_amount = Array.new
   bundle_desc = Array.new
   bundle_check = proc{|server_string|
@@ -771,7 +771,7 @@ def bundle(settings)
           fput "bundle"
           last_bundle = bundle['id']
         else
-        
+
           if total == 100
             fput "get ##{bundle['id']}"
             matchtimeout 1, "You remove"
@@ -793,9 +793,9 @@ def bundle(settings)
             bundles << bundle                     #and add back on the end
             total = 0
           end
-          
-          
-          
+
+
+
         end
       end
     }
@@ -981,11 +981,11 @@ def make_shafts(settings)
       }
     end
   end
-  
-  
+
+
   sleep 1
   waitrt?
-  
+
   stow("right",settings[:sack])
   #fput "put right in my #{settings[:sack]}"
   endtime = Time.now + 6
@@ -1028,12 +1028,12 @@ def make_arrow(settings,paints)
   fput "cut my shaft with my #{settings[:knife]}"
   sleep 1
   waitrt?
-  
+
   if checkright !~ /shaft/
     stow("left",settings[:sack])
     return
   end
-  
+
   #painting goes here
   if settings[:paint] != 0
     stow("left",settings[:sack])
@@ -1062,12 +1062,12 @@ def make_arrow(settings,paints)
         exit
       end
     end
-    check = matchtimeout 40, "The paint on your" 
+    check = matchtimeout 40, "The paint on your"
     if !check
       echo "Did not see paint dry for some reason, carrying on in case it did but might cause problems if it didn't"
     end
     stow("left",settings[:sack])
-    
+
   end
   #paintstick1
   if settings[:paintstick1].length > 0
@@ -1096,14 +1096,14 @@ def make_arrow(settings,paints)
         exit
       end
     end
-    check = matchtimeout 40, "The paint on your" 
+    check = matchtimeout 40, "The paint on your"
     if !check
       echo "Did not see paint dry for some reason, carrying on in case it did but might cause problems if it didn't"
     end
     waitrt?
     stow("left",settings[:sack])
   end
-  
+
   #paintstick2
   if settings[:paintstick2].length > 0
     stow("left",settings[:sack])
@@ -1131,14 +1131,14 @@ def make_arrow(settings,paints)
         exit
       end
     end
-    check = matchtimeout 40, "The paint on your" 
+    check = matchtimeout 40, "The paint on your"
     if !check
       echo "Did not see paint dry for some reason, carrying on in case it did but might cause problems if it didn't"
     end
     waitrt?
     stow("left",settings[:sack])
   end
-  
+
   #cut nocks in shaft
   if settings[:ammo] == 1
     sleep 1
@@ -1213,11 +1213,11 @@ def make_arrow(settings,paints)
     return
   end
   stow("left",settings[:sack])
-  
+
   fput "get my glue"
   endtime = Time.now + 6
   loop{
-    
+
     if checkleft =~ /glue/
       break
     elsif Time.now > endtime
@@ -1227,7 +1227,7 @@ def make_arrow(settings,paints)
       sleep 0.1
     end
   }
-  
+
   haste!
   check = dothistimeout "put my glue on my shaft", 3, /You carefully smear a bit of glue/
   if check.nil?
@@ -1237,7 +1237,7 @@ def make_arrow(settings,paints)
   sleep 1
   waitrt?
   stow("left",settings[:sack])
-  
+
   fput "get 3 fletching in my #{settings[:sack]}"
   endtime = Time.now + 6
   loop{
@@ -1250,7 +1250,7 @@ def make_arrow(settings,paints)
       sleep 0.1
     end
   }
-  
+
   haste!
   check = dothistimeout "put my fletching on my shaft", 3, /You attach your|Unfortunately, the glue is now too dry to remove them and try again, so you discard /
   if check =~/Unfortunately, the glue is now too dry to remove them and try again, so you discard /
@@ -1271,13 +1271,13 @@ def make_arrow(settings,paints)
     return
   end
 
-  # Portion about adding arrow head.  
+  # Portion about adding arrow head.
 # check = dothistimeout "get 1 triangle cap", 1, /You (get|remove)/
 # if check.nil?
 #   echo "failed to get your tip"
 #   exit
 # end
-# 
+#
 # check = dothistimeout "turn my cap", 2, /secure in place with an amazingly tight fit/
 # if check.nil?
 #   echo "failed to apply your tip"
@@ -1293,10 +1293,10 @@ def make_arrow(settings,paints)
     echo "didnt see you cut the shaft for some reason, stopping"
     exit
   end
-  
+
   waitrt?
   stow("left",settings[:sack])
-  
+
 
 end
 
@@ -1320,7 +1320,7 @@ elsif !variable[0].nil?
   message += "This script needs a map room if you want it to buy items for you. If this is the case when ever you run out of an item the script will run and buy more\r\n"
   message += "Run ;fletchit setup at any times to change you settings\r\n"
   message += "Anytime the script is running ;fletchit will give you a progress report. ;fletchit stop will tell the script to end after finishing the arrow it is curently on. This is the prefered method of stopping, partially cut shafts left in a container migt cause the script to fail\r\n"
-  
+
   if !$fake_stormfront
     puts "<output class=\"mono\"/>#{monsterbold_start}#{message}#{monsterbold_end}\r\n<output class=\"\"/>"
   else
@@ -1332,7 +1332,7 @@ end
 
 fletching_report = proc { |client_string|
     if client_string =~ /^(?:<c>)?#{$clean_lich_char}(?:fletchit)$/i
-    
+
         respond ""
     respond "Script has been running for #{Time.at(Time.now - start_time).strftime("%H hours, %M minutes %S seconds")}, made #{arrows_made} arrows, ruined #{arrows_failed} arrows and spent #{spent_silver} silver"
     respond ""
@@ -1374,7 +1374,7 @@ end
 if settings[:fletchings] != "" and settings[:fletchings] !~ /fletching/
   warning += "You have set what fletchings you want to use but appears you may have done so incorrectly. It should read along the lines of 'bundle of fletchings' for example. Leave off any a/an/some from the start.\r\n"
 end
-    
+
 if warning.length > 0
   if !$fake_stormfront
     puts "<output class=\"mono\"/>#{monsterbold_start}#{warning}#{monsterbold_end}\r\n<output class=\"\"/>"
@@ -1413,14 +1413,14 @@ loop{
   end
   fletch_sack_contents = get_container_contents(settings[:sack])
   make_shafts(settings) if fletch_sack_contents.to_s.include? '@noun="wood"'
-  
+
   if settings[:learning]
     #if percentmind > 55
     # fput "boost long"
     #end
     wait_while { percentmind > 70 }
   end
-  
+
   make_arrow(settings,paints)
   if !(checkright =~ /arrow|bolt/).nil?
     echo "stowing"
@@ -1429,8 +1429,8 @@ loop{
   else
     arrows_failed += 1
   end
-  
-  if !settings[:learning] 
+
+  if !settings[:learning]
     respond ""
     respond "Script has been running for #{Time.at(Time.now - start_time).strftime("%H hours, %M minutes %S seconds")}, made #{arrows_made} arrows, ruined #{arrows_failed} arrows and spent #{spent_silver} silver"
     respond ""

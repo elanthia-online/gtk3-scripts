@@ -1,16 +1,16 @@
 =begin
 
   This script allows you to ignore people who bug the hell out of you! Or people you just want to ignore for kicks and giggles.
-  
+
   Simply run the setup menu by typing ;squelch setup and enter the names of people in each squelch category! It's that simple!
-  
+
   - Choose to only ignore a person's presence (when LOOKing in a room you won't see them listed nor their disk)
   - You can also ignore stuff they say via whispers, says, yells, etc
   - You can also choose to ignore VERBs they use, although right now it just ignores the usage of the ACT verb
   - Finally there is the NUCLEAR OPTION which ignores EVERY game line where the person's name shows up. This isn't recommended but it's there if you want it
-  
+
   Start squelching people TODAY!
-  
+
   Run this script in the background to make use of it's squelching powers. Kill the script at any time if you wish to stop squelching people.
 
   Author:  Tgo01
@@ -50,7 +50,7 @@ setup = proc{
     $OP_NOTEBOOK.set_show_border(true)
     $OP_BOX.add($OP_NOTEBOOK)
     $OP_NOTEBOOK.append_page($OP_VERTICAL_BOX1, Gtk::Label.new('Stuff'))
-    $OP_ENTRY = Hash.new 
+    $OP_ENTRY = Hash.new
     $OP_TABLE_SIZE = Hash.new
   }
 
@@ -96,13 +96,13 @@ setup = proc{
     $OP_ENTRY[variable] = checkbox
     $OP_TABLE_SIZE[table] += 1 if x_pos == 1
   end
-        
+
   Gtk.queue {
     $OP_WINDOW.signal_connect("delete_event") {
       $OP_SETUP_COMPLETED = true
     }
   }
-        
+
   Gtk.queue {
 #   $OP_TOOLTIPS = Gtk::Tooltips.new
 #   $OP_TOOLTIPS.enable
@@ -116,12 +116,12 @@ setup = proc{
 
     $OP_WINDOW.show_all
   }
-        
+
   $OP_SETUP_COMPLETED = false
   until($OP_SETUP_COMPLETED)
     sleep 1
   end
-       
+
   UserVars.squelch ||= Hash.new
   $OP_ENTRY.keys.each { |key|
     if( $OP_ENTRY[key].class.to_s =~ /CheckButton/ )
@@ -136,7 +136,7 @@ setup = proc{
     end
   }
   UserVars.save()
-        
+
   Gtk.queue {
     $OP_WINDOW.destroy
   }
@@ -270,7 +270,7 @@ ignore_stuffs = proc{
               string += "#{pc} and "
             else
               string += "#{pc}, "
-            end 
+            end
           }
           if (disks.length == 0)
             string = "#{pre_stuff}\n"

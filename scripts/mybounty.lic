@@ -44,7 +44,7 @@ setup = proc{
     $MB_BOX.add($MB_NOTEBOOK)
     $MB_NOTEBOOK.append_page($MB_VERTICAL_BOX1, Gtk::Label.new('Bounties'))
 
-    $MB_ENTRY = Hash.new 
+    $MB_ENTRY = Hash.new
     $MB_TABLE_SIZE = Hash.new
   }
 
@@ -87,13 +87,13 @@ setup = proc{
 
   }
 
-        
+
   Gtk.queue {
     $MB_WINDOW.signal_connect("delete_event") {
       $MB_SETUP_COMPLETED = true
     }
   }
-        
+
   Gtk.queue {
 #   $MB_TOOLTIPS = Gtk::Tooltips.new
 #   $MB_TOOLTIPS.enable
@@ -107,12 +107,12 @@ setup = proc{
 
     $MB_WINDOW.show_all
   }
-        
+
   $MB_SETUP_COMPLETED = false
   until($MB_SETUP_COMPLETED)
     sleep 1
   end
-       
+
   UserVars.mybounty ||= Hash.new
   $MB_ENTRY.keys.each { |key|
     if( $MB_ENTRY[key].class.to_s =~ /CheckButton/ )
@@ -127,7 +127,7 @@ setup = proc{
     end
   }
   UserVars.save()
-        
+
   Gtk.queue {
     $MB_WINDOW.destroy
   }
@@ -159,8 +159,8 @@ elsif script.vars[1] == "help"
 elsif script.vars[1] == "?"
   usage
 elsif script.vars[1] =~ /(.*)/
-  message("Usage is: 
-;mybounty setup 
+  message("Usage is:
+;mybounty setup
 ;mybounty help
 ;mybounty ?")
   exit
@@ -172,7 +172,7 @@ unless Room.current.tags.include? 'advguild'
 end
 
 echo = false
-gems = false  
+gems = false
 forage = false
 furrier = false
 kidrescue = false

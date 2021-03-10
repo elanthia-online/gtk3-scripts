@@ -18,10 +18,10 @@ setup = proc {
   gtk_locals = Hash.new
 
   window = window_action = nil
-  
+
   Gtk.queue {
 #   ttips = Gtk::Tooltips.new.enable
-    ttips_text = { 
+    ttips_text = {
       'Ftrashcan' => "The noun of the trash can in the room in which you want to fletch.",
       'Fsmallblade' => "The noun of the dagger/small blade you intend to use for fletching.",
       'Fsbladecont' => "The container for the dagger/small blade you intend to use for fletching.",
@@ -32,8 +32,8 @@ setup = proc {
       'Fexpamt' => "When you want to rest.  7=Fried, 6=Numbed, 5=Becoming Numbed, 4=Muddled.",
       'Fexpsaver' => "Check this if you want to have MyFletch stop when your mind is too full, so you don't waste Artisan experience."
     }
-    
-    gtk_globals['Ftrashcan'] = Gtk::Entry.new; gtk_globals['Ftrashcan'].text = (UserVars.Ftrashcan ||= "") 
+
+    gtk_globals['Ftrashcan'] = Gtk::Entry.new; gtk_globals['Ftrashcan'].text = (UserVars.Ftrashcan ||= "")
     gtk_globals['Fsmallblade'] = Gtk::Entry.new; gtk_globals['Fsmallblade'].text = (UserVars.Fsmallblade ||= "")
     gtk_globals['Fsbladecont'] = Gtk::Entry.new; gtk_globals['Fsbladecont'].text = (UserVars.Fsbladecont ||= "")
     gtk_globals['Fshaftcont'] = Gtk::Entry.new; gtk_globals['Fshaftcont'].text = (UserVars.Fshaftcont ||= "")
@@ -42,7 +42,7 @@ setup = proc {
     gtk_globals['Fabladecont'] = Gtk::Entry.new; gtk_globals['Fabladecont'].text = (UserVars.Fabladecont ||= "")
     gtk_globals['Fexpamt'] = Gtk::Entry.new; gtk_globals['Fexpamt'].text = (UserVars.Fexpamt ||= "")
     gtk_locals['Fexpsaver'] = Gtk::CheckButton.new('(?) Allow Mind to Clear'); gtk_locals['Fexpsaver'].active = (settings['Fexpsaver'] ||= false)
-        
+
     # Add tooltips
     ttips_text.each_pair { |widget,tip|
       if widget = gtk_globals[widget] || gtk_locals[widget]
@@ -56,22 +56,22 @@ setup = proc {
     window.border_width = 3
     window.resizable = true
     window.resize(450, 300)
-  
+
     nb = Gtk::Notebook.new.set_show_border(true)
-    
+
   # Page 1 - General Settings
-  
+
     vb_pg1 = Gtk::Box.new(:vertical, 1).set_border_width(3)
-    
+
     vb_pg1_1 = Gtk::Box.new(:vertical, 1).set_border_width(3)
     fr_pg1_1 = Gtk::Frame.new.set_border_width(5).set_label_widget(Gtk::Label.new.set_markup('<big><b>MyFletch Settings</b></big>'))
     fr_pg1_1.add(vb_pg1_1)
     vb_pg1.pack_start(fr_pg1_1, :expand => false, :fill => false, :padding => 0)
-  
+
     lbl = Gtk::Label.new.set_markup("MyFletch Settings for #{Char.name}:")
     lbl.set_wrap(true).set_width_request(600).set_padding(0,10)
     vb_pg1_1.pack_start(lbl, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Dagger/Small Blade: ')).set_width_request(130))
     hb.pack_start(gtk_globals['Fsmallblade'], :expand => false, :fill => false, :padding => 0)
@@ -92,74 +92,74 @@ setup = proc {
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Limb Container: ')).set_width_request(130))
     hb.pack_start(gtk_globals['Fwoodcont'], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Trash Can: ')).set_width_request(130))
     hb.pack_start(gtk_globals['Ftrashcan'], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     hb = Gtk::Box.new(:horizontal, 1)
     hb.pack_start(Gtk::Alignment.new(0,0,0,1).add(gtk_locals['Fexpsaver'].set_width_request(180)), :expand => false, :fill => false, :padding => 0)
     hb.pack_start(Gtk::Alignment.new(1,0,0,1).add(Gtk::Label.new('Mind State to Start Rest: ')).set_width_request(130))
     hb.pack_start(gtk_globals['Fexpamt'], :expand => false, :fill => false, :padding => 0)
     vb_pg1_1.pack_start(hb, :expand => false, :fill => false, :padding => 0)
-    
+
     lbl = Gtk::Label.new.set_markup("")
     lbl.set_wrap(true).set_width_request(600).set_padding(0,0)
     vb_pg1_1.pack_start(lbl, :expand => false, :fill => false, :padding => 0)
-    
+
     lbl = Gtk::Label.new.set_markup("Containers are not required to be different, but all variables listed must be defined.")
     lbl.set_wrap(true).set_width_request(600).set_padding(0,0)
     vb_pg1_1.pack_start(lbl, :expand => false, :fill => false, :padding => 0)
-    
+
     nb.append_page(vb_pg1,Gtk::Label.new('MyFletch Settings'))
-    
+
     lbl = Gtk::Label.new.set_markup("")
     lbl.set_wrap(true).set_width_request(600).set_padding(0,0)
     vb_pg1_1.pack_start(lbl, :expand => false, :fill => false, :padding => 0)
-    
+
   #Save/Close Buttons
-  
+
     hb_saveclose = Gtk::Box.new(:horizontal)
     save = Gtk::Button.new(:label => '_Save')
     close = Gtk::Button.new(:label => 'E_xit')
-    
+
     save.signal_connect('clicked') { window_action = :save }
     close.signal_connect('clicked') { window_action = :done }
-    
+
     hb_saveclose.pack_start(save, :expand => false, :fill => false, :padding => 0)
     hb_saveclose.pack_start(close, :expand => false, :fill => false, :padding => 0)
-    
+
   #Box for Save/Close Buttons
-  
+
     vb_main = Gtk::Box.new(:vertical, 5)
     vb_main.border_width = 3
-    
+
     vb_main.pack_start(nb, :expand => false, :fill => false, :padding => 0)
     vb_main.pack_start(Gtk::Alignment.new(1,0,0,0).add(hb_saveclose), :expand => false, :fill => false, :padding => 0)
-    
+
     window.signal_connect('delete_event') { respond window.allocation.width; window_action = :exit }
-    
-    window.add(vb_main) 
+
+    window.add(vb_main)
     window.show_all
     window.keep_above = true # On windows keep_above is required AFTER show_all
   }
-  
+
   before_dying { Gtk.queue { window.destroy } }
   wait_while { window_action.nil? }
   undo_before_dying
   Gtk.queue { window.destroy }
-  
+
   clean_entry = proc { |entry|
     entry.text = entry.text.strip
     if entry.text.empty?
       entry.text = ""
     end
-    
+
     entry.text
   }
-    
-  if window_action == :save   
+
+  if window_action == :save
     gtk_globals.each_pair { |option,widget|
       if widget.class == Gtk::CheckButton
         UserVars.change(option,widget.active?,:char)
@@ -169,7 +169,7 @@ setup = proc {
         echo "error: unknown global widget #{option} [#{widget.class}]"
       end
     }
-    
+
     gtk_locals.each_pair { |option,widget|
       if widget.class == Gtk::CheckButton
         settings[option] = widget.active?
@@ -179,7 +179,7 @@ setup = proc {
         echo "error: unknown local widget #{option} [#{widget.class}]"
       end
     }
-    
+
     echo 'settings saved'
   else
     echo 'closed without saving'
@@ -282,7 +282,7 @@ rightbreak = proc{
   fput("stow ##{@righthand}")
   before_dying{
     multifput("stow right") if GameObj.right_hand.id
-    fput("get ##{@righthand}")  
+    fput("get ##{@righthand}")
   }
 }
 leftbreak = proc{
@@ -483,7 +483,7 @@ arrowmake = proc{
   end
   if GameObj.right_hand.id
     fput("put my shaft in #{UserVars.Ftrashcan}")
-  end 
+  end
 }
 
 locater.call

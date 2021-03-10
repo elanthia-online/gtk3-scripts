@@ -1,5 +1,5 @@
 =begin
-  
+
   July 13, 2017
   I have edited this script. I added the night time Ta'Vaalor Guards. Otherwise it is still the same.
   July 14, 2017
@@ -288,7 +288,7 @@ setup = proc{
     $auto_level_NOTEBOOK.append_page($auto_level_VERTICAL_BOX10, Gtk::Label.new('General'))
     $auto_level_NOTEBOOK.append_page($auto_level_VERTICAL_BOX11, Gtk::Label.new('Hunting'))
     $auto_level_NOTEBOOK.append_page($auto_level_VERTICAL_BOX12, Gtk::Label.new('Healing'))
-    $auto_level_ENTRY = Hash.new 
+    $auto_level_ENTRY = Hash.new
     $auto_level_TABLE_SIZE = Hash.new
   }
 
@@ -473,13 +473,13 @@ setup = proc{
     $auto_level_ENTRY[variable] = checkbox
     $auto_level_TABLE_SIZE[table] += 1 if x_pos == 1
   end
-        
+
   Gtk.queue {
     $auto_level_WINDOW.signal_connect("delete_event") {
       $auto_level_SETUP_COMPLETED = true
     }
   }
-        
+
   Gtk.queue {
 #   $auto_level_TOOLTIPS = Gtk::Tooltips.new
 #   $auto_level_TOOLTIPS.enable
@@ -570,12 +570,12 @@ setup = proc{
 
     $auto_level_WINDOW.show_all
   }
-        
+
   $auto_level_SETUP_COMPLETED = false
   until($auto_level_SETUP_COMPLETED)
     sleep 1
   end
-       
+
   UserVars.auto_level ||= Hash.new
   $auto_level_ENTRY.keys.each { |key|
     if( $auto_level_ENTRY[key].class.to_s =~ /CheckButton/ )
@@ -590,7 +590,7 @@ setup = proc{
     end
   }
   UserVars.save()
-        
+
   Gtk.queue {
     $auto_level_WINDOW.destroy
   }
@@ -610,7 +610,7 @@ list_of_all_skills.each { |i|
   plus = $1.to_i if i =~ /\+(\d+)/
   max = $1.to_i if i =~ /max\:\s*(\d+)/
   temp_skill_info = [ times_level, plus, max ]
-  all_skills_hash.store(temp_number, temp_skill_info) 
+  all_skills_hash.store(temp_number, temp_skill_info)
 }
 
 list_of_all_shops = [ "bank", "weaponshop", "armorshop", "pawnshop", "npchealer", "npccleric", "town", "general store", "alchemist" ]
@@ -671,7 +671,7 @@ elsif script.vars[1] =~ /setup/
     elsif Char.prof =~ /Wizard/
       UserVars.auto_level["a33"] = "1.5x"
       UserVars.auto_level["a34"] = "0.5x"
-      UserVars.auto_level["a35"] = "0.5x"     
+      UserVars.auto_level["a35"] = "0.5x"
     end
   end
   CharSettings['setup_has_been_run'] = true
@@ -845,7 +845,7 @@ check_mind_status = proc{
     echo "Heading back out to hunt."
   end
 }
-    
+
 new_room_stuff_to_do = proc{
   target = nil
   person_here = nil
@@ -873,17 +873,17 @@ wander = proc {
     wander_rooms.delete(next_room)
     wander_rooms.push(next_room)
     way = room.wayto[next_room]
-    if way.class == String 
+    if way.class == String
       move(way)
-      new_room_stuff_to_do.call   
+      new_room_stuff_to_do.call
     else
       way.call
-      new_room_stuff_to_do.call 
+      new_room_stuff_to_do.call
     end
   else
     start_script 'go2', [ Room.current.find_nearest(current_hunting_grounds.collect { |id| id.to_i }).to_s ]
     wait_while { running?('go2') }
-    new_room_stuff_to_do.call 
+    new_room_stuff_to_do.call
   end
 }
 
@@ -1058,7 +1058,7 @@ find_roaming_npc_in_landing = proc{
   person = nil
   kill_script "go2" if running? "go2"
   wait_until { !running? "go2" }
-  (start_script 'go2', [ 294 ]) 
+  (start_script 'go2', [ 294 ])
   wait_while { running?('go2') }
   landing_roaming_npc_layout.each { |room|
     sleep 0.1
@@ -1293,7 +1293,7 @@ check_sprite_quest = proc{
   end
   (do_sprite_quest.call) if (doing_sprite_quest)
 }
-  
+
 wait_timer_for_message = proc{
   kill_script "go2" if running? "go2"
   wait_until { !running? "go2" }
@@ -1341,7 +1341,7 @@ hand_in_message = proc{
     get_message_job.call
   end
 }
-  
+
 get_message_job = proc{
   if Char.level > 2
     echo "You are now level #{Char.level}. We are now going to hunt."
@@ -1373,7 +1373,7 @@ get_message_job = proc{
     end
   end
 }
-  
+
 get_message_destination = proc{
   roaming_npc_message = nil
   person = nil
@@ -1452,7 +1452,7 @@ run_messages = proc{
     get_message_job.call
   end
 }
-  
+
 do_raging_thrak = proc{
   echo "Visiting Raging Thrak/Trevor Dabbings/Airship Officer Tedrik."
   target_room_list = raging_thrak_rooms
@@ -1636,7 +1636,7 @@ waiting_for_undisease_or_unpoison = proc{
     end
   end
   (waiting_for_undisease_or_unpoison.call) if (checkpoison) || (checkdisease)
-}       
+}
 
 update_hunting_area = proc{
   valid_targets = /rat|thyril|hobgoblin|snowcat|orc|leaper|monkey|crab|crocodile|guardian|dog|ant|squirrel|goblin|siren|relnak|kappa|warlord|chieftain|soldier/
@@ -1695,7 +1695,7 @@ update_hunting_area = proc{
 hunting = proc{
   fput "stow right" if checkright != nil
   fput "stow left" if checkleft != nil
-  if (UserVars.auto_level["hunting_style"] =~ /cs/i) 
+  if (UserVars.auto_level["hunting_style"] =~ /cs/i)
     not_attacking_stance = "guarded"
     attacking_stance = "guarded"
   else

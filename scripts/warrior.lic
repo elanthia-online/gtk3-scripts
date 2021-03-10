@@ -3549,7 +3549,7 @@ help_with_partner_tasks_attack_partner = proc{
             end
           }
         end
-        loop{ 
+        loop{
           stand_up.call
           wait_for_stamina.call
           waitrt?
@@ -3640,13 +3640,13 @@ end
 
 if UserVars.warrior["weapon"] == "nil" || UserVars.warrior["weapon"].nil? || UserVars.warrior["weapon"].length < 1
   main_weapon = nil
-else 
+else
   main_weapon = UserVars.warrior["weapon"]
 end
 
 if UserVars.warrior["offhand"] == "nil" || UserVars.warrior["offhand"].nil? || UserVars.warrior["offhand"].length < 1
   off_hand_item = nil
-else 
+else
   off_hand_item = UserVars.warrior["offhand"]
 end
 

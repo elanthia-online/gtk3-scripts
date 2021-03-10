@@ -16,7 +16,7 @@
 
  Forge-perfects authors: Moredin (forging stuff) & Tillek (GUI, squelching, iron-making.)
  Forgery author: Gnomad
- 
+
  Category: Artisan
  Tags: forging, forge, craft, artisan, perfect
  Version: 17
@@ -25,7 +25,7 @@
  December 2015: Various bugfixes, began internal testing (v2, internal)
  January 2016: MARK perfect items as unsellable (v3, internal) forged perfect hammer, began OHE work
  February 2016: Added rank mode that trashes perfects, minor bugfixes (v4, internal) reached OHE 497 with script
- March 2016: Added no-exp mode that drops intead of using a trash bin (v5, internal) mastered OHE, oil and polishing bugfixes (v6), 
+ March 2016: Added no-exp mode that drops intead of using a trash bin (v5, internal) mastered OHE, oil and polishing bugfixes (v6),
       fixed a scrap bug, polish bug, settings bug, and a few other things (v7)
       Fixed another polish bug (v8)
  April 2016: Addes some internal features (v9), had a baby (v9.5), fixed a spear-forging bug and migrated settings,
@@ -51,7 +51,7 @@
 #  03/29/12 -> fixed and reworked the scrap-selling part which I dont think many people actually used because it only activates if the scrap_container fills up.
 
 
- 
+
 # #Attuning to hammer: You feel as if you've become accustomed to the balance and heft of this forging-hammer.
 
 if Settings.to_hash.size > 0  and CharSettings.to_hash.size == 0
@@ -372,11 +372,11 @@ class << forger
   :material_name, :slab_container, :glyph_no, :glyph_name,
   :glyph_material, :scrap_container, :size, :keepers, :average_container,
   :DEBUG, :rank, :afk, :afk_count, :reps, :successes, :failures, :major_failures, :trash_choice
-  
+
   #@@ANNOUNCE = Script.exists?('slack')
 
   #@DEBUG = true
-  
+
   Rent = 300
 
   Targets = {
@@ -532,7 +532,7 @@ class << forger
     @squelch      = CharSettings["squelch"]
     @make_iron      = CharSettings["make_iron"]
     @unsafe_keepers   = !CharSettings['safe_keepers']
-    
+
     # if CharSettings['trash_gift']
     #   @trash_choice = :gift
     # elsif CharSettings['trash_bin']
@@ -758,7 +758,7 @@ class << forger
         fput "pull plug"
         if @oil_container and (checkright =~ /oil/ or checkleft =~ /oil/)
           you_put("oil", @oil_container)
-        elsif checkright =~ /oil/ 
+        elsif checkright =~ /oil/
           empty_right_hand
         elsif checkleft =~ /oil/
           empty_left_hand
@@ -786,7 +786,7 @@ class << forger
       fput "pull plug"
       if @oil_container and (checkright =~ /oil/ or checkleft =~ /oil/)
         you_put("oil", @oil_container)
-      elsif checkright =~ /oil/ 
+      elsif checkright =~ /oil/
         empty_right_hand
       elsif checkleft =~ /oil/
         empty_left_hand
@@ -1005,7 +1005,7 @@ class << forger
     while !done
       line = get
 
-    
+
   ###  What the fuck is this for?  I dont remember adding this....
   # if line !~ /Your left hand is empty|realize it is too small|What were you referring to/
   #   line2 = matchwait /Your left hand is empty|grinder that may suit|door to the forging chamber|need to shape it somehow|realize it is too small|What were you referring to|Roundtime:/
@@ -1063,8 +1063,8 @@ class << forger
 
   def polish
     container = GameObj.inv.find { |box|  box.noun =~ /#{@keeper_container}/ }
-    unfinished = container.contents.select { |obj| obj.name =~ /rough|polished/ && obj.noun.include?("-") && (obj.type == 'uncommon' || !obj.type) && container }.each { |item| 
-    
+    unfinished = container.contents.select { |obj| obj.name =~ /rough|polished/ && obj.noun.include?("-") && (obj.type == 'uncommon' || !obj.type) && container }.each { |item|
+
       echo ""
       echo "It looks like #{item.name} needs polishing."
       echo ""
@@ -1244,8 +1244,8 @@ class << forger
 
   def breakdown
     salvage_oil if checkroom =~ /Forge\]/
-    puts "#{monsterbold_start}#{Script.self} session stats:#{monsterbold_end}", 
-    "  Best pieces:    #{@keepers}", 
+    puts "#{monsterbold_start}#{Script.self} session stats:#{monsterbold_end}",
+    "  Best pieces:    #{@keepers}",
     "  Average pieces: #{@successes}",
     "  Minor failures: #{@failures}",
     "  Major failures: #{@major_failures}","" if !@rank && (@keepers + @successes + @failures + @major_failures > 0)
