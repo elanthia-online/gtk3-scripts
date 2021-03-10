@@ -2,6 +2,8 @@
 Elanthia Online
 :toc:
 
+[![Build Status](https://github.com/elanthia-online/scripts/workflows/Build/badge.svg?branch=master)](https://github.com/elanthia-online/scripts/actions)
+
 == About
 
 Scripts located here are the GTK3 versions of existing lich scripts.
