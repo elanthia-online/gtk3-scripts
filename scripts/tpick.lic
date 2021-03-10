@@ -1,4 +1,4 @@
-=begin
+=begin               
 
   This script will disarm, measure, pick (and will use the appropriate lockpick based on your skill and lock difficulty) and empty your boxes into your container. This script can also be used to automatically accept, disarm,      measure, pick and hand back other people's boxes.
 
