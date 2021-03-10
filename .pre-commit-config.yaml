@@ -7,4 +7,4 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
 
-files: '{*.lic,*.rb}'
+files: '.*.(lic|rb)'
