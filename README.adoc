@@ -2,8 +2,8 @@
 Elanthia Online
 :toc:
 
-[link=https://app.netlify.com/sites/admiring-leakey-35fb01/deploys]
-image::https://api.netlify.com/api/v1/badges/e54c4660-3793-40d5-964b-37cef0fb6a5e/deploy-status[Netlify Build Status]
+[link=https://app.netlify.com/sites/kind-tesla-17ee55/deploys]
+image::https://api.netlify.com/api/v1/badges/8b9782e4-c3b8-4a19-958c-80452c0a76df/deploy-status[Netlify Build Status]
 
 == About
 
@@ -15,4 +15,3 @@ The intent is to make these available until such time as people have converted f
 
 To enable this repository you must use jinx.  This is a netlify enabled repository for jinx download:
 * gtk3.elanthia.online
-
