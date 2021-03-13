@@ -13,5 +13,8 @@ The intent is to make these available until such time as people have converted f
 
 == Usage
 
-To enable this repository you must use jinx.  This is a netlify enabled repository for jinx download:
-* gtk3.elanthia.online
+Make sure you have `jinx.lic` in your scripts directory
+Run:
+```
+;jinx repo add gtk3-scripts https://gtk3.elanthia.online
+```
