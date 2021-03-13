@@ -11,9 +11,13 @@
        game: Gemstone
        tags: magic
    required: Lich >= 4.4.6
-    version: 0.14
+    version: 0.16
 
    changelog:
+      0.16 (2020-08-21):
+         added squelching of spell active output (using quiet_command from Lostranger scripts)
+      0.15 (2020-08-20):
+         hacked in using new SPELL ACTIVE <target> functionality
       0.14 (2019-05-11):
         fix --reserve-mana (austin-j)
       0.13 (2019-03-03):
@@ -918,13 +922,89 @@ cast_spell = proc { |spell, target, num_multicast|
    result
 }
 
+# mostly lifted from LostRanger stuff
+def wag_quiet_command(command, include_end = true, timeout=5)
+    result = []
+    done = false
+    name = "waggle_sa_squelch"
+    filter = false
+    thread = Thread.current
+
+    begin
+        DownstreamHook.add(name, proc {|xml|
+            if filter
+                if xml =~ /<prompt time="/
+                    DownstreamHook.remove(name)
+                    filter = false
+                    done = true
+                    result << xml.rstrip if include_end
+                    thread.raise(Interrupt)
+                    next(include_end ? nil : xml)
+                else
+                    result << xml.rstrip
+                    next(nil)
+                end
+            elsif xml =~ /has spell sharing disabled/
+                result << xml.rstrip    
+                done = true
+                thread.raise(Interrupt)
+            elsif xml =~ /has the following active spells/
+                next(nil)
+            elsif xml =~ /([A-z0-9\s\'\(\)\-]+) \.* (([0-9]+)\:([0-9]+)\:([0-9]+)|Indefinite)/
+                filter = true
+                result << xml.rstrip
+                next(nil)
+            else
+                xml
+            end
+        })
+        fput command
+        sleep(timeout)
+        return nil
+    rescue Interrupt
+        return result
+    ensure
+        DownstreamHook.remove(name)
+    end
+end
+
 get_target_info = proc { |target|
-   if defined?(LNet.get_data)
-      LNet.get_data(target, 'spells')
-   else
-      nil
-   end
+    res = wag_quiet_command("spell active #{target}")
+    target_info = Hash.new
+    if res[0] !~ /has spell sharing disabled/
+        res.each { |line|
+            # Parsing from Infomon
+            if line =~ /([A-z0-9\s\'\(\)\-]+) \.* (([0-9]+)\:([0-9]+)\:([0-9]+)|Indefinite)$/
+                spell_name = $1
+                if $2 == 'Indefinite'
+                    spell_time = 599.0
+                else
+                    spell_time = ($3.to_i * 60) + $4.to_i + ($5.to_i / 60.0)
+                end
+                if spell_name == 'Raise Dead Recovery'
+                    # fixme
+                    spell_name = 'Raise Dead Cooldown'
+                elsif spell_name =~ /^Mage Armor \- /
+                    spell_name = 'Mage Armor'
+                elsif spell_name =~ /^Cloak of Shadows \- /
+                    spell_name = 'Cloak of Shadows'
+                end
+                if spell = Spell.list.find { |s| s.name == spell_name or s.num.to_s == spell_name }
+                    target_info[spell.num.to_s] = spell_time
+                else
+                    echo "no spell matches #{spell_name}" if $infomon_debug
+                end
+            end
+        }
+        target_info
+    elsif defined?(LNet.get_data)
+        echo "#{target} has spell privacy enabled, attempting to use LNet"
+        LNet.get_data(target, 'spells')
+    else
+        nil
+    end
 }
+
 
 max_multicast = proc{ |spell|
    ranks = 0
