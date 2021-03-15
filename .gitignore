@@ -1,3 +1,4 @@
 dist/
 jinxp
 temp/
+.pre-commit-config.yaml
