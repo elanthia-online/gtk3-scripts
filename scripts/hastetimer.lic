@@ -1,0 +1,98 @@
+=begin
+
+	A haste timer in the form of a window with progress bar/text
+	Totally ripped off from Drafix's ;manatimer
+	
+	Usage: ;hastetimer
+	Voila a window opens and starts counting ....
+	
+	(mainly) By Drafix
+	Hacked to be for haste by Alsthar
+	Hacked again to display timer in GTK3 by Xhy/Brahm
+	
+=end
+hide_me
+silence_me
+no_kill_all
+no_pause_all
+status_tags
+
+CharSettings.load
+window_width = CharSettings['window_width'] || 120
+window_height = CharSettings['window_height'] || 25
+window_position = CharSettings['window_position']
+window_decorated = CharSettings['window_decorated']
+
+countdown_text = bar = box = window = done = window_close = nil
+
+Gtk.queue {
+	window = Gtk::Window.new
+	window.title = "#{Char.name} Haste Timer"
+	window.signal_connect('delete_event') { window_close = true }
+	box = Gtk::Box.new(:vertical, 1)
+	bar = Gtk::ProgressBar.new
+	countdown_text = Gtk::Label.new
+	bar.height_request = 10
+	bar.width_request = 20	
+	bar.add_events(Gdk::Event::BUTTON_PRESS_MASK)
+	bar.signal_connect('button_press_event') { |owner, ev| Gtk.queue { window.decorated = !window.decorated? if ev.button == 3 } }
+	horizontal_separator = Gtk::HSeparator.new()
+	box.pack_start(horizontal_separator, false, false, 6)
+	box.pack_start(countdown_text, false, false, 6)
+	box.pack_start(bar, false, false, 6)
+	horizontal_separator = Gtk::HSeparator.new()
+	box.pack_start(horizontal_separator, false, false, 6)
+	window.add(box)	
+	window.show_all
+	window.decorated = window_decorated unless window_decorated.nil?
+	window.resize(window_width.to_i, window_height.to_i)
+	window_position[0] = [[0, window_position[0].to_i].max, (Gdk.screen_width-window_width.to_i)].min
+	window_position[1] = [[0, window_position[1].to_i].max, (Gdk.screen_height-window_height.to_i)].min
+	window.move(window_position[0].to_i, window_position[1].to_i)
+	window.keep_above = true
+	window.set_keep_above(true)
+	done = true
+}
+
+wait_until { done }
+
+before_dying {
+	done = false
+	Gtk.queue {
+		window_width = window.allocation.width
+		window_height = window.allocation.height
+		window_decorated = window.decorated?
+		window_position = window.position
+		window.destroy
+		done = true
+	}
+	wait_until { done }
+	CharSettings['window_width'] = window_width
+	CharSettings['window_height'] = window_height
+	CharSettings['window_decorated'] = window_decorated
+	CharSettings['window_position'] = window_position if (window_position.class == Array) and (window_position[0].to_i > -5) and (window_position[1].to_i > -5)
+	CharSettings.save
+}
+
+ticks = 0
+
+until window_close
+    if !Spell[506].active?
+		Gtk.queue {
+			bar.fraction = 0
+			countdown_text.text =  '<span size="xx-large"><b>' + "Haste Inactive" + '</b></span>'			
+			countdown_text.use_markup = true
+		}
+	end
+	start_duration = Spell[506].secsleft
+	until !Spell[506].active? or window_close
+		ticks = Spell[506].secsleft
+		Gtk.queue {
+			bar.fraction = ticks / start_duration
+			countdown_text.text =  '<span size="xx-large"><b>' + "#{ "%02d" %(ticks/60)}:#{ "%02d" % (ticks%60)}" + '</b></span>'			
+			countdown_text.use_markup = true
+		}
+		sleep 1
+	end
+	sleep 1
+end
