@@ -236,7 +236,7 @@ module SLoot
   end
 
   def self.go2(place)
-    fput('unhide') if hidden?
+    fput('unhide') if ( hidden? || invisible? )
 
     # If we're going to a place we do it based on the sell_fwi settings
     if place.class == String && SLoot.data.settings[:sell_fwi]
@@ -1299,7 +1299,9 @@ module SLoot
     end
 
     def self.sell
-      fput('unhide') if hidden?
+      fput('unhide') if ( hidden? || invisible? )
+
+      starting_room = Room.current.id
 
       SLoot.free_hands
 
@@ -1430,6 +1432,8 @@ module SLoot
       fput('share all') if SLoot.data.settings[:sell_share_silvers] && ending_silver > 1
       fput('deposit all')
       fput("withdraw #{keep_silvers}") if keep_silvers.positive?
+      # return
+      SLoot.go2(starting_room)
     end
   end
 end
@@ -1443,7 +1447,7 @@ if script.vars[1].nil?
 end
 
 # This allows partial matches the same way Gemstone works.
-# e.g., ;shunt sel would match ;shunt sell
+# e.g., ;sloot sel would match ;sloot sell
 command = '^box^help^load^setup^sell'
 
 # No match - show help message
