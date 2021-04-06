@@ -1154,6 +1154,25 @@ module SLoot
       end
     end
 
+    def self.locksmith_open(box, activator)
+      drag(box, 'hand')
+      box = SLoot.unphase_box(box)
+
+      res = dothistimeout(activator, 3, /Gimme (\d+) silvers/)
+      info('unknown locksmith response') unless res
+
+      res = dothistimeout('pay', 3, /accepts|have enough/)
+      if res =~ /have enough/
+        drag(box, 'default')
+        SLoot.withdraw_silver(8000 - SLoot.check_silver)
+        go2('locksmith')
+
+        return Sell.locksmith_open(box, activator)
+      end
+
+      Loot.box(box)
+    end
+
     def self.locksmith_pool(boxes)
       # if we're here, assume we emptied out the disk some
       SLoot.data.disk_full = false
@@ -1225,7 +1244,7 @@ module SLoot
 
       silver = SLoot.check_silver
 
-      withdraw_silver(8000 - silver) if silver < 8000
+      SLoot.withdraw_silver(8000 - silver) if silver < 8000
 
       SLoot.go2('locksmith')
       SLoot.wait_for_disk
@@ -1247,7 +1266,7 @@ module SLoot
 
           if activator
             SLoot.free_hands
-            boxes.each { |box| open_box(box, activator) }
+            boxes.each { |box| Sell.locksmith_open(box, activator) }
 
             drag(GameObj.right_hand, 'drop') if GameObj.right_hand.type =~ /box/
 
