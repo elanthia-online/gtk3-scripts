@@ -1155,17 +1155,17 @@ module SLoot
     end
 
     def self.locksmith_open(box, activator)
-      drag(box, 'hand')
+      SLoot.drag(box, 'hand')
       box = SLoot.unphase_box(box)
 
       res = dothistimeout(activator, 3, /Gimme (\d+) silvers/)
-      info('unknown locksmith response') unless res
+      SLoot.info('unknown locksmith response') unless res
 
       res = dothistimeout('pay', 3, /accepts|have enough/)
       if res =~ /have enough/
-        drag(box, 'default')
+        Sloot.drag(box, 'default')
         SLoot.withdraw_silver(8000 - SLoot.check_silver)
-        go2('locksmith')
+        SLoot.go2('locksmith')
 
         return Sell.locksmith_open(box, activator)
       end
@@ -1187,27 +1187,30 @@ module SLoot
       end
 
       SLoot.free_hand('right')
+      SLoot.wait_for_disk
 
-      give_box = proc do |box|
+      boxes.each do |box|
+        SLoot.drag(box, 'hand')
+        #give_box.call(box)
         box = SLoot.unphase_box(box)
+        if SLoot.data.settings[:sell_locksmith_pool_tip_percent]
+          percent = ' PERCENT'
+        else
+          percent = ''
+        end
 
-        percent = ''
-        percent = ' PERCENT' if SLoot.data.settings[:sell_locksmith_pool_tip_percent]
         fput("give ##{worker.id} #{SLoot.data.settings[:sell_locksmith_pool_tip]}#{percent}")
-        match = /You don't have that much|takes your/
+        match = /You don't have that much|takes your|already holding as many boxes/
         res = dothistimeout("give ##{worker.id} #{SLoot.data.settings[:sell_locksmith_pool_tip]}#{percent}", 3, match)
         if res =~ /You don't have that much/
           SLoot.withdraw_silver(8000 - SLoot.check_silver)
           SLoot.go2('locksmith pool')
           give_box.call(box)
+        elsif res =~ /already holding as many boxes/
+          sleep(0.250)
+          SLoot.drag(box, 'box') if [GameObj.right_hand.id, GameObj.left_hand.id].include?(box.id)
+          break
         end
-      end
-
-      SLoot.wait_for_disk
-
-      boxes.each do |box|
-        SLoot.drag(box, 'hand')
-        give_box.call(box)
         sleep(0.250)
         SLoot.drag(box, 'box') if [GameObj.right_hand.id, GameObj.left_hand.id].include?(box.id)
       end
@@ -1268,15 +1271,15 @@ module SLoot
             SLoot.free_hands
             boxes.each { |box| Sell.locksmith_open(box, activator) }
 
-            drag(GameObj.right_hand, 'drop') if GameObj.right_hand.type =~ /box/
+            SLoot.drag(GameObj.right_hand, 'drop') if GameObj.right_hand.type =~ /box/
 
-            drag(GameObj.left_hand, 'drop') if GameObj.left_hand.type =~ /box/
+            SLoot.drag(GameObj.left_hand, 'drop') if GameObj.left_hand.type =~ /box/
           else
-            error('failed to find a bell, keys, or chime on the table')
+            SLoot.error('failed to find a bell, keys, or chime on the table')
           end
         end
       else
-        error('failed to find a table')
+        SLoot.error('failed to find a table')
       end
     end
 
