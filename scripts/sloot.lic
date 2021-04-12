@@ -17,9 +17,12 @@
     - Added town locksmith processing
     - Added return to original location after ;sloot sell
     - Added expanded detail comment section and version
+    - Added title bar update 
     - Updated internal comments
 
 =end
+
+SLoot_version = '2.0.0'
 
 # SLoot is a looter for Gemstone that focuses on performance
 module SLoot
@@ -248,12 +251,12 @@ module SLoot
     print_line.call('stats', 'displays your loot statistics')
     print_line.call('update', 'reload after updating from repository')
     respond('')
-    respond('Gem hoarding:')
-    print_line.call('get # <gem name>', 'get gems from closest locker hoard')
-    print_line.call('forget <room#|all>', 'forget the index for the room (or all)')
-    print_line.call('index', 'index the nearest locker')
-    print_line.call('list [alpha|gem name]', 'list locker contents')
-    print_line.call('store', 'store gems in the nearest locker')
+    #respond('Gem hoarding:')
+    #print_line.call('get # <gem name>', 'get gems from closest locker hoard')
+    #print_line.call('forget <room#|all>', 'forget the index for the room (or all)')
+    #print_line.call('index', 'index the nearest locker')
+    #print_line.call('list [alpha|gem name]', 'list locker contents')
+    #print_line.call('store', 'store gems in the nearest locker')
   end
 
   def self.go2(place)
@@ -471,32 +474,32 @@ module SLoot
   # Setup is an extension of Gtk::Builder for Gtk setup
   class Setup < Gtk::Builder
     @@categories = {
-      hoard: {
-        hoard_enable: { default: false },
-        hoard_lockers: {
-          default: [],
-          load: proc do |store, setting|
-            store.clear
-            setting.each do |text|
-              iter = store.append
-              iter[0] = Room[text].id
-              iter[1] = Room[text].title.first
-              iter[2] = Room[text].location
-            end
-          end,
-          delete: proc do |_, selected, setting|
-            setting.delete(Room[selected.get_value(0)].id)
-            setting.uniq!.sort!
-          end,
-          set: proc do |_, text, setting|
-            next if setting.include?(text)
-            next if Room[text].nil?
-
-            setting.push(Room[text].id)
-            setting.uniq!.sort!
-          end
-        }
-      },
+      #hoard: {
+      #  hoard_enable: { default: false },
+      #  hoard_lockers: {
+      #    default: [],
+      #    load: proc do |store, setting|
+      #      store.clear
+      #      setting.each do |text|
+      #        iter = store.append
+      #        iter[0] = Room[text].id
+      #        iter[1] = Room[text].title.first
+      #        iter[2] = Room[text].location
+      #      end
+      #    end,
+      #    delete: proc do |_, selected, setting|
+      #      setting.delete(Room[selected.get_value(0)].id)
+      #      setting.uniq!.sort!
+      #    end,
+      #    set: proc do |_, text, setting|
+      #      next if setting.include?(text)
+      #      next if Room[text].nil?
+	  #
+      #      setting.push(Room[text].id)
+      #      setting.uniq!.sort!
+      #    end
+      #  }
+      #},
       loot: {
         loot_types: {
           default: %w[alchemy box collectible gem herb jewelry lockpick magic
@@ -596,7 +599,7 @@ module SLoot
       internal: {
         silence: { default: false },
         debug: { default: false },
-        hoard: { default: {} },
+        #hoard: { default: {} },
         unskinnable: { default: [] }
       }
     }
@@ -641,6 +644,7 @@ module SLoot
         load_settings
 
         self['main'].keep_above = true
+        self['main'].set_title "Sloot Setup v#{SLoot_version}"
 
         # connect signals after settings are loaded to a bunch of handlers don't trigger
         connect_signals { |handler| method(handler) }
@@ -787,7 +791,8 @@ module SLoot
 
       print_value = proc { |key, value, indent| _respond("#{' ' * indent_size * indent.to_i}#{key}: #{value}") }
 
-      categories = cat_to_list == 'all' ? %w[hoard loot sell skin] : [cat_to_list]
+      #categories = cat_to_list == 'all' ? %w[hoard loot sell skin] : [cat_to_list]
+      categories = cat_to_list == 'all' ? %w[loot sell skin] : [cat_to_list]
 
       categories.each do |opt|
         _respond("#{monsterbold_start}= #{opt.capitalize} =#{monsterbold_end}")
@@ -1130,48 +1135,48 @@ module SLoot
             fput("sell ##{l.id}")
           end
         end
-      elsif bounty? =~ gem_match
-        realm = Regexp.last_match(1)
-        gem = Hoard.normalize_gem(Regexp.last_match(2))
-        gems_needed = Regexp.last_match(3).to_i
-        gems_needed -= SLoot.find_sack('gem').contents.to_a.find_all { |l| gem == Hoard.normalize_gem(l.name) }.length
-
-        gemshop = Room.list.find { |r| r.tags.include?('gemshop') && r.location =~ /#{realm}/i }
-        error('failed to find the gemshop to turn into; send this to Elanthia-Online') unless gemshop
-
-        gems_on_hand = SLoot.find_sack('gem').contents.to_a.find_all { |l| gem == Hoard.normalize_gem(l.name) }
-
-        # failed to find FWI locker, use closest instead
-
-        # raid stockpile if we need to
-        if gems_on_hand.length < gems_needed && SLoot.data.settings[:hoard_enable]
-          has_fwi_locker = false
-          if SLoot.data.settings[:sell_fwi]
-            SLoot.data.settings[:hoard_lockers].each do |locker|
-              room = Room[locker]
-              next unless room.id != 0 && SLoot.fwi?(room)
-
-              SLoot.go2(room.id)
-              has_fwi_locker = true
-              break
-            end
-          end
-
-          SLoot.go2(gemshop) unless has_fwi_locker
-
-          jar_data = SLoot.data.settings[:hoard][closest_locker][:jars].find { |jar| jar[:gem] == gem }
-
-          Hoard.get(gem, gems_needed) if gems_needed.positive? && jar_data && jar_data[:count] >= gems_needed
-        end
-
-        gems_on_hand = SLoot.find_sack('gem').contents.to_a.find_all { |l| gem == Hoard.normalize_gem(l.name) }
-        if gems_on_hand.length >= 0
-          SLoot.go2(gemshop)
-          gems_on_hand.each do |l|
-            SLoot.drag(l, 'hand')
-            fput("sell ##{l.id}")
-          end
-        end
+      #elsif bounty? =~ gem_match
+      #  realm = Regexp.last_match(1)
+      #  gem = Hoard.normalize_gem(Regexp.last_match(2))
+      #  gems_needed = Regexp.last_match(3).to_i
+      #  gems_needed -= SLoot.find_sack('gem').contents.to_a.find_all { |l| gem == Hoard.normalize_gem(l.name) }.length
+	  #
+      #  gemshop = Room.list.find { |r| r.tags.include?('gemshop') && r.location =~ /#{realm}/i }
+      #  error('failed to find the gemshop to turn into; send this to Elanthia-Online') unless gemshop
+	  #
+      #  gems_on_hand = SLoot.find_sack('gem').contents.to_a.find_all { |l| gem == Hoard.normalize_gem(l.name) }
+	  #
+      #  # failed to find FWI locker, use closest instead
+	  #
+      #  # raid stockpile if we need to
+      #  if gems_on_hand.length < gems_needed && SLoot.data.settings[:hoard_enable]
+      #    has_fwi_locker = false
+      #    if SLoot.data.settings[:sell_fwi]
+      #      SLoot.data.settings[:hoard_lockers].each do |locker|
+      #        room = Room[locker]
+      #        next unless room.id != 0 && SLoot.fwi?(room)
+	  #
+      #        SLoot.go2(room.id)
+      #        has_fwi_locker = true
+      #        break
+      #      end
+      #    end
+	  #
+      #    SLoot.go2(gemshop) unless has_fwi_locker
+	  #
+      #    jar_data = SLoot.data.settings[:hoard][closest_locker][:jars].find { |jar| jar[:gem] == gem }
+	  #
+      #    Hoard.get(gem, gems_needed) if gems_needed.positive? && jar_data && jar_data[:count] >= gems_needed
+      #  end
+	  #
+      #  gems_on_hand = SLoot.find_sack('gem').contents.to_a.find_all { |l| gem == Hoard.normalize_gem(l.name) }
+      #  if gems_on_hand.length >= 0
+      #    SLoot.go2(gemshop)
+      #    gems_on_hand.each do |l|
+      #      SLoot.drag(l, 'hand')
+      #      fput("sell ##{l.id}")
+      #    end
+      #  end
       end
     end
 
@@ -1343,7 +1348,7 @@ module SLoot
 
       Sell.locksmith(boxes) if SLoot.data.settings[:sell_locksmith] && boxes.length.positive?
       Sell.collectibles if SLoot.data.settings[:sell_collectibles]
-      Hoard.store if SLoot.data.settings[:hoard_enable]
+      #Hoard.store if SLoot.data.settings[:hoard_enable]
 
       lootsack = SLoot.find_sack('default')
       get_loot = proc do |location|
