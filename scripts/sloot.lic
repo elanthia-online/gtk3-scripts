@@ -1,5 +1,26 @@
 # frozen_string_literal: true
 
+=begin
+  sloot.lic: SLoot is a looter for Gemstone IV that focuses on performance
+
+        author: SpiffyJr
+    maintainer: elanthia-online
+  contributers: SpiffyJr, Athias
+          game: Gemstone
+          tags: loot
+       version: 2.0.0
+
+  v2.0.0 (2021-04-12)
+    - Rebaselined as SLoot 2.0
+    - Fixed locksmith pool being full issue
+    - Fixed container full issue when using disks (thanks to Demandred)
+    - Added town locksmith processing
+    - Added return to original location after ;sloot sell
+    - Added expanded detail comment section and version
+    - Updated internal comments
+
+=end
+
 # SLoot is a looter for Gemstone that focuses on performance
 module SLoot
   @@data ||= nil
@@ -127,7 +148,7 @@ module SLoot
       SLoot.info('Sleeping for 10 seconds: ;kill the script to hold onto it')
       sleep(10)
       drag(from, to)
-    elsif lines.any? { |l| l =~ /won't fit in the/ }
+    elsif lines.any? { |l| l =~ /won't fit in the/ && l !~ /#{XMLData.name} (?:disk|coffin)/ }
       SLoot.info('Your container is full. Dropping this item.')
       SLoot.info('Sleeping for 3 seconds: ;kill the script to handle yourself')
       sleep(3)
@@ -213,7 +234,7 @@ module SLoot
       }))
     end
 
-    respond('SLoot by SpiffyJr')
+    respond('SLoot by SpiffyJr, maintained by Elanthia-Online')
     respond('')
     respond('SLoot is a looter script designed to make looting as fast and easy as possible.')
     respond('')
@@ -307,7 +328,7 @@ module SLoot
   def self.free_hand(hand = 'right')
     obj = hand == 'right' ? GameObj.right_hand : GameObj.left_hand
 
-    return if obj.id.nil?
+    return if obj.id.nil? || GameObj.left_hand.id.nil?
 
     add_it = proc do |to_store|
       next if SLoot.data.stored.any? { |_, o| o.id == to_store.id }
@@ -1099,7 +1120,7 @@ module SLoot
         realm = Regexp.last_match(3).nil? ? Regexp.last_match(4) : Regexp.last_match(3)
 
         furrier = Room.list.find { |r| r.tags.include?('furrier') && r.location =~ /#{realm}/i }
-        error('failed to find the furrier to turn into; send this to SpiffyJr') unless furrier
+        error('failed to find the furrier to turn into; send this to Elanthia-Online') unless furrier
 
         loot = SLoot.find_sack('skin').contents.find_all { |l| l.sellable == 'furrier' && skin =~ /#{l.name}/ }
         unless loot.empty?
@@ -1116,7 +1137,7 @@ module SLoot
         gems_needed -= SLoot.find_sack('gem').contents.to_a.find_all { |l| gem == Hoard.normalize_gem(l.name) }.length
 
         gemshop = Room.list.find { |r| r.tags.include?('gemshop') && r.location =~ /#{realm}/i }
-        error('failed to find the gemshop to turn into; send this to SpiffyJr') unless gemshop
+        error('failed to find the gemshop to turn into; send this to Elanthia-Online') unless gemshop
 
         gems_on_hand = SLoot.find_sack('gem').contents.to_a.find_all { |l| gem == Hoard.normalize_gem(l.name) }
 
@@ -1182,7 +1203,7 @@ module SLoot
       if (worker = GameObj.npcs.find { |npc| npc.name == SLoot.room_meta('boxpool:npc') }).nil?
         info('failed to find the locksmith pool NPC')
         info('update your map db; ;repository download-mapdb')
-        info('if the error persists then report this to SpiffyJr')
+        info('if the error persists then report this to Elanthia-Online')
         return
       end
 
@@ -1228,7 +1249,7 @@ module SLoot
         elsif GameObj.left_hand.type =~ /box/
           box = GameObj.left_hand
         else
-          error('failed to find the box you were supposed to get; report this to SpiffyJr')
+          error('failed to find the box you were supposed to get; report this to Elanthia-Online')
         end
 
         Loot.box(box)
@@ -1397,7 +1418,7 @@ module SLoot
             when 'pawnshop'
               value = SLoot.data.settings[:sell_appraise_pawnshop]
             else
-              SLoot.info("appraise setting not available for #{location}; report this to SpiffyJr")
+              SLoot.info("appraise setting not available for #{location}; report this to Elanthia-Online")
             end
 
             matched = Regexp.last_match(1).delete(',').to_i
