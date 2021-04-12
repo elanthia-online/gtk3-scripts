@@ -2,16 +2,6 @@
 <!-- Generated with glade 3.36.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkListStore" id="hoard_lockers_store">
-    <columns>
-      <!-- column-name Room -->
-      <column type="gint"/>
-      <!-- column-name Room1 -->
-      <column type="gchararray"/>
-      <!-- column-name Room2 -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
   <object class="GtkListStore" id="loot_exclude_store">
     <columns>
       <!-- column-name exclusion -->
@@ -56,6 +46,7 @@
     <property name="width_request">640</property>
     <property name="height_request">480</property>
     <property name="can_focus">False</property>
+    <property name="title" translatable="yes">Sloot Setup</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
     <signal name="destroy" handler="on_destroy" swapped="no"/>
