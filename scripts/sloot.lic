@@ -20,6 +20,7 @@
     - Added title bar update with version
     - Removed Hoarding option and related code
     - Updated internal comments
+    - Updated to work with jinx data for sloot.ui
 
 =end
 
@@ -608,7 +609,7 @@ module SLoot
       return unless defined?(Gtk) && Gtk::Version::MAJOR == 3
 
       Gtk.queue do
-        add_from_file("#{$script_dir}/sloot.ui")
+        add_from_file("#{$data_dir}/sloot.ui")
         load_settings
 
         self['main'].keep_above = true
