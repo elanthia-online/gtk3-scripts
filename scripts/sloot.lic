@@ -8,7 +8,10 @@
   contributers: SpiffyJr, Athias
           game: Gemstone
           tags: loot
-       version: 2.0.0
+       version: 2.0.1
+
+  v2.0.1 (2021-05-08)
+    - Corrected skinning issue for left-handed skinners
 
   v2.0.0 (2021-04-12)
     - Rebaselined as SLoot 2.0
@@ -1007,10 +1010,10 @@ module SLoot
       skinner = SLoot.find_skinner(type)
       has_skinner = skinner.nil? || [GameObj.right_hand.id, GameObj.left_hand.id].include?(skinner.id)
 
-      SLoot.free_hand
-      SLoot.drag(skinner, 'hand') unless has_skinner
-
-      skinner_hand = skinner.id == GameObj.left_hand.id ? 'left' : 'right'
+      unless has_skinner
+        SLoot.free_hand
+        SLoot.drag(skinner, 'hand')
+      end
 
       # Safe to kneel?
       while GameObj.targets.empty? && SLoot.data.settings[:skin_kneel] && !kneeling?
@@ -1045,7 +1048,7 @@ module SLoot
 
       # Skin em
       objs.each do |obj|
-        res = dothistimeout("skin ##{obj.id}#{has_skinner ? " #{skinner_hand}" : ''}", 2, skin_match)
+        res = dothistimeout("skin ##{obj.id}#{skinner ? " with ##{skinner.id}" : ''}", 2, skin_match)
         if res =~ /^You cannot skin/
           SLoot.data.settings[:unskinnable].push(obj.name)
         elsif res =~ break_match
