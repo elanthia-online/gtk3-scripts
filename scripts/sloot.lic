@@ -1003,7 +1003,7 @@ module SLoot
       SLoot.change_stance('defensive') if @settings[:loot_defensive]
     end
 
-def self.skin_obj_types(objs, type)
+    def self.skin_obj_types(objs, type)
       return if objs.empty?
 
       # Find our skinner
