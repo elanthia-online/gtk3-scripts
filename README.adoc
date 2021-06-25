@@ -16,5 +16,5 @@ The intent is to make these available until such time as people have converted f
 Make sure you have `jinx.lic` in your scripts directory
 Run:
 ----
-;jinx repo add gtk3-scripts https://gtk3.elanthia.online
+;jinx repo add gtk3 https://gtk3.elanthia.online
 ----
