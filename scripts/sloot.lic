@@ -5,10 +5,13 @@
 
         author: SpiffyJr
     maintainer: elanthia-online
-  contributers: SpiffyJr, Athias
+  contributers: SpiffyJr, Athias, Lieo
           game: Gemstone
           tags: loot
-       version: 2.0.1
+       version: 2.0.2
+
+  v2.0.2 (2021-07-09)
+    - Add support for excluded items from looting
 
   v2.0.1 (2021-05-08)
     - Corrected skinning issue for left-handed skinners
@@ -950,7 +953,20 @@ module SLoot
     def self.room
       Loot.objs(GameObj.loot.to_a, proc do
         SLoot.free_hand
-        dothistimeout('loot room', 3, /With a discerning eye|There is no loot/)
+        objs = reject_invalid_loot(GameObj.loot.to_a)
+        return if objs.empty?
+
+        valid = Loot.valid_objs(objs.clone)
+        return if valid.empty?
+
+        if objs.length === valid.length
+          dothistimeout('loot room', 3, /With a discerning eye|There is no loot/)
+        else
+          valid.each do |obj|
+            Loot.obj(obj)
+            next true
+          end
+        end
       end)
     end
 
