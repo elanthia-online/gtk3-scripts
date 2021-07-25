@@ -5,10 +5,22 @@
 
         author: SpiffyJr
     maintainer: elanthia-online
-  contributers: SpiffyJr, Athias
+  contributers: SpiffyJr, Athias, Demandred
           game: Gemstone
           tags: loot
-       version: 2.0.1
+       version: 2.0.2
+
+	v2.0.2 (2021-07-25)
+		- Our chief edit is the loot. The loot and hands.
+		- Our TWO chief edits are loot and hands. And gold rings.
+		- Our THREE chief edits are loot, hands and gold rings. And many fixes to stuff and other stuff.
+		- AMONG our edits are such diverse changes as loot fixes, items stowing and getting back out, hands, gold rings to chronomage, 604 support...oh nevermind I'll come back in.
+		- Seriously though, lots of changes and fixes.
+		- Zealot stance stuff removed?
+		- Blunt skinning issues
+		- More.
+
+		todo - still trying to nail down this pesky data issue.
 
   v2.0.1 (2021-05-08)
     - Corrected skinning issue for left-handed skinners
@@ -81,15 +93,15 @@ module SLoot
 
     return unless SLoot.data.disk && SLoot.data.disk.status !~ /gone/ && SLoot.data.disk.contents.nil?
 
-    res = dothistimeout("look in ##{SLoot.data.disk.id}", 3, /^In the|^There is nothing|^That is closed/)
-    return unless res =~ /^That is closed/
+		res = dothistimeout("look in ##{SLoot.data.disk.id}", 3, /In the|There is nothing|That is closed/)
+		return unless res =~ /That is closed/
 
     fput("open ##{SLoot.data.disk.id}")
     fput("look in ##{SLoot.data.disk.id}")
   end
 
   def self.change_stance(stance)
-    return if Spell['Zealot'].active? || Spell['Frenzy'].active? || dead?
+		return if Spell[216].active? || dead?
     return if checkstance(stance.strip)
     return if stance == 'defensive' && checkstance('guarded')
 
@@ -136,13 +148,15 @@ module SLoot
     from_id = input_to_id.call(from)
 
     if to_id.nil? || from_id.nil?
-      SLoot.info("there was an issue dragging #{to_id} to #{from_id}")
+			SLoot.info("there was an issue dragging #{from_id} to #{to_id}")
       return
     end
 
     SLoot.debug("#{from_id.inspect} to #{to_id.inspect}")
 
-    fput("_drag #{from_id} #{to_id}")
+		# Demandred - let's try changing this to dothistimeout - included aelotoi wings thing
+		#fput("_drag #{from_id} #{to_id}")
+		dothistimeout("_drag #{from_id} #{to_id}", 5, /^You|^Spreading your wings/)
 
     lines = reget.reverse[0..5]
 
@@ -151,7 +165,7 @@ module SLoot
       @sacks_to_close.push(to_id)
       fput("open #{to_id}")
       drag(from, to)
-    elsif lines.any? { |l| l =~ /^There appears to be an/i }
+		elsif lines.any? { |l| l =~ /There appears to be an/i }
       SLoot.info('Possibly an item you want to keep')
       SLoot.info('Sleeping for 10 seconds: ;kill the script to hold onto it')
       sleep(10)
@@ -186,7 +200,7 @@ module SLoot
       SLoot.data.skinsheath ||= find_sack('default')
     end
 
-    dothistimeout("look in ##{SLoot.data.skinsheath.id}", 3, /^In the/) unless SLoot.data.skinsheath.contents
+		dothistimeout("look in ##{SLoot.data.skinsheath.id}", 3, /In the/) unless SLoot.data.skinsheath.contents
 
     items = SLoot.data.skinsheath.contents.clone
     items.push(GameObj.right_hand)
@@ -210,7 +224,13 @@ module SLoot
   def self.find_sack(type = 'default')
     type = 'default' unless SLoot.data.sacks[type]
 
-    dothistimeout("look in ##{SLoot.data.sacks[type].id}", 3, /^In the/) unless SLoot.data.sacks[type].contents
+		res = dothistimeout("look in ##{SLoot.data.sacks[type].id}", 3, /In the|There is nothing|That is closed/) unless SLoot.data.sacks[type].contents
+		## Demandred - let's add a case if the container is closed...not sure why it wasn't here. Also added There is nothing - again, not sure why not here...
+		if res =~ /That is closed/
+			dothistimeout("open ##{SLoot.data.sack[type].id}", 3, /^You /)
+			dothistimeout("look in ##{SLoot.data.sacks[type].id}", 3, /In the|There is nothing/)
+		end
+		## Demandred - end case of closed container - Regex for opening may need additions in the case of weird containers that don't start the line with "You ..."
 
     SLoot.data.sacks[type]
   end
@@ -225,10 +245,12 @@ module SLoot
       return
     end
 
+		SLoot.change_stance('defensive') if SLoot.data.settings[:loot_defensive] # Demandred change - always go to defensive if set to go defensive!
+
     Loot.skin if data.settings[:skin_enable]
     Loot.search
     Loot.room
-    SLoot.fill_hands
+    #SLoot.fill_hands
   end
 
   def self.help
@@ -289,22 +311,39 @@ module SLoot
     fput("withdraw #{amount} silvers")
   end
 
-  def self.check_silver
-    silvers = nil
-    action = proc do |server_string|
-      if server_string =~ /Silver:\s+([,0-9]+)/
-        silvers = Regexp.last_match(1).delete(',').to_i
-        DownstreamHook.remove('sloot_check_silvers')
-      end
+	def self.check_silver
+		silvers = nil
+		started = false
+		silver_end = nil
+		# Let's stir it up and get notes and stuff, too, using wealth quiet.
+		action = proc do |server_string|
+			if server_string =~ /You have (no silver|but one|[,0-9]+) coins? with you\./
+				started = true
+				if $1 == "no silver"
+					silvers = 0
+				elsif $1 == "but one"
+					silvers = 1
+				else
+					silvers = $1.delete(",").to_i
+				end
+				nil
+			elsif server_string =~ /You are carrying .+ valued at a total of ([,\d]+) silver\./
+				nil
+			elsif server_string =~/You are carrying .+ between notes and coins\./
+				nil
+			elsif server_string =~ /<prompt time=/ && started == true
+				DownstreamHook.remove('sloot_check_silvers')
+				nil
+			else
+				server_string
+			end
+		end
 
-      nil
-    end
-
-    DownstreamHook.add('sloot_check_silvers', action)
-    $_SERVER_.puts "#{$cmd_prefix}info\n"
-    wait_until { silvers }
-    silvers
-  end
+		DownstreamHook.add('sloot_check_silvers', action)
+		$_SERVER_.puts "#{$cmd_prefix}wealth quiet\n"
+		wait_until { silvers }
+		silvers
+	end
 
   def self.fill_hands
     SLoot.data.stored = [] unless GameObj.left_hand.id.nil? || GameObj.right_hand.id.nil?
@@ -384,7 +423,11 @@ module SLoot
   def self.phase_box(box)
     return box unless SLoot.data.settings[:loot_phase] && Spell[704].known? && box.name !~ /enruned|mithril/i
 
-    SLoot.free_hand
+    #SLoot.free_hand
+		if !checkright.nil? && !checkleft.nil?
+			empty_hand
+		end
+
     SLoot.drag(box, 'hand') unless [GameObj.left_hand.id, GameObj.right_hand.id].include?(box.id)
     waitcastrt?
 
@@ -426,6 +469,7 @@ module SLoot
       SLoot.error('failed to check READY list; restart me') if res !~ /Your current settings/
 
       res = dothistimeout('stow list', 3, /You have the following/)
+			sleep 0.2
       SLoot.error('failed to check STOW list; restart me') if res !~ /You have the following/
 
       ready_list_match = /
@@ -460,7 +504,7 @@ module SLoot
       DownstreamHook.add('sloot-disk', proc do |line|
         next line if @disk
 
-        if line =~ %r{^Your <a exist="(\d+)" noun="disk">disk</a> arrives, following you dutifully.}
+				if line =~ %r{Your <a exist="(\d+)" noun="disk">disk</a> arrives, following you dutifully.}
           @disk_full = false if @disk.nil
           @disk = GameObj.loot.find { |obj| obj.id == Regexp.last_match(1).to_s }
         end
@@ -549,10 +593,11 @@ module SLoot
             setting.uniq!.sort!
           end
         },
-        sell_appraise_types: { default: %w[magic uncommon valuable] },
+				sell_appraise_types: { default: %w[magic uncommon valuable jewelry] },
         sell_appraise_gemshop: { default: 15_000 },
         sell_appraise_pawnshop: { default: 35_000 },
         sell_collectibles: { default: true },
+				sell_gold_rings: { default: false },
         sell_locksmith: { default: true },
         sell_locksmith_pool: { default: true },
         sell_locksmith_pool_tip: { default: 25 },
@@ -564,6 +609,7 @@ module SLoot
       skin: {
         skin_enable: { default: false },
         skin_kneel: { default: true },
+				skin_604: { default: false },
         skin_resolve: { default: true },
         skin_sheath: { default: '' },
         skin_weapon: { default: '' },
@@ -604,6 +650,9 @@ module SLoot
 
       # only sorcerers can phase
       @settings[:loot_phase] = false unless Char.prof == 'Sorcerer'
+
+			# 604 support
+			@settings[:skin_604] = false unless Spell[604].known?
 
       # GoS only for Sigil of Resolve
       @settings[:skin_resolve] = false unless Society.status == 'Guardians of Sunfist' && Society.rank >= 4
@@ -663,6 +712,8 @@ module SLoot
           next if (setting = Setup.get_setting(key)).nil?
 
           # set the default value
+					obj.set_sensitive(false) if (obj.builder_name.to_s.eql?("skin_resolve")) && !Spell[9704].known?
+					obj.set_sensitive(false) if (obj.builder_name.to_s.eql?("skin_604")) && !Spell[604].known?
           if obj.class == Gtk::CheckButton
             obj.active = @settings[key]
             obj.signal_connect('toggled') { on_update(obj) }
@@ -753,26 +804,26 @@ module SLoot
       wait_while { @running }
     end
 
-    def list(cat_to_list)
-      indent_size = 2
-      print_array =
-        proc do |key, value, indent|
-          _respond("#{' ' * indent_size * indent.to_i}#{key}:")
-          value.each { |entry| _respond("#{' ' * indent_size * (indent.to_i + 1)}#{value.index(entry) + 1}. #{entry}") }
-        end
+		def list(cat_to_list: 'all')
+			indent_size = 2
+			print_array =
+				proc do |key, value, indent|
+					_respond("#{' ' * indent_size * indent.to_i}#{key}:")
+					value.sort!.each { |entry| _respond("#{' ' * indent_size * (indent.to_i + 1)}#{value.index(entry) + 1}. #{entry}") }
+				end
 
-      print_value = proc { |key, value, indent| _respond("#{' ' * indent_size * indent.to_i}#{key}: #{value}") }
+			print_value = proc { |key, value, indent| _respond("#{' ' * indent_size * indent.to_i}#{key}: #{value}") }
 
-      categories = cat_to_list == 'all' ? %w[loot sell skin] : [cat_to_list]
+			categories = cat_to_list == 'all' ? %w[loot sell skin internal] : [cat_to_list]
 
-      categories.each do |opt|
-        _respond("#{monsterbold_start}= #{opt.capitalize} =#{monsterbold_end}")
-        @@categories[opt.to_sym].each do |id, _|
-          value = @settings[id]
-          value.class == Array ? print_array.call(id, value, 1) : print_value.call(id, value, 1)
-        end
-      end
-    end
+			categories.each do |opt|
+				_respond("#{monsterbold_start}= #{opt.capitalize} =#{monsterbold_end}\n")
+				@@categories[opt.to_sym].each do |id, _|
+					value = @settings[id]
+					value.class == Array ? print_array.call(id, value, 1) : print_value.call(id, value, 1)
+				end
+			end
+		end
 
     def update_setting(key, value)
       setting = Setup.get_setting(key)
@@ -822,7 +873,7 @@ module SLoot
       objs.reject do |obj|
         obj.name =~ /\bsevered\b/i ||
         obj.id.to_i.negative? ||
-        obj.type =~ /weapon|armor/i
+				(obj.type =~ /weapon|armor/i && obj.type !~ /uncommon/i) # Demandred - uncommon added
       end
     end
 
@@ -834,15 +885,25 @@ module SLoot
       end
     end
 
+				# Demandred - fix excluded loot section add - make it only check cursed and pure exclusions?
+				def self.invalid_objs(objs)
+					objs.find_all do |obj|
+						(obj.type =~ /cursed/ && !SLoot.data.settings[:loot_types].include?('cursed')) ||
+						(SLoot.data.settings[:loot_exclude].length.positive? &&
+							obj.name =~ Regexp.union(SLoot.data.settings[:loot_exclude]))
+					end
+				end
+				# Demandred - fix excluded loot section add end
+		
     def self.box(box)
-      trash_match = /^(?:crate|barrel|wastebarrel|wastebasket|casket|coffer)$/
+			trash_match = /(?:crate|barrel|wastebarrel|wastebasket|casket|coffer)$/
       trash = (GameObj.room_desc.to_a + GameObj.loot.to_a).find { |obj| obj.noun =~ trash_match }
 
       res = dothistimeout("open ##{box.id}", 3, /open|locked/)
       return SLoot.drag(box, 'box') if res =~ /locked/
 
       if box.contents.nil?
-        dothistimeout("look in ##{box.id}", 3, /^In the/)
+				dothistimeout("look in ##{box.id}", 3, /In the/)
         30.times do
           break unless box.contents.nil?
 
@@ -857,15 +918,15 @@ module SLoot
       end
 
       if box.contents.any? { |obj| obj.name =~ /silver coins/ }
-        res = dothistimeout("get coins from ##{box.id}", 3, /^You gather the remaining|^Get what\?/)
-        SLoot.info('unknown get coin result') if res !~ /^You gather the remaining/
+				res = dothistimeout("get coins from ##{box.id}", 3, /You gather the remaining|Get what\?/)
+				SLoot.info('unknown get coin result') if res !~ /You gather the remaining/
       end
 
       waitrt?
 
       Loot.objs(box.contents, proc do
-        SLoot.free_hand('left')
-        res = dothistimeout("loot ##{box.id}", 3, /^You search through/)
+				empty_left_hand if !GameObj.left_hand.id.nil?
+				res = dothistimeout("loot ##{box.id}", 3, /You search through/)
         SLoot.info('failed to LOOT box') if res.nil?
         sleep(0.10)
 
@@ -900,7 +961,13 @@ module SLoot
     end
 
     def self.obj(obj)
-      SLoot.free_hand
+      #SLoot.free_hand
+
+			obj_refill_hand = false
+			if !checkright.nil? && !checkleft.nil?
+				empty_hand
+				obj_refill_hand = true
+			end
 
       # Special handling for boxes
       if obj.type == 'box'
@@ -933,7 +1000,7 @@ module SLoot
       end
 
       # use built-in loot command
-      loot_match = /^You pick up|does not appear to be|There is no loot/
+			loot_match = /You pick up|does not appear to be|There is no loot/
       res = dothistimeout("loot ##{obj.id}", 3, loot_match)
       # failed, stow in default container
       return SLoot.drag(obj, obj.type) if res =~ /does not appear to be/
@@ -945,48 +1012,72 @@ module SLoot
       SLoot.info('sleeping for 3 seconds; kill me if you want to keep it')
       sleep(3)
       SLoot.drag(obj, 'drop')
+			if obj_refill_hand
+				fill_hand
+			end
     end
 
     def self.room
       Loot.objs(GameObj.loot.to_a, proc do
-        SLoot.free_hand
-        dothistimeout('loot room', 3, /With a discerning eye|There is no loot/)
-      end)
-    end
+        #SLoot.free_hand
+				if !checkright.nil? && !checkleft.nil?
+					empty_hand
+				end
+				dothistimeout('loot room', 3, /With a discerning eye|There is no loot/)
+				fill_hand
+			end)
+		end
 
     def self.objs(objs, routine)
-      objs = reject_invalid_loot(objs)
+			objs = Loot.reject_invalid_loot(objs)
 
       return if objs.empty?
 
       # Boxes go first. If handled, we reject them since they're already looted.
       objs = objs.reject do |obj|
-        next false unless obj.type == 'box'
+				next false unless obj.type == 'box' || obj.type == 'collectible' || (obj.type =~ /weapon|armor/i && obj.type =~ /uncommon/ && (SLoot.data.settings[:loot_exclude].length.positive? && obj.name !~ Regexp.union(SLoot.data.settings[:loot_exclude]))) # Demandred - added collectibles and uncommon weapon/armors
 
         Loot.obj(obj)
         next true
       end
 
-      # Anything left after boxes?
-      return if objs.empty?
+			# Anything left after boxes, collectibles, and uncommon weapon/armor?
+			return if objs.empty?
 
       # Find out what loot is valid so we can match it to the remaining room loot
-      valid = Loot.valid_objs(objs.clone)
+			valid = Loot.valid_objs(objs.clone) # Demandred - fix excluded loot
+			invalid = Loot.invalid_objs(objs.clone) # Demandred - fix excluded loot
 
       # Is there anything else we care about?
       return if valid.empty?
-
-      routine.call(valid)
-    end
+			# Demandred - fix excluded loot section
+			if invalid.empty?
+				routine.call(valid)
+			else
+				valid.each do |obj|
+					Loot.obj(obj)
+				end
+			end
+			# Demandred - fix excluded loot section end
+		end
 
     def self.search(objs = GameObj.dead.to_a)
       return if objs.empty?
 
-      objs.each do |obj|
-        SLoot.change_stance('defensive') if GameObj.targets.any? && SLoot.data.settings[:loot_defensive]
+			search_refill_hand = false
+
+			if objs.any? { |o| o.name =~ /skayl/ }
+				if !checkright.nil && !checkleft.nil?
+					empty_hand
+				end
+			end
+
+			objs.each do |obj|
+				#SLoot.change_stance('defensive') if GameObj.targets.any? && SLoot.data.settings[:loot_defensive]
+				SLoot.change_stance('defensive') if SLoot.data.settings[:loot_defensive] # Demandred change - always defensive if it says defensive
 
         # Some creatures require a free hand to loot
-        SLoot.free_hand if obj.name =~ /skayl/
+        #SLoot.free_hand if obj.name =~ /skayl/ # Demandred - handled this above
 
         # Loot it
         3.times do
@@ -996,8 +1087,15 @@ module SLoot
         end
 
         # Some creatures put an item directly in your hand
-        Loot.obj(GameObj.right_hand) if obj.name =~ /skayl/
-      end
+        #Loot.obj(GameObj.right_hand) if obj.name =~ /skayl/ # Demandred
+				if obj.name =~ /skayl/
+					Loot.obj(GameObj.right_hand)
+				end
+			end
+
+			if search_refill_hand
+				fill_hand
+			end
 
       # if the setting is on always end in defensive
       SLoot.change_stance('defensive') if @settings[:loot_defensive]
@@ -1006,18 +1104,59 @@ module SLoot
     def self.skin_obj_types(objs, type)
       return if objs.empty?
 
+						# Set some stuff up to fix skinning for blunt since it requires two hands(one empty)
+						swap_back_blunt = false
+						normal_fill_hand = false
+						blunt_fill_hands = false
+						blunt_fill_right_hand = false
+						blunt_fill_left_hand = false
+			
       # Find our skinner
       skinner = SLoot.find_skinner(type)
       has_skinner = skinner.nil? || [GameObj.right_hand.id, GameObj.left_hand.id].include?(skinner.id)
 
-      unless has_skinner
-        SLoot.free_hand
-        SLoot.drag(skinner, 'hand')
-      end
+			if type == :normal
+				if !has_skinner && !checkright.nil? && !checkleft.nil?
+					empty_hand
+					normal_fill_hand = true
+				end
+			elsif type == :blunt
+				if !has_skinner
+					empty_hands
+					blunt_fill_hands = true
+				else
+					if GameObj.right_hand.id == skinner.id
+						if !GameObj.left_hand.id.nil?
+							empty_left_hand
+							blunt_fill_left_hand = true
+						end
+					elsif GameObj.left_hand.id == skinner.id
+						if !GameObj.right_hand.id.nil?
+							empty_right_hand
+							blunt_fill_right_hand = true
+							fput "swap"
+							swap_back_blunt = true
+						end
+					end
+				end
+			end
+
+			unless has_skinner
+        #SLoot.free_hand
+				until [GameObj.right_hand.id, GameObj.left_hand.id].include?(skinner.id)
+					waitrt?
+					SLoot.drag(skinner, 'hand')
+					pause 0.2
+				end
+				# Demandred - next line added to help fix skinner hand stuff
+				now_has_skinner = [GameObj.right_hand.id, GameObj.left_hand.id].include?(skinner.id)
+			end
+
+			skinner_hand = skinner.id == GameObj.left_hand.id ? 'left' : 'right'
 
       # Safe to kneel?
       while GameObj.targets.empty? && SLoot.data.settings[:skin_kneel] && !kneeling?
-        dothistimeout('kneel', 3, /^You kneel down\.$|^You move to|^You are already kneeling\.$/)
+				dothistimeout('kneel', 3, /You kneel down\.$|You move to|You are already kneeling\.$/)
       end
 
       # Sigil of Resolve?
@@ -1027,6 +1166,15 @@ module SLoot
         Spell['Sigil of Resolve'].cast
       end
 
+						# Demandred - 604 stuff
+						if SLoot.data.settings[:skin_604] && Spell[604].affordable? && (!Spell[604].active? || (Spell[604].timeleft * 60).truncate() <= 10)
+							until Spell[604].active? && (Spell[604].timeleft * 60).truncate() > 5
+								Spell[604].cast
+								pause 0.1
+							end
+						end
+						# Demandred - end 604 stuff
+			
       skin_match = /
         You[ ]skinned|
         You[ ]botched|
@@ -1036,7 +1184,8 @@ module SLoot
         can[ ]only[ ]skin|
         You[ ]are[ ]unable[ ]to[ ]break[ ]through|
         You[ ]break[ ]through[ ]the[ ]crust[ ]of[ ]the|
-        You[ ]crack[ ]open[ ]a[ ]portion
+				You[ ]crack[ ]open[ ]a[ ]portion|
+				Because[ ]your[ ]account[ ]is[ ]free
       /x
 
       break_match = /
@@ -1048,47 +1197,83 @@ module SLoot
 
       # Skin em
       objs.each do |obj|
-        res = dothistimeout("skin ##{obj.id}#{skinner ? " with ##{skinner.id}" : ''}", 2, skin_match)
-        if res =~ /^You cannot skin/
-          SLoot.data.settings[:unskinnable].push(obj.name)
-        elsif res =~ break_match
-          SLoot.drag(Regexp.last_match(1).split.last, 'gem')
-        end
-      end
+				res = dothistimeout("skin ##{obj.id}#{(has_skinner || now_has_skinner) ? " #{skinner_hand}" : ''}", 2, skin_match) # Demandred - added now_has_skinner to fix hand
+				if res =~ /You cannot skin/
+					SLoot.data.settings[:unskinnable].push(obj.name)
+				elsif res =~ break_match
+					fput "stow gem ##{GameObj.left_hand.id}" # Demandred - changed to stow gem
+				end
+			end
 
-      return if has_skinner
-
-      SLoot.drag(skinner, SLoot.data.skinsheath)
-    end
+			SLoot.drag(skinner, SLoot.data.skinsheath) if !has_skinner
+			if swap_back_blunt
+				fput "swap"
+			end
+			fill_hand if normal_fill_hand
+			fill_hands if blunt_fill_hands
+			fill_right_hand if blunt_fill_right_hand
+			fill_left_hand if blunt_fill_left_hand
+		end
 
     def self.skin(objs = GameObj.dead.to_a)
       objs = objs.reject do |obj|
         SLoot.data.settings[:unskinnable].index(obj.name) > -1 ||
         obj.type =~ /bandit/ ||
-        obj.name =~ /^(?:ethereal|ghostly|unwordly|Grimswarm)/
+				obj.name =~ /(?:ethereal|ghostly|unwordly|Grimswarm)/
       end
 
       return if objs.empty?
 
-      blunts = objs.find_all { |obj| obj.name =~ /krynch/i }
-      normals = objs.reject { |obj| obj.name =~ /krynch/i }
+			blunts = objs.find_all { |obj| obj.name =~ /krynch|stone mastiff|krag dweller/i }
+			normals = objs.reject { |obj| obj.name =~ /krynch|stone mastiff|krag dweller/i }
 
       skin_obj_types(normals, :normal)
       skin_obj_types(blunts, :blunt)
 
       stance = checkstance
       SLoot.change_stance('offensive') if GameObj.targets.empty?
-      dothistimeout('stand', 3, /You stand|You quickly roll/) until standing?
+			dothistimeout('stand', 3, /You stand|You quickly roll|You are already standing/) until standing?
       SLoot.change_stance(stance) if checkstance != stance
     end
   end
 
   # Sell is a module that handles selling loot
   module Sell
+		
+		def self.gold_rings
+			rings = {}
+			if !SLoot.data.sacks["jewelry"].nil?
+				sack = SLoot.data.sacks["jewelry"]
+			else
+				sack = SLoot.data.sacks["default"]
+			end
+			rings = sack.contents.find_all { |item| item.name =~ /^(\w+) gold ring$/ }
+
+			return if rings.empty?
+
+			SLoot.go2("chronomage")
+			npc = GameObj.npcs.first
+
+			if not npc.nil?
+				empty_hands
+
+				rings.each { |ring|
+					fput "get ##{ring.id}"
+					fput "give ##{ring.id} to ##{npc.id}"
+
+					if checkleft or checkright
+						fput "put ##{ring.id} in my ##{sack.id}"
+					end
+				}
+
+				fill_hands
+			end
+		end
+
     def self.bounty_tasks
       # rubocop:disable Layout/LineLength
       skin_match = /You have been tasked to retrieve (\d+) (.*) of at least \w+ quality for (?:the )?\w+ (?:in|on|near) (?:(.*) (?:under|near|between) )?(?:the Company Store in )?([^.]+)\./
-      gem_match = /The gem dealer in ([^,]+), [^,]+, has received orders from multiple customers requesting (?:an?|some) ([^.]+)\.  You have been tasked to retrieve (\d+)/
+
       # rubocop:enable Layout/LineLength
 
       if bounty? =~ skin_match
@@ -1141,7 +1326,8 @@ module SLoot
         return
       end
 
-      SLoot.free_hand('right')
+      #SLoot.free_hand('right')
+			empty_right_hand
       SLoot.wait_for_disk
 
       boxes.each do |box|
@@ -1207,8 +1393,8 @@ module SLoot
       SLoot.go2('locksmith')
       SLoot.wait_for_disk
 
-      if (table = (GameObj.room_desc.to_a + GameObj.loot.to_a).find { |obj| obj.noun =~ /^(?:table|counter)$/ })
-        dothistimeout("look on ##{table.id}", 3, /^On the/) if table.contents.nil?
+			if (table = (GameObj.room_desc.to_a + GameObj.loot.to_a).find { |obj| obj.noun =~ /(?:table|counter)$/ })
+				dothistimeout("look on ##{table.id}", 3, /On the/) if table.contents.nil?
 
         if table.contents.nil?
           error('failed to find table contents')
@@ -1223,7 +1409,8 @@ module SLoot
           end
 
           if activator
-            SLoot.free_hands
+            #SLoot.free_hands
+						empty_hands
             boxes.each { |box| Sell.locksmith_open(box, activator) }
 
             SLoot.drag(GameObj.right_hand, 'drop') if GameObj.right_hand.type =~ /box/
@@ -1239,9 +1426,22 @@ module SLoot
     end
 
     def self.collectibles
-      cols = SLoot.find_sack('default').contents.find_all { |l| l.type =~ /collectible/ }
+			cols = {}
+			cols1 = SLoot.find_sack('default').contents.find_all { |l| l.type =~ /collectible/ }
+			cols2 = SLoot.find_sack('collectible').contents.find_all { |l| l.type =~ /collectible/ }
+			if !cols1.empty?
+				if !cols2.empty?
+					cols = cols1 + cols2
+				else
+					cols = cols1
+				end
+			else
+				if !cols2.empty?
+					cols = cols2
+				end
+			end
 
-      return if cols.empty?
+			return if cols.empty?
 
       SLoot.go2('collectibles')
 
@@ -1252,16 +1452,16 @@ module SLoot
     end
 
     def self.stow_notes
-      SLoot.drag(GameObj.right_hand, 'default') if GameObj.right_hand.noun =~ /^(?:note|scrip|chit)$/
-      SLoot.drag(GameObj.left_hand, 'default') if GameObj.left_hand.noun =~ /^(?:note|scrip|chit)$/
+			SLoot.drag(GameObj.right_hand, 'default') if GameObj.right_hand.noun =~ /(?:note|scrip|chit)$/
+			SLoot.drag(GameObj.left_hand, 'default') if GameObj.left_hand.noun =~ /(?:note|scrip|chit)$/
     end
 
     def self.sell
       fput('unhide') if ( hidden? || invisible? )
+			sell_ignore = []
 
-      starting_room = Room.current.id
-
-      SLoot.free_hands
+      #SLoot.free_hands
+			empty_hands
 
       # check for bounties
       Sell.bounty_tasks
@@ -1277,11 +1477,12 @@ module SLoot
 
       Sell.locksmith(boxes) if SLoot.data.settings[:sell_locksmith] && boxes.length.positive?
       Sell.collectibles if SLoot.data.settings[:sell_collectibles]
+			Sell.gold_rings if SLoot.data.settings[:sell_gold_rings]
 
       lootsack = SLoot.find_sack('default')
       get_loot = proc do |location|
-        lootsack.contents.find_all { |obj| obj.sellable =~ /^#{location}/i }.reject do |obj|
-          @sell_ignore.index(obj.id) ||
+				lootsack.contents.find_all { |obj| obj.sellable =~ /#{location}/i }.reject do |obj|
+					sell_ignore.index(obj.id) ||
             (SLoot.data.settings[:sell_exclude].length.positive? && obj.name =~ /#{SLoot.data.settings[:sell_exclude].join('|')}/) ||
             SLoot.data.settings[:sell_loot_types].none? { |loot_type| obj.type =~ /#{loot_type}/ }
         end
@@ -1295,7 +1496,7 @@ module SLoot
 
         SLoot.go2(location)
 
-        if location =~ /furrier|gemshop/
+				if ( (location =~ /furrier/ && (SLoot.data.settings[:sell_loot_types].include?('skin'))) || (location =~ /gemshop/ && (SLoot.data.settings[:sell_loot_types].include?('gem'))) )  && (lootsack.contents.find_all { |obj| obj.name =~ /#{SLoot.data.settings[:sell_exclude].join('|')}/ }).empty? # Demandred fix selling jewelry at gemshop instead of pawnshop
           SLoot.drag(lootsack, 'hand') if [checkleft, checkright].index(lootsack.noun).nil?
           dothistimeout("sell ##{lootsack.id}", 3, /inspects the contents carefully/)
           SLoot.drag(lootsack, 'wear') unless [checkleft, checkright].index(lootsack.noun).nil?
@@ -1311,10 +1512,14 @@ module SLoot
 
         # individual items time (appraisals)
         loot.each do |obj|
+					if sell_ignore.include?(obj.id)
+						echo "ignore included the id of something"
+						next
+					end
           if obj.type =~ /scroll/ && SLoot.data.settings[:sell_keep_scrolls].length.positive?
-            res = dothistimeout "read ##{obj.id}", 3, /^On the/
-            if res.nil?
-              @sell_ignore.push(obj.id)
+						res = dothistimeout "read ##{obj.id}", 3, /On the/
+						if res.nil?
+							sell_ignore.push(obj.id)
               next
             end
 
@@ -1328,7 +1533,7 @@ module SLoot
             end
 
             if (SLoot.data.settings[:sell_keep_scrolls] & spell_list).length.positive?
-              @sell_ignore.push(obj.id)
+							sell_ignore.push(obj.id)
               next
             end
           end
@@ -1337,12 +1542,12 @@ module SLoot
 
           if obj.type =~ /#{SLoot.data.settings[:sell_appraise_types].join('|')}/
             # rubocop:disable Layout/LineLength
-            appraise_match = /[,0-9,]+ (?:silver|Not my line, really|for it if you want to sell|for this if you'd like)|I'm not buying anything this valuable today|not quite my field|only deal in gems and jewelry|There is nothing of value to me|Trying to pull a fast one on old Hortemeyer, are you\?|Can't say I'm interested|That's basically worthless here|no use for that/
+						appraise_match = /[,0-9,]+ (?:silver|Not my line, really|for it if you want to sell|for this if you'd like)|not buying anything this valuable today|not quite my field|only deal in gems and jewelry|There is nothing of value to me|Trying to pull a fast one on old Hortemeyer, are you\?|Can't say I'm interested|That's basically worthless here|no use for that/
             denied = /Not my line, really|not quite my field|only deal in gems and jewelry|There is nothing of value to me|Trying to pull a fast one on old Hortemeyer, are you\?|no use for that/
-            accepted = /([,0-9,]+) (?:silver|for it if you want to sell|for this if you'd like)/
+						accepted = /([,0-9]+) (?:silver|for it if you want to sell|for this if you'd like)/
             # rubocop:enable Layout/LineLength
 
-            res = dothistimeout("appraise ##{obj.id}", 3, appraise_match)
+						res = dothistimeout "appraise ##{obj.id}", 3, appraise_match
 
             value = 99_999_999
             case location
@@ -1354,24 +1559,31 @@ module SLoot
               SLoot.info("appraise setting not available for #{location}; report this to Elanthia-Online")
             end
 
-            matched = Regexp.last_match(1).delete(',').to_i
+						# Demandred - trying to fix selling stuff that is over the appraise limit
+						#matched = Regexp.last_match(1).delete(',').to_i
+						if res =~ /([,0-9]+) (?:silver|for it if you want to sell|for this if you'd like)/
+							matched = $1.delete(",").to_i
+							echo "price match is #{matched}"
+						end
 
-            if res.nil? || (res =~ denied) || (res =~ accepted && matched >= value)
-              SLoot.debug('unknown response from appraisal!') if res.nil?
+						# Adding too valuable to sell jewelry to ignore because some of it will be attempted to be sold at the pawnshop and could cause issues...
+						if res.nil? || (res =~ denied) || (res =~ accepted && matched >= value) || res =~ /not buying anything this valuable today/
+							SLoot.debug('unknown response from appraisal!') if res.nil?
 
-              @sell_ignore.push(obj.id)
-              SLoot.drag(obj, 'default')
-              next
-            end
-          end
+							sell_ignore.push(obj.id)
+							SLoot.drag(obj, 'default')
+							echo sell_ignore
+							next
+						end
+					end
 
           # rubocop:disable Layout/LineLength
-          sell_match = /(?:pays|hands) you [,0-9]+ silver|not quite my field|only deal in gems and jewelry|no use for that|Where do you find this junk|That's basically worthless here/
-          # rubocop:enable Layout/LineLength
-          res = dothistimeout("sell ##{obj.id}", 3, sell_match)
-          @sell_ignore.push(obj.id) if res =~ /no use for that|That's basically worthless here/
-
-          Sell.stow_notes
+					sell_match = /(?:pays|hands) you [,0-9]+ silver|not quite my field|only deal in gems and jewelry|no use for that|Where do you find this junk|That's basically worthless here|I don't have that much spare silver, I will have to give you a bank note for it|I'm afraid I don't have that much silver on hand.+so I'll have to give you a .+ for it./ # Demandred - fix timeout issue missing match
+						# rubocop:enable Layout/LineLength
+						res = dothistimeout("sell ##{obj.id}", 3, sell_match)
+						sell_ignore.push(obj.id) if res =~ /no use for that|That's basically worthless here/
+	
+						Sell.stow_notes
 
           SLoot.drag(obj, 'default') if (GameObj.right_hand.id == obj.id) || (GameObj.left_hand.id == obj.id)
 
@@ -1389,8 +1601,6 @@ module SLoot
       fput('share all') if SLoot.data.settings[:sell_share_silvers] && ending_silver > 1
       fput('deposit all')
       fput("withdraw #{keep_silvers}") if keep_silvers.positive?
-      # return
-      SLoot.go2(starting_room)
     end
   end
 end
@@ -1405,7 +1615,7 @@ end
 
 # This allows partial matches the same way Gemstone works.
 # e.g., ;sloot sel would match ;sloot sell
-command = '^box^help^load^setup^sell'
+command = '^box^help^load^setup^sell^list'
 
 # No match - show help message
 unless (index = (command =~ /\^#{script.vars[1]}/))
@@ -1422,10 +1632,16 @@ when 'box'
   SLoot::Loot.box(GameObj.right_hand)
 when 'help'
   SLoot.help
+when 'list'
+	SLoot::Setup.new(SLoot.data.settings).list
 when 'load'
-  SLoot.load(CharSettings.to_hash)
+	SLoot.load(CharSettings.to_hash)
 when 'sell'
-  SLoot.sell
+	room = Room.current.id
+	SLoot.sell
+	SLoot.go2(room)
+	fill_hands
 when 'setup'
-  SLoot::Setup.new(SLoot.data.settings).start
+	SLoot::Setup.new(SLoot.data.settings).start
+	Settings.save
 end
