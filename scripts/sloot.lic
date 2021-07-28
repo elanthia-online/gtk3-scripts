@@ -10,17 +10,15 @@
           tags: loot
        version: 2.0.2
 
-	v2.0.2 (2021-07-25)
-		- Our chief edit is the loot. The loot and hands.
-		- Our TWO chief edits are loot and hands. And gold rings.
-		- Our THREE chief edits are loot, hands and gold rings. And many fixes to stuff and other stuff.
-		- AMONG our edits are such diverse changes as loot fixes, items stowing and getting back out, hands, gold rings to chronomage, 604 support...oh nevermind I'll come back in.
-		- Seriously though, lots of changes and fixes.
-		- Zealot stance stuff removed?
-		- Blunt skinning issues
-		- More.
-
-		todo - still trying to nail down this pesky data issue.
+  v2.0.2 (2021-07-25)
+    - Our chief edit is the loot. The loot and hands.
+    - Our TWO chief edits are loot and hands. And gold rings.
+    - Our THREE chief edits are loot, hands and gold rings. And many fixes to stuff and other stuff.
+    - AMONG our edits are such diverse changes as loot fixes, items stowing and getting back out, hands, gold rings to chronomage, 604 support...oh nevermind I'll come back in.
+    - Seriously though, lots of changes and fixes.
+    - Zealot stance stuff removed?
+    - Blunt skinning issues
+    - More.
 
   v2.0.1 (2021-05-08)
     - Corrected skinning issue for left-handed skinners
@@ -37,9 +35,12 @@
     - Updated internal comments
     - Updated to work with jinx data for sloot.ui
 
+  To Do:
+    - still trying to nail down this pesky data issue.
+
 =end
 
-SLoot_version = '2.0.0'
+SLoot_version = '2.0.2'
 
 # SLoot is a looter for Gemstone that focuses on performance
 module SLoot
@@ -93,15 +94,15 @@ module SLoot
 
     return unless SLoot.data.disk && SLoot.data.disk.status !~ /gone/ && SLoot.data.disk.contents.nil?
 
-		res = dothistimeout("look in ##{SLoot.data.disk.id}", 3, /In the|There is nothing|That is closed/)
-		return unless res =~ /That is closed/
+    res = dothistimeout("look in ##{SLoot.data.disk.id}", 3, /In the|There is nothing|That is closed/)
+    return unless res =~ /That is closed/
 
     fput("open ##{SLoot.data.disk.id}")
     fput("look in ##{SLoot.data.disk.id}")
   end
 
   def self.change_stance(stance)
-		return if Spell[216].active? || dead?
+    return if Spell['Frenzy'].active? || dead?
     return if checkstance(stance.strip)
     return if stance == 'defensive' && checkstance('guarded')
 
@@ -148,15 +149,15 @@ module SLoot
     from_id = input_to_id.call(from)
 
     if to_id.nil? || from_id.nil?
-			SLoot.info("there was an issue dragging #{from_id} to #{to_id}")
+      SLoot.info("there was an issue dragging #{from_id} to #{to_id}")
       return
     end
 
     SLoot.debug("#{from_id.inspect} to #{to_id.inspect}")
 
-		# Demandred - let's try changing this to dothistimeout - included aelotoi wings thing
-		#fput("_drag #{from_id} #{to_id}")
-		dothistimeout("_drag #{from_id} #{to_id}", 5, /^You|^Spreading your wings/)
+    # Demandred - let's try changing this to dothistimeout - included aelotoi wings thing
+    #fput("_drag #{from_id} #{to_id}")
+    dothistimeout "_drag #{from_id} #{to_id}", 5, /^You|^Spreading your wings/
 
     lines = reget.reverse[0..5]
 
@@ -165,7 +166,7 @@ module SLoot
       @sacks_to_close.push(to_id)
       fput("open #{to_id}")
       drag(from, to)
-		elsif lines.any? { |l| l =~ /There appears to be an/i }
+    elsif lines.any? { |l| l =~ /There appears to be an/i }
       SLoot.info('Possibly an item you want to keep')
       SLoot.info('Sleeping for 10 seconds: ;kill the script to hold onto it')
       sleep(10)
@@ -200,7 +201,7 @@ module SLoot
       SLoot.data.skinsheath ||= find_sack('default')
     end
 
-		dothistimeout("look in ##{SLoot.data.skinsheath.id}", 3, /In the/) unless SLoot.data.skinsheath.contents
+    dothistimeout("look in ##{SLoot.data.skinsheath.id}", 3, /In the/) unless SLoot.data.skinsheath.contents
 
     items = SLoot.data.skinsheath.contents.clone
     items.push(GameObj.right_hand)
@@ -224,13 +225,13 @@ module SLoot
   def self.find_sack(type = 'default')
     type = 'default' unless SLoot.data.sacks[type]
 
-		res = dothistimeout("look in ##{SLoot.data.sacks[type].id}", 3, /In the|There is nothing|That is closed/) unless SLoot.data.sacks[type].contents
-		## Demandred - let's add a case if the container is closed...not sure why it wasn't here. Also added There is nothing - again, not sure why not here...
-		if res =~ /That is closed/
-			dothistimeout("open ##{SLoot.data.sack[type].id}", 3, /^You /)
-			dothistimeout("look in ##{SLoot.data.sacks[type].id}", 3, /In the|There is nothing/)
-		end
-		## Demandred - end case of closed container - Regex for opening may need additions in the case of weird containers that don't start the line with "You ..."
+    res = dothistimeout("look in ##{SLoot.data.sacks[type].id}", 3, /In the|There is nothing|That is closed/) unless SLoot.data.sacks[type].contents
+    # Demandred - let's add a case if the container is closed...not sure why it wasn't here. Also added There is nothing - again, not sure why not here...
+    if res =~ /That is closed/
+      dothistimeout("open ##{SLoot.data.sack[type].id}", 3, /^You /)
+      dothistimeout("look in ##{SLoot.data.sacks[type].id}", 3, /In the|There is nothing/)
+    end
+    # Demandred - end case of closed container - Regex for opening may need additions in the case of weird containers that don't start the line with "You ..."
 
     SLoot.data.sacks[type]
   end
@@ -245,7 +246,8 @@ module SLoot
       return
     end
 
-		SLoot.change_stance('defensive') if SLoot.data.settings[:loot_defensive] # Demandred change - always go to defensive if set to go defensive!
+    # Demandred change - always go to defensive if set to go defensive!
+    SLoot.change_stance('defensive') if SLoot.data.settings[:loot_defensive]
 
     Loot.skin if data.settings[:skin_enable]
     Loot.search
