@@ -47,6 +47,7 @@
     <property name="height_request">480</property>
     <property name="can_focus">False</property>
     <property name="resizable">False</property>
+    <property name="title" translatable="yes">Sloot Setup</property>
     <property name="modal">True</property>
     <signal name="destroy" handler="on_destroy" swapped="no"/>
     <child>
