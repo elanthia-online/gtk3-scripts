@@ -985,7 +985,7 @@ get_target_info = proc { |target|
                 if spell = Spell.list.find { |s| s.name == spell_name.strip() or s.num.to_s == spell_name.strip() }
                     target_info[spell.num.to_s] = spell_time
                 else
-                    echo "no spell matches #{spell_name}" if $waggle_debug
+                    echo "no spell matches #{spell_name}" if @waggle_debug
                 end
             end
         }
