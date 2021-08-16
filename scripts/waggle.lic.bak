@@ -14,10 +14,6 @@
   Version Control:
     Major_change.feature_addition.bugfix
 
-  0.18 (2021-08-16)
-    update to add debug option, fixed some parsing issues, forced self spelling
-    to use spell active, silenced spell active command
-    to debug run with '--debug' anywhere in the command line
   0.17.0 (2021-08-12):
     updated with new SPELL ACTIVE format
     updated header information for standardization
@@ -58,12 +54,7 @@ cast_list         = CharSettings['cast_list']         || [ 101, 102, 103, 107, 1
 did_something     = false
 fix_setting       = { 'on' => true, 'off' => false }
 short_spell_time  = 3
-@waggle_debug			= false
 
-if setting = script.vars.find { |var| var =~ /^\-\-debug/ }
-	@waggle_debug = true
-	script.vars.delete(setting)
-end
 if setting = script.vars.find { |var| var =~ /^\-\-start[_\-]at=[0-9]+$/ }
    start_at = setting.slice(/[0-9]+/).to_i
    script.vars.delete(setting)
@@ -935,19 +926,17 @@ def wag_quiet_command(command, include_end = true, timeout=5)
                 result << xml.rstrip    
                 done = true
                 thread.raise(Interrupt)
-            elsif xml =~ /(?:has|have) the following active effects/
-                filter = true
+            elsif xml =~ /has the following active effects/
                 next(nil)
-            elsif xml =~ /^  ([A-z0-9\s\'\(\)\-]+) \.* (([0-9]+)\:([0-9]+)\:([0-9]+)|Indefinite)/
+            elsif xml =~ /([A-z0-9\s\'\(\)\-]+) \.* (([0-9]+)\:([0-9]+)\:([0-9]+)|Indefinite)/
+                filter = true
                 result << xml.rstrip
                 next(nil)
             else
                 xml
             end
         })
-        silence_me if !@waggle_debug
         fput command
-        silence_me if !@waggle_debug
         sleep(timeout)
         return nil
     rescue Interrupt
@@ -958,16 +947,12 @@ def wag_quiet_command(command, include_end = true, timeout=5)
 end
 
 get_target_info = proc { |target|
-    if target == Char.name
-        res = wag_quiet_command("spell active")
-    else
-        res = wag_quiet_command("spell active #{target}")
-    end
+    res = wag_quiet_command("spell active #{target}")
     target_info = Hash.new
     if res[0] !~ /has spell sharing disabled/
         res.each { |line|
             # Parsing from Infomon
-            if line =~ /^  ([A-z0-9\s\'\(\)\-]+) \.* (([0-9]+)\:([0-9]+)\:([0-9]+)|Indefinite)$/
+            if line =~ /([A-z0-9\s\'\(\)\-]+) \.* (([0-9]+)\:([0-9]+)\:([0-9]+)|Indefinite)$/
                 spell_name = $1
                 if $2 == 'Indefinite'
                     spell_time = 599.0
@@ -977,15 +962,15 @@ get_target_info = proc { |target|
                 if spell_name == 'Raise Dead Recovery'
                     # fixme
                     spell_name = 'Raise Dead Cooldown'
-                elsif spell_name =~ /Mage Armor \- /
+                elsif spell_name =~ /^Mage Armor \- /
                     spell_name = 'Mage Armor'
-                elsif spell_name =~ /Cloak of Shadows \- /
+                elsif spell_name =~ /^Cloak of Shadows \- /
                     spell_name = 'Cloak of Shadows'
                 end
                 if spell = Spell.list.find { |s| s.name == spell_name.strip() or s.num.to_s == spell_name.strip() }
                     target_info[spell.num.to_s] = spell_time
                 else
-                    echo "no spell matches #{spell_name}" if $waggle_debug
+                    echo "no spell matches #{spell_name}" if $infomon_debug
                 end
             end
         }
@@ -1034,7 +1019,7 @@ target_info = Hash.new
 target_list.each { |name|
    if name == Char.name
       target_info[Char.name] = Hash.new
-      target_info[Char.name] = get_target_info.call(Char.name)
+      Spell.active.each { |spell| target_info[Char.name][spell.num.to_s] = spell.timeleft }
    elsif skip_jerks
       spell_info = get_target_info.call(name)
       if spell_info.nil?
