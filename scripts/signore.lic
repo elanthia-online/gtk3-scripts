@@ -5,30 +5,36 @@
     ;signore setup            launches the GUI
     ;signore room:list        lists all rooms currently tagged as anti-magic
     ;signore room:rm  <num>   the anti-magic tag from room <num>
-
+  
+      maintainer: elanthia-online
+  contributers: Ondreian
+          game: Gemstone
+          tags: col, Signore
+      required: Lich > 5.0x
+       version: .6
+        Source: https://github.com/elanthia-online/jinx
+    Alt Source: https://github.com/elanthia-online/lich-5
+  
+  
+   Version Control: 
   changelog:
     2-18-2017           Settings now only exist per character
     8-15-2017           Signore now waits to cast while go2 is running
     2-23-2019  v0.0.4   Fix using Gtk.queue for Windows
     2-24-2019  v0.0.5   add Sigil of Concentration
-
-  Required: Lich 4.3.12
-  Author: Ondreian
-  version: 0.0.5
-  Tags:col, Signore
-
+	8-21-2021  v0.0.6 	Updated to support GTK3
+    
 =end
 
-help = "
+@help = "
 ;signore setup            launches the GUI
 ;signore room:list        lists all rooms currently tagged as anti-magic
 ;signore room:rm  <num>   the anti-magic tag from room <num>
 "
-#require "gtk2"
 
 class Try
   attr_accessor :result, :task
-
+  
   def self.of(&task)
     proc { Try.new task }
   end
@@ -62,7 +68,8 @@ class Try
 end
 
 module Signore
-  list = [
+
+  @avail_list = [
     # CoL
     Spell[9903],
     Spell[9904],
@@ -89,13 +96,13 @@ module Signore
     Spell[9714],
     Spell[9715],
     Spell[9716],
-    Spell[9719],
+    Spell[9719], 
   ]
 
-  main       = Script.current
-  punishment = Spell[9012]
-  antimagic  = /^The power from your sign dissipates into the air.$/
-  success    = Regexp.union(
+  @main       = Script.current
+  @punishment = Spell[9012]
+  @antimagic  = /^The power from your sign dissipates into the air.$/
+  @success    = Regexp.union(
       /^You flex your muscles with renewed vigor!$/,
       /^You grip your (.*?) with renewed vigor!$/,
       /^Your veins throb and your blood sings.$/,
@@ -113,7 +120,7 @@ module Signore
       /^As you concentrate on your sigil/,
       /^You feel infused with a collective knowledge on the undead and their weaknesses.$/)
 
-  beserk = /^You cannot do that while berserking.$/
+  @berserk = /^You cannot do that while berserking.$/
 
   ##
   ## @brief      makes the GTK thread join the Script thread
@@ -121,13 +128,13 @@ module Signore
   ##
   def self.in_main_thread
     original_thread_group = Thread.current.group
-    if original_thread_group != main.thread_group
-      unless main.thread_group.list.include?(Thread.current)
-        main.thread_group.add Thread.current
+    if original_thread_group != @main.thread_group
+      unless @main.thread_group.list.include?(Thread.current)
+        @main.thread_group.add Thread.current
       end
     end
     res = Try.new { yield }
-    if original_thread_group != main.thread_group
+    if original_thread_group != @main.thread_group
       original_thread_group.add Thread.current
     end
     res
@@ -138,11 +145,11 @@ module Signore
   end
 
   def self.punished?
-    punishment.active?
+    @punishment.active?
   end
 
   def self.available
-    list.select {|spell| spell.known? }
+    @avail_list.select {|spell| spell.known? }
   end
 
   def self.save(key, state)
@@ -166,7 +173,7 @@ module Signore
     unless Settings[:antimagic_rooms].include?(num)
       _respond "#{$monsterboldstart}adding #{num} as antimagic#{$monsterboldend}"
       _respond Settings[:antimagic_rooms].join(", ")
-      list = Settings[:antimagic_rooms]
+      list = Settings[:antimagic_rooms] 
       list.push num
       Settings[:antimagic_rooms] = list
       Settings.save
@@ -195,12 +202,12 @@ module Signore
     wait_while do Script.running?("go2") end
 
     if power.affordable? && active?(power) && !power.active? && !antimagic_room?
-      result = dothistimeout(power.to_s, 5,
-        Regexp.union(antimagic, success))
+      result = dothistimeout(power.to_s, 5, 
+        Regexp.union(@antimagic, @success))
       case result
-      when success   then true
-      when antimagic then Signore.add_anti_magic_room(Room.current.id)
-      when beserk   then berserk_timeout!
+      when @success   then true
+      when @antimagic then Signore.add_anti_magic_room(Room.current.id)
+      when @berserk   then berserk_timeout!
       else
         until line=get do sleep(1) end
         sleep(1) # game is responsive again
@@ -217,22 +224,25 @@ module Signore
       .select { |power| !power.active? }
       .each { |power| cast power }
   end
+  
+  def self.gtk_active
+	active_gtk = Gtk::Version::STRING.chr
+  end
 end
 
 Settings[:antimagic_rooms] ||= []
 
-module Gui
+module Gui 
 
   class Toggle < Gtk::CheckButton
     attr_accessor :power, :parent
-
+    
     def initialize(power, parent)
       @power = power
       super @power.to_s
-#      set_active Signore.active?(@power)
-    self.active = Signore.active?(@power)
-
-      signal_connect("clicked") {
+	  self.active = Signore.active?(@power)
+	  
+      signal_connect("clicked") { 
         if on_clicked.failed?
           respond "Signore.error >> " + on_clicked.result.message
         end
@@ -252,8 +262,8 @@ module Gui
     def initialize(toggleables)
       super :toplevel
       @closed = false
-      @layout = Gtk::Box.new(:vertical, 0)
-
+      @layout = Gtk::Box.new(:vertical, 0) if Signore.gtk_active == '3'
+	  @layout = Gtk::VBox.new(false, 0) if Signore.gtk_active == '2'
       set_title "Signore::Setup"
       set_border_width 10
 
@@ -276,7 +286,7 @@ module Gui
   end
 end
 
-wait_while do
+wait_while do 
   Script.running?("repository") end
 
 Signore.add_anti_magic_room(2642)
@@ -303,7 +313,7 @@ if script.vars.include?("room:rm")
     respond "you must pass a room to delete"
     exit
   end
-  Settings[:antimagic_rooms] = Settings[:antimagic_rooms].reject { |id|
+  Settings[:antimagic_rooms] = Settings[:antimagic_rooms].reject { |id|  
     id == to_delete.to_i
   }
   CharSettings.save
@@ -331,7 +341,7 @@ if running? "repository"
 end
 
 unless running? "infomon"
-  echo "waiting for infomon service..."
+  echo "waiting for infomon service..." 
   wait_until { running? "infomon" }
 end
 
