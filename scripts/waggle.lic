@@ -945,9 +945,7 @@ def wag_quiet_command(command, include_end = true, timeout=5)
                 xml
             end
         })
-        silence_me if !@waggle_debug
         fput command
-        silence_me if !@waggle_debug
         sleep(timeout)
         return nil
     rescue Interrupt
@@ -958,11 +956,13 @@ def wag_quiet_command(command, include_end = true, timeout=5)
 end
 
 get_target_info = proc { |target|
+    silence_me if !@waggle_debug
     if target == Char.name
         res = wag_quiet_command("spell active")
     else
         res = wag_quiet_command("spell active #{target}")
     end
+    silence_me if !@waggle_debug
     target_info = Hash.new
     if res[0] !~ /has spell sharing disabled/
         res.each { |line|
