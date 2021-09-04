@@ -880,7 +880,11 @@ cast_spell = proc { |spell, target, num_multicast|
   spell = fix_spell.call(spell)
   result = nil
   loop {
-    Feat.known?(:mental_acuity) ? check_stamina.call(spell, num_multicast) : check_mana.call(spell, num_multicast)
+    if Object.const_defined?(:Feat) && Feat.known?(:mental_acuity)
+      check_stamina.call(spell, num_multicast)
+    else
+      check_mana.call(spell, num_multicast)
+    end
     if target == Char.name
       if num_multicast > 1
         cast_result = spell.cast(num_multicast.to_s)
