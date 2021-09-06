@@ -253,7 +253,7 @@ current_level = Char.level
 setup = proc{
   Gtk.queue {
     $auto_level_WINDOW = Gtk::Window.new
-    $auto_level_WINDOW.set_icon(@@default_icon)
+    $auto_level_WINDOW.set_icon(@default_icon)
     $auto_level_WINDOW.title = "auto_level"
     $auto_level_WINDOW.set_border_width(10)
     $auto_level_BOX = Gtk::Box.new(:vertical)

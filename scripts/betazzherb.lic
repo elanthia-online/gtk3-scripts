@@ -88,7 +88,7 @@ setup = proc {
 
     # Primary Window
     window = Gtk::Window.new
-  window.set_icon(@@default_icon)
+  window.set_icon(@default_icon)
     window.title = "Zzentar's Forgaging Script"
     window.border_width = 3
     window.resizable = false

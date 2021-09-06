@@ -30,7 +30,7 @@ end
 setup = proc{
   Gtk.queue {
     $MB_WINDOW = Gtk::Window.new
-    $MB_WINDOW.set_icon(@@default_icon)
+    $MB_WINDOW.set_icon(@default_icon)
     $MB_WINDOW.title = "Mybounty Setup"
     $MB_WINDOW.set_border_width(10)
     $MB_BOX = Gtk::Box.new(:vertical)

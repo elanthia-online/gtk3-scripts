@@ -328,7 +328,7 @@ elsif script.vars[1] =~ /^setup$|^options$/i
 			main_box.pack_start(button_box, :expand => false, :fill => false, :padding => 0)
 
 			window = Gtk::Window.new
-			window.set_icon(@@default_icon)
+			window.set_icon(@default_icon)
 			window.title = 'waggle setup'
 			window.border_width = 5
 			window.add(main_box)
