@@ -1,24 +1,26 @@
 =begin
-Updated 8-1-19:  Fixed some messaging.
+CURE- a script to handle healing while resting or hunting. 
+ 
+	Maintainer: Elanthia-Online
+	Original Authors: Tayre, Ashraam
+	Updated by: Talonhawke@gmail.com
+	game: Gemstone
+	tags: heal, cure, empath  
+	required: Lich > 5.0.1
+	version: 1.2
+
+  changelog:
+    version 1.2 (2021-09-20) Modifications by EO to support aligned menus
+    version 1.1 (2019-08-01) Fixed some messaging
+    version 1.0              Initial release
+
 
 This script started as a combination of Heal (by Tayre) and Healself (by Ashraam).  I have heavily modified it since then.
 
 Features include taking scars if your training allows, custom healing messages *should* work, as well as a lot of customization options!
 
 Please use ";cure setup" first!
-
-You may also want to ";repo set-updatable cure.lic" since it's still a work in progress.
-
-Let me know if there are any issues or anything that might be added or changed!
-
-Email: Talonhawke@gmail.com
 =end
-
-before_dying { DownstreamHook.remove("Appraising") }
-if $SAFE > 0
-        echo "This script needs to be trusted to work. (;trust #{script.name})"
-        exit
-end
 
 if Stats.prof != 'Empath'
   respond "Nice try, non-empath person!"
@@ -424,7 +426,7 @@ if script.vars[1] =~ /^setup$|^options$/i
     huntscarBox.pack_start(rightarm_scars_HuntCheck, :expand => true, :fill => false, :padding => 0)
     huntscarBox.add(Gtk::Label.new("Left Arm:"))
     huntscarBox.pack_start(leftarm_scars_HuntCheck, :expand => true, :fill => false, :padding => 0)
-      huntscarBox.add(Gtk::Label.new("Right Hand:"))
+    huntscarBox.add(Gtk::Label.new("Right Hand:"))
     huntscarBox.pack_start(righthand_scars_HuntCheck, :expand => true, :fill => false, :padding => 0)
     huntscarBox.add(Gtk::Label.new("Left Hand:"))
     huntscarBox.pack_start(lefthand_scars_HuntCheck, :expand => true, :fill => false, :padding => 0)
@@ -432,11 +434,9 @@ if script.vars[1] =~ /^setup$|^options$/i
     huntscarBox.pack_end(nerves_scars_HuntCheck, :expand => true, :fill => false, :padding => 0)
 
     WelcomeText = Gtk::Label.new(";cure <commands>:\n\n;cure all or ;cure <target> all\nIncluding the word 'all' will heal you down of all wounds.\n\n;cure group\nHeals everyone in your group.\n\n;cure room\nHeals everyone in a room. Use this responsibly!\n\n\nThis script is still very untested!  Please contact me if you have any feedback!  Talonhawke@gmail.com")
-    WelcomeText.wrap = true
     ModeText = Gtk::Label.new("Mode Button: Toggles between settings for Hunting and Healing which can be set on their respective tabs.\nYou can also change this by typing ;#{script.name} hunt or ;#{script.name} heal")
-    ModeText.wrap = true
-    AllButtonsText = Gtk::Label.new("All Wounds & All Scars: Sets the level of wound or scar that will be healed down to. A value of 3 will do nothing, while 0 will attempt to heal down completely.\n\nWARNING: These buttons will override any higher values set on the Hunting and Healing Setup tabs. They are here for those who want to keep things simple!")
-    AllButtonsText.wrap = true
+    AllButtonsText = Gtk::Label.new("All Wounds & All Scars:\tSets the level of wound or scar that will be healed down to. \n\t\t\t\t\tA value of 3 will do nothing, while 0 will attempt to heal down completely.\n\nWARNING:\tThese buttons will override any higher values set on the Hunting and Healing Setup tabs.\n\t\t\tThey are here for those who want to keep things simple!")
+
 
 #   toolTips = Gtk::Tooltips.new
     HNPriorityCheck.set_tooltip_text("If active, will cause the script to heal any head or nervous system wounds down to a Level 1 scar before doing other injuries.\nUseful if you're worried about XP loss from these injuries.")
@@ -447,9 +447,7 @@ if script.vars[1] =~ /^setup$|^options$/i
 
     simpleTable = Gtk::Table.new(11,2,false)
     simpleTable.border_width = 10
-#   hunt_table.attach(advancedHuntText,0,2,0,1,:shrink,:shrink,20,20)
-#   simpleBox = Gtk::VBox.new(true, 0)
-#   simpleBox.set_size_request(300, 400)
+
     simpleTable.attach(AllButtonsText,0,2,2,3,:shrink,:shrink,20,20)
     simpleTable.attach(allWoundsLabel,0,1,0,1,:shrink,:shrink,20,5)
     simpleTable.attach(allScarsLabel,1,2,0,1,:shrink,:shrink,20,5)
@@ -457,15 +455,6 @@ if script.vars[1] =~ /^setup$|^options$/i
     simpleTable.attach(allScarsCheck,1,2,1,2,:shrink,:shrink,20,5)
     simpleTable.attach(ModeText,0,2,4,5,:shrink,:shrink,20,0)
     simpleTable.attach(toggleCheck,0,2,3,4,:shrink,:shrink,20,10)
-=begin
-    simpleTable.attach(HNPriorityCheck, 0, 1, 5, 6, Gtk::SHRINK|Gtk::FILL,Gtk::SHRINK|Gtk::FILL,20,30)
-    simpleTable.attach(useTBCheck, 1, 2, 5, 6, Gtk::SHRINK|Gtk::FILL,Gtk::SHRINK|Gtk::FILL,20,30)
-    simpleTable.attach(altBehaviorCheck, 0, 1, 7, 8, Gtk::SHRINK|Gtk::FILL,Gtk::SHRINK|Gtk::FILL,20,10)
-    simpleTable.attach(useSignsCheck, 1, 2, 7, 8,Gtk::SHRINK|Gtk::FILL,Gtk::SHRINK|Gtk::FILL,20,10)
-    simpleTable.attach(doneVerbCheckLabel, 0, 2, 8, 9,Gtk::SHRINK|Gtk::FILL,Gtk::SHRINK|Gtk::FILL,20,10)
-    simpleTable.attach(doneVerbCheck, 0, 2, 9, 10,Gtk::SHRINK|Gtk::FILL,Gtk::SHRINK|Gtk::FILL,20,0)
-    simpleTable.attach(WelcomeText,0,2,10,11,Gtk::SHRINK|Gtk::FILL,Gtk::SHRINK|Gtk::FILL,20,40)
-=end
 
     simpleTable.attach(HNPriorityCheck, 0, 1, 5, 6, :shrink,:shrink,20,30)
     simpleTable.attach(useTBCheck, 1, 2, 5, 6, :shrink,:shrink,20,30)
